@@ -891,7 +891,10 @@ BOOL CProtocol::RecWriteFile(void)
             
             if(bValnew > 3) bValnew = 1;
             if(bValCur != bValnew)
-              CreatNewSoe(g_ucYXAddr[i]-1,bValnew,2);
+			{
+			 g_gRmtInfo[(g_ucYXAddr[i]-1)]=bValnew;	
+              	//CreatNewSoe(g_ucYXAddr[i]-1,bValnew,2);
+            		}
           }
           SetYxTrans();
           SendWrPaSuc();
@@ -906,8 +909,16 @@ BOOL CProtocol::RecWriteFile(void)
 		pData += 2;
           }
 
-          if(pGprs != null)((CBJ101S*)pGprs)->SendYCGroup(0,20,9);
-	    if(pDbg!= null)((CBJ101S*)pDbg)->SendYCGroup(0,20,9);	  
+          if(pGprs != null)
+		  	{
+		  	((CBJ101S*)pGprs)->m_wSendYcNum = 0;
+			((CBJ101S*)pGprs)->SendYCGroup(0,20,9);
+			}
+	    if(pDbg!= null)
+			{
+			((CBJ101S*)pDbg)->m_wSendYcNum = 0;
+			((CBJ101S*)pDbg)->SendYCGroup(0,20,9);
+			}	  
 	   SendWrPaSuc();	  
         }
         break;
