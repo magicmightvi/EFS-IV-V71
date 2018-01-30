@@ -907,6 +907,7 @@ BOOL CProtocol::RecWriteFile(void)
           }
 
           if(pGprs != null)((CBJ101S*)pGprs)->SendYCGroup(0,20,9);
+	    if(pDbg!= null)((CBJ101S*)pDbg)->SendYCGroup(0,20,9);	  
 	   SendWrPaSuc();	  
         }
         break;

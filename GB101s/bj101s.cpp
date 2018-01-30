@@ -468,8 +468,12 @@ BOOL CBJ101S::RecFrame68(void)
             RecReadData();
             m_zdflag=0;
             break;//读数据处理
-        case 0x67:	     	
-            RecSetClock();
+        case 0x67:	
+		if(m_dwasdu.COT==0x05)
+			 {RecReadClock();}
+		else
+            		{RecSetClock();}
+			
             break;//时钟同步
         case 0x68:
             RecTestLink();
@@ -3327,6 +3331,13 @@ BOOL CBJ101S::RecSetClock(void)
 //#ifdef CQ_101S	
     SendBaseFrame(0,0);//张弢重庆 总召要个确认报文
 //#endif     
+    m_timeflag=1;
+    return true;
+}
+//解析读时钟报文
+BOOL CBJ101S::RecReadClock(void)
+{
+    SendBaseFrame(0,0);//张弢重庆 总召要个确认报文
     m_timeflag=1;
     return true;
 }
