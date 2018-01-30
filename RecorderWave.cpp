@@ -1485,7 +1485,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
         *pTxBuf++ =gRecorder_Readfilecfg.TOTAL_Leng>>8;
         *pTxBuf++ =gRecorder_Readfilecfg.TOTAL_Leng>>16;
         *pTxBuf++ =0x80;//文件准备就绪  //山东录波协议  =0；
-        //pTXBuff[5+g_ucPara101[IECP_LINKADDR_NUM]] = FILEPREPAR_TYPE;//120 0x78//山东录波协议 
+        pTXBuff[5+g_ucPara101[IECP_LINKADDR_NUM]] = FILEPREPAR_TYPE;//120 0x78//山东录波协议 
         section_current=1;
       }
       else if(pTXBuff[leng + 3]==6)//请求节
@@ -1503,11 +1503,12 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
             pTxBuf = FileDatadat(pTxBuf,leng,wSecLenPtr,segment_leng);           
          }       
       }
-	  /*//山东录波协议 
+	  /*//山东录波协议*/ 
       else if(pTXBuff[leng + 3]==2)  //请求文件传输，SCQ=2
       	{
+      	pTXBuff[5+g_ucPara101[IECP_LINKADDR_NUM]] =SECTIONPREPAR_TYPE;////121 0x79//山东录波协议 
       	pTxBuf = SectionPrepareFile(pTxBuf,leng,&gRecorder_Readfilecfg);//节确认
-      	}  */      
+      	}        
     }
     else if(pTXBuff[5+g_ucPara101[IECP_LINKADDR_NUM]]== APPROVALFILE_TYPE)//124 0x7C//认可文件、节的流程处理
     {
