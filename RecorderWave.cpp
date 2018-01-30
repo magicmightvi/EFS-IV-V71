@@ -699,7 +699,7 @@ unsigned char *  FileDatadat(unsigned char *pTxBuf,unsigned char leng,WORD wSecL
    if(gRes_rec.res_timeout >=4)
    	wSendDATNum=wSendDATNumOld;
    wSendDATNumOld =wSendDATNum;	
-    FileName = MAKEWORD(gRecorder_flag.pRXBuff[leng],gRecorder_flag.pRXBuff[leng + 1])-1;
+    FileName = MAKEWORD(gRecorder_flag.pRXBuff[leng],gRecorder_flag.pRXBuff[leng + 1]);
     Sample_num=gRecorder_Readfilecfg.CFG_EndSamp;	//张弢 录波的条数
 	//Sample_num=300;
     if( wSendDATNum >= Sample_num )//最后一段
