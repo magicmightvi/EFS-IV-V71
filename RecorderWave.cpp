@@ -1453,7 +1453,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
   }
   else if(pTXBuff[7+g_ucPara101[IECP_LINKADDR_NUM]] == FILETRANS_COT)//召唤文件的传送原因
   {
-    FileName = MAKEWORD(gRecorder_flag.pRXBuff[leng],gRecorder_flag.pRXBuff[leng + 1])-1;
+    FileName = MAKEWORD(gRecorder_flag.pRXBuff[leng],gRecorder_flag.pRXBuff[leng + 1]);
     if(FileName<(MAX_REC_NUM+1))
     	{
     	FADDR_RECORDER =FADDR_RECORDER_DATA-256+ (unsigned long)(FileName+1)*0x2000;
