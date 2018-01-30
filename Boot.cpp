@@ -1006,7 +1006,7 @@ void UpInitClk(void)@"UPDATECODE"
         UCSCTL7 &= ~(XT2OFFG + XT1LFOFFG + DCOFFG);
                                             // Clear XT2,XT1,DCO fault flags
         SFRIFG1 &= ~OFIFG;                      // Clear fault flags
-        for(i=0;i<0xFFFF;i++);                  // Delay for Osc to stabilize
+        for(i=0;i<0xFFF5;i++);                  // Delay for Osc to stabilize
     }while (SFRIFG1&OFIFG);                   // Test oscillator fault flag
     UCSCTL4 |= SELS_4 + SELM_4+SELA_5;               // SMCLK=MCLK=DCO  ACLK = XT2    
 }

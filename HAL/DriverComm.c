@@ -51,8 +51,8 @@ void InitSCI(void)
     UCA1CTL1 |= UCSWRST;           // **Put state machine in reset**
     UCA1CTL1 |= UCSSEL_1;          // ACLK
 
-    UCA1BR0 = 0x38;                // 16MHz 19200 (see User's Guide)
-    UCA1BR1 = 0x01;                // 16MHz 19200//9600=1666(0x682)  57600=277(x115) 115200=138(8a)
+    UCA1BR0 = 0x82;                // 16MHz 19200 (see User's Guide)
+    UCA1BR1 = 0x06;                // 16MHz 19200//9600=1666(0x682)  57600=277(x115) 115200=138(8a)
 									   //19200=833(x341) 38400=416(x1a0)
     UCA1CTL1 &= ~UCSWRST;          // **Initializ1 RX 中断+UCTXIE
     UCA1IE |= (UCRXIE + UCTXIE);              // 使能 USCI_A0 RX 中断
@@ -196,7 +196,7 @@ unsigned char  ucRxdReg;
            // if((g_CmIdGPRS == cCmId) && !g_GprsPowerSt)//for test 模拟GPRS关闭状态，关闭子站应该收不到数据
              // break;
             ucRxdReg = UCA1RXBUF;
-            g_sRxBuff[cCmId].m_iRcvCount = 30;
+            g_sRxBuff[cCmId].m_iRcvCount = 50;
              g_sRxBuff[cCmId].m_iBufT &= (MAX_RXBUFF_LEN - 1);
             g_sRxBuff[cCmId].m_gBuf[g_sRxBuff[cCmId].m_iBufT] = ucRxdReg;   //保存数据到接收缓冲器 
             g_sRxBuff[cCmId].m_iBufT++;
