@@ -75,14 +75,14 @@ BOOL CBJ101S::Init(WORD uartId)
     m_zdflag=0;
     m_linkflag=0;
     m_testflag=0;
-    m_timeflag = 0;
+    m_timeflag = 0;m_timeREQflag = 0;    
 
     m_resetflag = 0;
     m_groupflag=0;
     m_YxYcGrpFlag = 0;
     m_recfalg = 0;
 
-    m_timeflag=0;
+    m_timeflag=0;m_timeREQflag = 0;
     m_YKstop=0;
     m_BeatFlag = 0;
     m_SendYcFlag = 0;
@@ -1267,6 +1267,15 @@ void CBJ101S::DoCommSendIdle(void)
           return ;
         }
       }
+     if(m_timeREQflag)
+      {
+        m_timeREQflag=0;
+        if(SendtimeReq())
+        {
+          m_zdflag = 0;
+          return ;
+        }
+      }	  
       if(m_delayflag)
       {
         m_delayflag=0;
@@ -1616,6 +1625,20 @@ BOOL CBJ101S::SendCallgroup(void)
 BOOL CBJ101S::SendtimeAck(void)
 {
     BYTE Style = 0x67, Reason = COT_ACTCON;
+    BYTE PRM = 0, dwCode = 3, Num = 1;
+        m_acdflag=0;
+    SendFrameHead(Style, Reason);
+    write_infoadd(0);
+    write_time();
+    if(SwitchToAddress(m_dwasdu.LinkAddr))
+      SendFrameTail(PRM, dwCode, Num);
+
+    return TRUE;
+}
+//时间请求REQ回复
+BOOL CBJ101S::SendtimeReq(void)
+{
+    BYTE Style = 0x67, Reason = COT_REQ;
     BYTE PRM = 0, dwCode = 3, Num = 1;
         m_acdflag=0;
     SendFrameHead(Style, Reason);
@@ -3338,7 +3361,7 @@ BOOL CBJ101S::RecSetClock(void)
 BOOL CBJ101S::RecReadClock(void)
 {
     SendBaseFrame(0,0);//张弢重庆 总召要个确认报文
-    m_timeflag=1;
+    m_timeREQflag =1;
     return true;
 }
 BOOL CBJ101S::RecDelaytime(void)

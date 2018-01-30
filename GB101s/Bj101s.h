@@ -111,6 +111,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
         BYTE m_YKflag;
         BYTE m_YKSelectAck;
         BYTE m_timeflag;
+	 BYTE m_timeREQflag;
 		BYTE m_delayflag;
         BYTE m_testflag;
         BYTE m_resetflag;
@@ -242,6 +243,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		BOOL RecCallAllStop(void);
 		BOOL SendDYXGroup(WORD GroupNo, BYTE Reason);
 		BOOL SendtimeAck(void);
+		BOOL SendtimeReq(void);
 		BOOL SenddelayeAck(void);
 		BOOL SendDCos(void) ;
 		BOOL SendDSoe(void) ;
