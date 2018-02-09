@@ -344,8 +344,7 @@ bool TimeOut(int flag)
     }
     //IEC101²ÎÊýÉèÖÃ
     if((g_ucParaChang & BIT1) == BIT1)
-    {
-    	InitSCI();
+    {    	
         if(pDbg != null)
            pDbg->initpara();
        if(pGprs != null)
