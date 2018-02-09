@@ -815,7 +815,7 @@ unsigned char *  FileDatadat(unsigned char *pTxBuf,unsigned char leng,WORD wSecL
             for(BYTE n = 0; n < k; n++)
             {
                 *pTxBuf++ = ch[n];
-                 GLubodat_Sum += ch[n];
+		   if(gRes_rec.res_timeout <4) GLubodat_Sum += ch[n];
             }
             *pTxPos = pTxBuf - pTxPos-1;//LL
             gRecorder_flag.LIST_flag = ON;     

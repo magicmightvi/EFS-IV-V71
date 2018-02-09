@@ -83,7 +83,7 @@ typedef double         FP64;            //双精度浮点数
 #define IECP_AUT_MODE        5//主动上传模式，0=主站发送初始化后方可主动上传和总召
                               //1=收到主站任何命令后方可主动上传，任何时候都响应总召命令。
                               //2=主动上传不受任何约束
-#define IECP_OBJ_COM0        6 //串口0指定的对象，0=RF,1=GPRS,2=DBG,3=EX,4=ODU1,5=ODU2
+#define IECP_OBJ_COM0        6 //调试串口波特率，0=9600,1=19200,2=38400,3=57600,4=115200
 #define IECP_OBJ_COM1        7
 #define IECP_OBJ_COM2        8
 #define IECP_OBJ_COM3        9
