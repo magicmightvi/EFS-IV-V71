@@ -842,7 +842,15 @@ BOOL CProtocol::RecWriteFile(void)
             		g_gRunPara[i + RP_UA_ADJ] = g_gProcCnt[i];   
             g_gChangFlag[CHNG_MUBIAO] = ON;   
          }	   
-	     	   
+	  if(bySec == 1 )//低电压校准参数
+        {
+            for(i = 0;i < 3;i++)
+           {
+ 		g_gAdjObj[i] =  MAKEWORD(pData[0],pData[1]);
+		pData += 2;	     	  
+           }
+	    g_gChangFlag[CHNG_MUBIAO] = ON; 		
+	  }
 	    SendWrPaSuc();	   
         
       break;
@@ -1179,7 +1187,7 @@ void CProtocol::SendReadPa(WORD FileName,BYTE SecName)
               m_SendBuf.pBuf[m_SendBuf.wWritePtr++] =(((CPrtcOdu *)pOdu1)->pReceiveFrame)->Frame67.Data[7+i];
            }
            *///张弢 目标校准，上位机下载参数 初始值为电压60V,电流2A
-           if(SecName==0)
+           if(SecName==1)
            	{
            		wPaTotalNum = ADJ_PARA_NUM;
            		for(i = 0;i < wPaTotalNum;i++,wPaSendNum++)
