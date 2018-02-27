@@ -844,6 +844,9 @@ BOOL CBJ101S::SendYXGroup(WORD GroupNo, BYTE Reason, BYTE bType)
     WORD YXNo;
     WORD YXValue;
     BYTE VSQ=0x80;//¿Î…¢∑¢ÀÕ
+#ifdef YN_101S  
+	BYTE VSQ=0x00;//¿Î…¢∑¢ÀÕ
+#endif 
     //WORD ucTemp = 0x01;
     YXNo = GroupNo * GRP_YXNUM;
     YXNo+=m_wSendYxNum;
