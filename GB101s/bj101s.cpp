@@ -664,8 +664,7 @@ BOOL CBJ101S::SendCallAll(void)
               return TRUE;
 #endif		   
         }
-   }
-  
+   }  
  /*//张弢云南与标准101
        if(m_ZongzhaoYX == 0x55)
        {
@@ -692,6 +691,14 @@ BOOL CBJ101S::SendCallAll(void)
 #endif			
         }
    }
+#ifdef YN_101S	
+ 	if(m_wSendZJNum == 0)
+ 	{//总召发送自检
+ 	SendZJGroup(0,1,36);
+	m_wSendZJNum = 0x55;
+	return TRUE;
+ 		}
+#endif		
 /*//张弢云南与标准101	
    if(m_ZongzhaoYC == 0x55)
    {
@@ -845,7 +852,7 @@ BOOL CBJ101S::SendYXGroup(WORD GroupNo, BYTE Reason, BYTE bType)
     WORD YXValue;
     BYTE VSQ=0x80;//离散发送
 #ifdef YN_101S  
-	BYTE VSQ=0x00;//离散发送
+	VSQ=0x00;//离散发送
 #endif 
     //WORD ucTemp = 0x01;
     YXNo = GroupNo * GRP_YXNUM;
@@ -1085,7 +1092,7 @@ BOOL CBJ101S::SendZJGroup(WORD GroupNo, BYTE Reason ,BYTE bType)
     {
       return FALSE;
     }
-#ifndef YN_101S
+	/*
     switch(Style)
     {
         case M_ME_TA:
@@ -1101,7 +1108,7 @@ BOOL CBJ101S::SendZJGroup(WORD GroupNo, BYTE Reason ,BYTE bType)
             Style = M_ME_NC;
             break;
     }
-#endif
+ */
     SendFrameHead(Style, Reason);
     for (ZJSendNum = 0;(ZJNo < m_pEqpInfo[m_wEqpNo].wZJNum);ZJNo++,ZJSendNum++)
     {       
@@ -1163,12 +1170,8 @@ void CBJ101S::DoCommSendIdle(void)
   //  if((m_uartId == g_CmIdGPRS) && (!g_GprsPowerSt))
      // return;//GPRS通道中如果GPRS没打开则不发任何数据
 
-    if(m_guiyuepara.mode==1)
-#ifdef YN_101S		
+    if(m_guiyuepara.mode==1)		
         m_PRM =0;   //云南
-#else
-	m_PRM =1; 
-#endif
     else if(m_recfalg!=3)   //非平衡式
         return;
     if((m_uartId == 2) && (g_GPRSSendLink == ON)&&(m_linkflag == 0))
@@ -2067,7 +2070,7 @@ BYTE CBJ101S::GetCtrCode(BYTE PRM,BYTE dwCode,BYTE fcv)
           CodeTmp&=0x7f;
         else 
           CodeTmp|=0x80;
-#ifndef YN_101s
+/*#ifndef YN_101s
         if(fcv)
         {
             if(!m_resendflag)//非重发报文才进行fcb的翻转
@@ -2079,7 +2082,7 @@ BYTE CBJ101S::GetCtrCode(BYTE PRM,BYTE dwCode,BYTE fcv)
             }
             CodeTmp|=(m_fcb|0x10);            
         }
-#endif
+#endif*/
     }
     return CodeTmp;
 }

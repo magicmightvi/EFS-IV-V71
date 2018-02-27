@@ -872,9 +872,9 @@ __interrupt void TIMER0_A0_ISR(void)
       static unsigned char M125SecCount = 0;  // 1.25毫秒计时 // 张弢测试中断嵌套
 	static unsigned char pjno=0;
 	static unsigned char McSecCount=0;
- #ifdef SD_101S     
+     
       static unsigned char M05SecCount = 0;  // 0.5毫秒计时 // 张弢测试中断嵌套
- #endif     
+     
   //static unsigned char ucTime = 0;
     
    // WDTCTL = WDTPW + WDTCNTCL;
