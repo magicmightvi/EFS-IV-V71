@@ -138,6 +138,8 @@ class CBJ101S : public CPrtcSms//CPSecondary
         WORD m_ucCosBkNum;//备份正在传输的遥信有几条(<=70)
         //WORD m_ucCosBk[FRM_MAX_COS_NUM];//备份正在传输的遥信序号，用于COS重传
 		BYTE m_comtradeflag;
+		BYTE m_comtradeflag_YN;
+		BYTE m_com101flag_YN;//0 录波山东协议 1=录波云南协议
 	public:
 		CBJ101S();
 		virtual BOOL Init(WORD wTaskID);

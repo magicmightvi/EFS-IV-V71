@@ -256,9 +256,9 @@ void cfg_dat_length(int file_current_num)
 //*功能：响应主站的召唤目录的命令
 //*描述: 所存所有录波的目录文件
 //***********************************************************************************
-#ifdef YN_101S
+//#ifdef YN_101S
 //****************云南录波文件*****************************
-unsigned char * FileDirectory(unsigned char *pTxBuf, unsigned char leng,unsigned int wave_total)//召唤目录
+unsigned char * FileDirectory_YN(unsigned char *pTxBuf, unsigned char leng,unsigned int wave_total)//召唤目录
 {
       unsigned int VSQ=0x80;
       char j=0;
@@ -443,7 +443,7 @@ unsigned char * FileDirectory(unsigned char *pTxBuf, unsigned char leng,unsigned
      return pTxBuf;
 }
 //****************云南录波文件*****************************
-#else
+//#else
 
 unsigned char * FileDirectory(unsigned char *pTxBuf, unsigned char leng,unsigned int wave_total)//召唤目录
 {
@@ -560,7 +560,7 @@ unsigned char * FileDirectory(unsigned char *pTxBuf, unsigned char leng,unsigned
      }
      return pTxBuf;
 }
-#endif
+//#endif
 //***********************************************************************************
 //*函数名：ApprovalFile
 //*功能：得到主站认可的节传输后，发送下一节准备就绪的报文
@@ -1317,8 +1317,8 @@ unsigned char *  FileDatOneFrame_YN(unsigned char *pTxBuf,unsigned char leng,WOR
 //*功能：对相应的ASDU报文做出响应
 //*描述：录波文件的传输
 //***********************************************************************************
-#ifdef YN_101S
-void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
+//#ifdef YN_101S
+void Code_Lubo_YN(unsigned char *pRxBuf,unsigned char *pTXBuff)
 {//1
   unsigned char *pTxBuf = pTXBuff;//重新对发送缓存写入数据
   
@@ -1361,7 +1361,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
   {
     if(pTXBuff[5+g_ucPara101[IECP_LINKADDR_NUM]] == CALL_TYPE_YN)//(wInfoAddr == 0x690A)//召唤录波文件的目录
     {
-      pTxBuf = FileDirectory(pTxBuf,leng,wave_total);    
+      pTxBuf = FileDirectory_YN(pTxBuf,leng,wave_total);    
     }
     else if(pTXBuff[5+g_ucPara101[IECP_LINKADDR_NUM]] == CALL_FILE_YN)//(wInfoAddr == 0x690A)//召唤录波文件
     	{
@@ -1420,7 +1420,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
     CommSendData(pTXBuff,pTXBuff[1]+6,g_Cmid);
     
   }
-#else
+//#else
 void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
 {//1
   unsigned char *pTxBuf = pTXBuff;//重新对发送缓存写入数据  
@@ -1538,7 +1538,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
     CommSendData(pTXBuff,pTXBuff[1]+6,g_Cmid);
     
   }
-#endif         
+//#endif         
 
 //FLbAddr = FADDR_RECORDER_START + lubo_absolute_time;//绝对时标的时间都取A相的时间
 

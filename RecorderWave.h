@@ -207,6 +207,7 @@ struct RE_SEND_REC
 //"//
 
 RECORDER_WAVE_EXT void Code_Lubo(unsigned char *p=null,unsigned char *pTxBuf=null);
+RECORDER_WAVE_EXT void Code_Lubo_YN(unsigned char *p=null,unsigned char *pTxBuf=null);
 //#ifdef YN_101S
 RECORDER_WAVE_EXT struct RECORDER_CFG gRecorder_cfg[2/*FRECORDER_TOLNUM*/];
 //#endif
@@ -224,6 +225,7 @@ RECORDER_WAVE_EXT BYTE GLubocfg_Sum;//配置文件的校验，第一节的校验
 RECORDER_WAVE_EXT BYTE GLubo_Sum;//两个文件的校验
 RECORDER_WAVE_EXT BYTE g_lubo_erase;
 RECORDER_WAVE_EXT unsigned char * FileDirectory(unsigned char *pTxBuf, unsigned char leng,unsigned int wave_total);
+RECORDER_WAVE_EXT unsigned char * FileDirectory_YN(unsigned char *pTxBuf, unsigned char leng,unsigned int wave_total);
 RECORDER_WAVE_EXT unsigned char * FileDataCfg(unsigned char *pTxBuf, unsigned char leng,RECORDER_CFG *pgRecorder_cfg,int segment_leng);//CFG文件WORD wSecLenPtr,
 RECORDER_WAVE_EXT unsigned char * FileDatadat(unsigned char pTxBuf,unsigned char leng,WORD wSecLenPtr,int segment_leng);//dat文件
 RECORDER_WAVE_EXT unsigned char * ApprovalFile(unsigned char *pTxBuf,unsigned char leng,RECORDER_CFG *pgRecorder_cfg,WORD wSecLenPtr);//认可文件、节的流程处理

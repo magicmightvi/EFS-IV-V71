@@ -112,6 +112,7 @@ BOOL CBJ101S::Init(WORD uartId)
     m_DSoeHeadPtrBk = 0;
     m_WaitConfTpId = 0;
     m_comtradeflag =0;
+	m_comtradeflag_YN =0;
     if(m_uartId == g_CmIdDBG)
     {
     //对应g_yxChangeflag 
@@ -493,6 +494,15 @@ BOOL CBJ101S::RecFrame68(void)
         case 0x79:    
         case 0x7a://读文件
         case 0x7c:
+            if(m_dwasdu.Info ==26882)
+              RecReadFile();
+            else
+              {
+                g_Cmid = m_uartId;
+                m_comtradeflag = 0x55;
+                //Code_Lubo(&pReceiveFrame->Frame68.Start1,m_SendBuf.pBuf);
+              }	
+		break;	
         case 0x88://136 云南录波协议  读目录
         case 0x89://137 云南录波协议  读文件	
         case 0x8a://138 云南录波协议  补包
@@ -501,7 +511,7 @@ BOOL CBJ101S::RecFrame68(void)
             else
               {
                 g_Cmid = m_uartId;
-                m_comtradeflag = 0x55;
+                m_comtradeflag_YN = 0xAA;
                 //Code_Lubo(&pReceiveFrame->Frame68.Start1,m_SendBuf.pBuf);
               }
             break;
@@ -692,6 +702,14 @@ BOOL CBJ101S::SendCallAll(void)
 #endif			
         }
    }
+#ifdef YN_101S	
+ 	if(m_wSendZJNum == 0)
+ 	{//总召发送自检
+ 	SendZJGroup(0,1,36);
+	m_wSendZJNum = 0x55;
+	return TRUE;
+ 		}
+#endif	
 /*//张弢云南与标准101	
    if(m_ZongzhaoYC == 0x55)
    {
@@ -843,10 +861,10 @@ BOOL CBJ101S::SendYXGroup(WORD GroupNo, BYTE Reason, BYTE bType)
     BYTE PRM = 0, dwCode = 3; 
     WORD YXNo;
     WORD YXValue;
-    BYTE VSQ=0x80;//离散发送
-#ifdef YN_101S  
-	BYTE VSQ=0x00;//离散发送
-#endif 
+    BYTE VSQ=0x80;//顺序发送
+#ifdef YN_101S  	
+	VSQ=0x00;//离散发送
+#endif    
     //WORD ucTemp = 0x01;
     YXNo = GroupNo * GRP_YXNUM;
     YXNo+=m_wSendYxNum;
@@ -1085,7 +1103,7 @@ BOOL CBJ101S::SendZJGroup(WORD GroupNo, BYTE Reason ,BYTE bType)
     {
       return FALSE;
     }
-#ifndef YN_101S
+/*#ifndef YN_101S
     switch(Style)
     {
         case M_ME_TA:
@@ -1101,7 +1119,7 @@ BOOL CBJ101S::SendZJGroup(WORD GroupNo, BYTE Reason ,BYTE bType)
             Style = M_ME_NC;
             break;
     }
-#endif
+#endif*/
     SendFrameHead(Style, Reason);
     for (ZJSendNum = 0;(ZJNo < m_pEqpInfo[m_wEqpNo].wZJNum);ZJNo++,ZJSendNum++)
     {       
@@ -1163,12 +1181,8 @@ void CBJ101S::DoCommSendIdle(void)
   //  if((m_uartId == g_CmIdGPRS) && (!g_GprsPowerSt))
      // return;//GPRS通道中如果GPRS没打开则不发任何数据
 
-    if(m_guiyuepara.mode==1)
-#ifdef YN_101S		
+    if(m_guiyuepara.mode==1)		
         m_PRM =0;   //云南
-#else
-	m_PRM =1; 
-#endif
     else if(m_recfalg!=3)   //非平衡式
         return;
     if((m_uartId == 2) && (g_GPRSSendLink == ON)&&(m_linkflag == 0))
@@ -1257,7 +1271,15 @@ void CBJ101S::DoCommSendIdle(void)
         Code_Lubo(&pReceiveFrame->Frame68.Start1,m_SendBuf.pBuf);
 	gRes_rec.res_timeout = 1;	
         m_comtradeflag=0;
+	 m_com101flag_YN=0;
       }
+	  if(m_comtradeflag_YN)
+      {
+        Code_Lubo_YN(&pReceiveFrame->Frame68.Start1,m_SendBuf.pBuf);
+	gRes_rec.res_timeout = 1;	
+        m_comtradeflag_YN=0;
+	  m_com101flag_YN=0x55;	
+      }	  
       m_acdflag=0;
 
 
@@ -1469,13 +1491,19 @@ void CBJ101S::DoCommSendIdle(void)
 			g_Cmid = m_uartId;
               //memcpy(&pReceiveFrame->Frame68.Start1,gRecorder_flag.pRXBuff,256); 
               //Code_Lubo(&pReceiveFrame->Frame68.Start1,m_SendBuf.pBuf);
-              Code_Lubo(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);
+              if(m_com101flag_YN)
+			Code_Lubo_YN(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);  	
+		 else	  	
+              	Code_Lubo(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);
 			  gRes_rec.res_timeout = 1;
            }	
         if(gRes_rec.res_timeout >=4)
         	{
         	//m_SendBuf.pBuf =FileDatadat(gRes_rec.res_leng,gRes_rec.res_leng,gRes_rec.res_wSecLenPtr,gRes_rec.res_segment_leng);
-		Code_Lubo(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);
+		if(m_com101flag_YN)
+			Code_Lubo_YN(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);  	
+		 else
+			Code_Lubo(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);
 		gRes_rec.res_timeout = 1;
         	}	
     if(m_recfalg)
@@ -2067,7 +2095,7 @@ BYTE CBJ101S::GetCtrCode(BYTE PRM,BYTE dwCode,BYTE fcv)
           CodeTmp&=0x7f;
         else 
           CodeTmp|=0x80;
-#ifndef YN_101s
+/*#ifndef YN_101s
         if(fcv)
         {
             if(!m_resendflag)//非重发报文才进行fcb的翻转
@@ -2079,7 +2107,7 @@ BYTE CBJ101S::GetCtrCode(BYTE PRM,BYTE dwCode,BYTE fcv)
             }
             CodeTmp|=(m_fcb|0x10);            
         }
-#endif
+#endif*/
     }
     return CodeTmp;
 }
