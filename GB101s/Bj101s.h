@@ -69,7 +69,12 @@
 
 #define MAX_FRM_RESEND   4//0x7FFF //报文重发次数 目前处理为对端不响应则无限重发
 
-
+struct FLAG_RECORDER_FILE
+{
+    unsigned char LIST_flag;//是否在读目录文件的数据
+    //unsigned char pRXBuff[50]; //256保存101规约中68长帧的数据
+    unsigned char xuchuanflag; 
+};
 
 class CBJ101S : public CPrtcSms//CPSecondary
 {
@@ -137,12 +142,56 @@ class CBJ101S : public CPrtcSms//CPSecondary
         BOOL m_YKstop;
         WORD m_ucCosBkNum;//备份正在传输的遥信有几条(<=70)
         //WORD m_ucCosBk[FRM_MAX_COS_NUM];//备份正在传输的遥信序号，用于COS重传
-		BYTE m_comtradeflag;
+		//BYTE m_comtradeflag;
 		BYTE m_comtradeflag_YN;
-		BYTE m_com101flag_YN;//0 录波山东协议 1=录波云南协议
+		//BYTE m_com101flag_YN;//0 录波山东协议 1=录波云南协议
+		//读录波及文件传输相关=====================================================
+		BYTE m_ulog_directory;//log的标志位
+		BYTE m_fixpt_directory;//fixpt的标志位
+		BYTE m_soe_directory;//soe的标志位
+		BYTE m_lubo_directory;
+		BYTE m_comtradeflag;
+		BYTE m_fileprocessing;
+		BYTE m_ackflag;
+
+		BYTE m_SendListNum;
+		FLAG_RECORDER_FILE mRecorder_flag;
+		WORD m_BkFlashhead;
+		FIXPT_RECORDER mfixpt_recorded;
+		SOE_RECORDER   msoe_recorded;
+		LOG_RECORDER  mlog_recorded;
+		BYTE m_ackRecorder;	
+        BYTE m_bEncObject;
+		DWORD mSendCFGNum;
+		DWORD mSendDATNum;
+		//DWORD mSendDATNum;
+		DWORD mfile_ID;
+		BYTE mfile_flag;//1 //值 1 CFG 2 DAT 3 FIX 4 SOE 5 Ulog
+		BYTE m_bSymmetricKeyFlag;
+		unsigned char m_wavefix_total;//定点的数量
+		unsigned int  m_SendFixNum;
+		BYTE m_bCerToolID[8];    //证书管理工具ID
+		DWORD m_Fixpt_TOTAL_Leng;
+		WORD  m_Fixpt_SECTION_Leng;
+		BYTE m_current_section;
+		BYTE m_houxu_flag ;
+		WORD mwavelog_total;
+		DWORD mLog_TOTAL_Leng; 
+		BYTE m_logcurrent_section;
+		BYTE m_loghouxu_flag;
+		BYTE m_lubo_num;
+		BYTE m_fixpt_num;
+		BYTE mluboYX_flag;
+		BYTE m_tra_FI;//转发指示器数据
+		BYTE m_bHostCertifyFlag;  //主站认证标志位，认证以后置0x55
+		BYTE m_bToolCertifyFlag;  //运维工具证标志位，认证以后置0x55
+        BYTE m_bEncDataFlag;     //数据加密标志位
+		//char ch[31][20];
+        WORD m_wUpdataFaultFlag;		
 	public:
 		CBJ101S();
 		virtual BOOL Init(WORD wTaskID);
+		   void Init_Rec(void);
         virtual void Run(void);
         DWORD GetEqpFlag(DWORD dwFlagNo);
         void SetEqpFlag(DWORD dwFlagNo);
@@ -222,7 +271,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		BOOL SendNoData(void);
         BOOL DoTimeOut(WORD wTimerID); /*BJ101加速变化遥信和遥测上传速度*/
 		void DoCommSendIdle();
-	
+	   void SendlbRetry();
 		DWORD GetAddress(void);
 		virtual void initpara(BYTE flag=0);
 		void getasdu(void);
@@ -256,6 +305,28 @@ class CBJ101S : public CPrtcSms//CPSecondary
 
 		BOOL SendLinktesetFrame(BYTE PRM,BYTE dwCode);
 		BOOL SendRetry(void);//重写101报文重发函数
+//Rec.cpp
+		void RecFIUpdata(BYTE Type);
+		//void RecReadData(void);
+		void RecWriteData(BYTE Style,BYTE mQos,BYTE VSQ);//BYTE cpypara,
+		void RecReadParaData(BYTE Style,BYTE VSQ);
+		BOOL Recfileprocessing(unsigned char *pRxBuf);
+		void lubo_directory_confirm(WORD InfoAddr,DWORD Directory_ID,BYTE call_sign,DWORD start_minute_time,DWORD start_date_time,DWORD end_minute_time,DWORD end_date_time);
+		void fixpt_directory_confirm(WORD InfoAddr,DWORD Directory_ID,BYTE call_sign,DWORD start_minute_time,DWORD start_date_time,DWORD end_minute_time,DWORD end_date_time);
+		void soe_directory_confirm(WORD InfoAddr,DWORD Directory_ID);
+		void ulog_directory_confirm(WORD InfoAddr,DWORD Directory_ID);
+		void Send_ReadFile_Confirm(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,unsigned char *pRxBuf,unsigned char length);
+		BOOL FileRemoteupdata(unsigned char *pRxBuf);
+		void Send_ReadFile_Data(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,unsigned int Packet_Num);
+		void ReadFileDataCfg(RECORDER_CFG *pgRecorder_cfg);
+		void ReadFileDataDat(WORD FileName,RECORDER_CFG *pgRecorder_cfg);
+		void ReadFileDataFixpt(WORD FileName,BYTE section_current,BYTE flag);
+		void ReadFileDataSoe(WORD FileName);
+		void ReadFileDataSoe_Flash(WORD FileName);
+		void ReadFileDataUlog(WORD FileName,BYTE section_current,BYTE flag);
+		unsigned char Get_time_read(WORD wave_total,DWORD start_minute,DWORD start_date,DWORD end_minute,DWORD end_date);
+
+
 //			BOOL RecReadFile();
 //			BOOL RecWriteFile();
 //			void SendWrPaSuc();

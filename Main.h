@@ -12,7 +12,7 @@ extern "C"
 #include "ODU\PrtcOdu.h"
 #include "RF\PrtcRF.h"
 #include "SMS\PrtcSms.h"
-  
+ #include "RecorderWave.h"  
        
 #ifdef __cplusplus
 }

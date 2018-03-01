@@ -259,6 +259,9 @@ RECORDER_WAVE_EXT BYTE GLubodat_Sum;//数据文件的校验，第二节的校验
 RECORDER_WAVE_EXT BYTE GLubocfg_Sum;//配置文件的校验，第一节的校验
 RECORDER_WAVE_EXT BYTE GLubo_Sum;//两个文件的校验
 RECORDER_WAVE_EXT BYTE g_lubo_erase;
+RECORDER_WAVE_EXT  unsigned int  wSendLISTNum ;////= 0已经发送的目录的条数，最多发18条
+RECORDER_WAVE_EXT  unsigned int  BK_FRecorder_Current_COUNT ;//从当前的指针发送录波数据
+
 RECORDER_WAVE_EXT unsigned char * FileDirectory(unsigned char *pTxBuf, unsigned char leng,unsigned int wave_total);
 RECORDER_WAVE_EXT unsigned char * FileDirectory_YN(unsigned char *pTxBuf, unsigned char leng,unsigned int wave_total);
 RECORDER_WAVE_EXT unsigned char * FileDataCfg(unsigned char *pTxBuf, unsigned char leng,RECORDER_CFG *pgRecorder_cfg,int segment_leng);//CFG文件WORD wSecLenPtr,
@@ -485,21 +488,24 @@ typedef struct
   unsigned char  TimeMult[32];//    时间倍乘因数
 }ComtrderCfg;*/
 
-#define  FLOGINFONUM 				5
-#define  EEPADD_LOGNUM 				2
-#define  FLOG_CS 				2
-#define  FLOG_TOTALNUM 				2
-#define  FLOG_NEW 				2
-#define  FLOG_OLD 				2
+
 #define  FADDR_LOG_START 				2
-#define  FLOAD_DAY 				2
 #define  FLASH_DAYLOAD_LEN 				2
-#define  EEPADD_DAYNUM 				2
+
 #define  RM_1A_LUBO 				2
 #define  RTC_WEEK 				2
 #define  FSOE_LEN 2
 #define  FSOE_TOLNUM 2
 #define  FLASH_PLOG_LEN 2
+
+
+//=====================日志记录ulog===========================================
+#define FLOG_TOTALNUM  0//在FLASH中保存的日志记录的条数
+#define FLOG_NEW       1//即将存储的记录与第一条记录的偏移位置，
+#define FLOG_OLD       2//最老一条记录存储位置
+#define FLOG_CS        3//以上三个数据加和校验
+#define FLOGINFONUM  4
+
 #endif
 
 

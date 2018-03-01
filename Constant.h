@@ -35,6 +35,13 @@
 #define         LuboType_XH      0x55
 #define         LuboType_ACT      0xAA
 
+#define  OPERATING_LOGO1 1 //操作标识1 读目录
+#define  OPERATING_LOGO2 2//操作标识2 读目录确认
+#define  OPERATING_LOGO3 3//读文件激活
+#define  OPERATING_LOGO4 4 //读文件激活确认
+#define  OPERATING_LOGO5 5 //读文件数据响应
+#define  OPERATING_LOGO6 6 //读文件数据响应确认
+
 /*-------------------------------------------------------------------------
  *   Standard Bits
  *-------------------------------------------------------------------------*/
@@ -131,6 +138,7 @@ typedef double         FP64;            //双精度浮点数
 #define FLOAD_NEW                          1             //即将存储的记录与第一条记录的偏移位置(不是已存储的最新一条记录的位置)
 #define FLOAD_OLD                           2             //最老一条记录的位置
 #define FLOAD_CS                             3
+#define FLOAD_DAY 3
 #define FLASH_LOAD_MAXNUM        8192
 #define FADDR_LOAD_START           0x750000//750000-790000
 #define FLASH_PLOAD_LEN              32//每条负荷记录32字节
@@ -713,6 +721,19 @@ typedef double         FP64;            //双精度浮点数
 #define EEPADD_BLEN             0x0E9C //B相的偏移量
 #define EEPADD_CLEN             0x0E9E //C相的偏移量
 #define EEPADD_COMLEN           0x0EA0 //最大偏移量
+
+
+#define EEPADD_VerNum            0x1104 // 当前录波的总个数,占用8个字节，SV01.033
+#define EEPADD_LOGNUM           0x1110  //在FLASH中保存的负荷记录的条数 占用2字节
+#define EEPADD_LOGADDR_NEW      0x1112  //即将存储的记录与第一条记录的偏移位置，为(0----FLASH_LOAD_MAXNUM-1) 占用2字节
+#define EEPADD_LOGADDR_OLD      0x1114  //最老一条记录存储位置
+#define EEPADD_LOG_CHK          0x1116  //以上两个数据加和校验
+#define EEPADD_DAYNUM           0x1200 //定点负荷记录共存31天，每天最多存96条，实际存的条数
+#define EEPADD_VALIDITY         0x1300 //有效期，64条录波目录，每条录波目录的有效期为2个字节，共2*64个字节
+#define EEPADD_FIXNUM           0x1400 //通过文件名保存定点的索引，共31*20个字节
+#define EEPADD_CFG              0x1700 //保存CFG文件，目前CFG文件最多占用700个字节，没有写入FLASH的原因是:每次发送该文件时，都需要对CFG文件的某几个地方做修改，方便操作
+#define EEPADD_DEGBF101            0x1A00 // DEG口 读写报文时，备份当前进行的命令。读写文件时，若被其它的进程包括总召、对时、主动上报等命令打断时，可以继续传输
+#define EEPADD_GPRSBF101           0x1B00 // GPRS口 读写报文时，备份当前进行的命令。读写文件时，若被其它的进程包括总召、对时、主动上报等命令打断时，可以继续传输
 
 #define EEPADD_SOESTARTADR       0x2000 //最大偏移量
 #define EEPADD_SOEENDADR       0x4000

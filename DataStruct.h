@@ -208,6 +208,8 @@ struct sSAMPLE_DATA
 
 	unsigned int  g_SendLuboNum;
 	unsigned int  g_SendLuboPage;
+	unsigned int g_FRecorder_Current_COUNT;//flash保存到第几条了
+	unsigned int g_Recorder_Total_COUNT;//总的条数	
      WORD wCfgTotalNum =0;//总长度
 #ifdef YN_101S     
      WORD section_current=0;//当前节*/
@@ -297,6 +299,8 @@ extern unsigned int g_test;
 	extern unsigned int  g_SendLuboPage;
     extern WORD wCfgTotalNum ;//总长度
     extern WORD section_current;//当前节*/
+    extern unsigned int g_FRecorder_Current_COUNT;//flash保存到第几条了
+	extern unsigned int g_Recorder_Total_COUNT;//总的条数    
 #endif
 
 //=======================================  参数配置模块  ===================================
@@ -734,7 +738,7 @@ extern unsigned int g_test;
         unsigned char phone_perm[4];	//          5        4         3        2       1      0
 						                    //      故障复归  发生故障 主动上报 有效8脉冲 掉电  状态异常
 						//手机的权限控制字
-        unsigned char SMS_array[28];      /////////等待发送的故障，六种情况，4个手机号，共24个；					
+        unsigned char SMS_array[2];      /////////等待发送的故障，六种情况，4个手机号，共24个；					
     
         unsigned char send_phase;
         unsigned int yc[8];	// 8脉冲遥测值
@@ -744,7 +748,7 @@ extern unsigned int g_test;
         unsigned char eight_select;                  /////传动第几次8脉冲
 
         //unsigned char yc2[8];	// 8脉冲遥测值
-        unsigned char sign_RSSI_time2[6];              ////year month day hour minute second
+        //unsigned char sign_RSSI_time2[6];              ////year month day hour minute second
         
        // unsigned char bais_check;                    //检测偏置电压
 
@@ -856,7 +860,7 @@ extern unsigned int g_test;
        
         extern unsigned char comm_rec_flag;
         extern unsigned char phone_perm[4];	//          5        4         3        2       1      0						                    //      故障复归  发生故障 主动上报 有效8脉冲 掉电  状态异						//手机的权限控制字
-        extern unsigned char SMS_array[28];
+        extern unsigned char SMS_array[2];
      
         extern unsigned char send_phase;
         extern unsigned int yc[8];	// 8脉冲遥测值
@@ -866,7 +870,7 @@ extern unsigned int g_test;
         extern unsigned char eight_select;                  /////传动第几次8脉冲
 
         //extern unsigned char yc2[8];	// 8脉冲遥测值
-        extern unsigned char sign_RSSI_time2[6];              ////year month day hour minute second
+        //extern unsigned char sign_RSSI_time2[6];              ////year month day hour minute second
 
         extern unsigned char pulse_phase_flag;              ////////哪一相发8脉冲的标志
         extern unsigned int efslatch_flag;                   ////////闭锁17分钟标志

@@ -56,7 +56,7 @@
 #define C_RP_NA     105     //复位进程命令
 #define C_TS_TA         107     //带时标的测试命令
 #define P_AC_NA         113     //参数激活
-
+#define F_FP_FA         210       //文件传输
 //传送原因：
 #define COT_PERCYC      1   //周期/循环
 #define COT_BACK        2   //背景扫描

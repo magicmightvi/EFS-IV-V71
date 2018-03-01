@@ -28,7 +28,7 @@ ASCII\n\
 
 static unsigned int  wSendCFGNum = 0;////已经发送的配置文件的字节数，控制多帧传送用
 static unsigned int  wSendDATNum = 0;////已经发送的数据文件的字节数，控制多帧传送用
-static unsigned int  wSendLISTNum = 0;////已经发送的目录的条数
+//static unsigned int  wSendLISTNum = 0;////已经发送的目录的条数
 static unsigned int  wFileNum = 0;////已经发送的目录的条数
 static unsigned int  wSendDATNumOld = 0;
 static char *strtemp ; //CFG字符串的指针
@@ -1775,6 +1775,7 @@ unsigned char *  SectionPrepareFile(unsigned char *pTxBuf,unsigned char leng,REC
 {
   if(pTxBuf[leng + 3]==2)  //请求文件传输SRQ=0
   {
+     pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]] = SECTIONPREPAR_TYPE;
      pTxBuf += leng;   
     *pTxBuf++ = gRecorder_flag.pRXBuff[leng ];//文件序号两个字节
     *pTxBuf++ = gRecorder_flag.pRXBuff[leng + 1];
@@ -2401,6 +2402,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
   WORD wSecLenPtr=0;
   WORD Info_val;
   BYTE off=0; 
+   long FADDR_RECORDER;
   RECORDER_CFG mRecorder_cfg;
   off=7+g_ucPara101[IECP_LINKADDR_NUM]+g_ucPara101[IECP_LINKADDR_NUM]+g_ucPara101[IECP_COMNADDR_NUM];//得到信息体地址，用这个变量主要考虑重发的问题
   
@@ -2478,13 +2480,26 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
     FileName = MAKEWORD(gRecorder_flag.pRXBuff[leng],gRecorder_flag.pRXBuff[leng + 1]);//-1;
     if(Info_val == 0x680A)
     {
-      for(int j =0;j<3;j++)
-      {
-          long FADDR_RECORDER = FADDR_RECORDER_INFO +(long)FileName*(long)FLINEADDR + (long)j*(long)FPHASEADDR;
-          Sst26vf064b_Read(FADDR_RECORDER ,(unsigned char *)&mRecorder_cfg,sizeof(mRecorder_cfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来        
-          if(mRecorder_cfg.lubo_flag==0x55)
-          break;
-      }
+       if(FileName<(MAX_REC_NUM+1))
+    	{
+    	FADDR_RECORDER =FADDR_RECORDER_DATA-256+ (unsigned long)(FileName+1)*0x2000;
+    	}
+    else if(FileName<(MAX_REC_NUM+MAX_ACTREC_NUM+2))
+    	{
+    	FADDR_RECORDER =FADDR_RECORDER_ACTDATA-256+ (unsigned long)(FileName-51+1)*0x90000;
+    	}
+    else if(FileName<MAX_ALLREC_NUM)
+    	{
+    	FADDR_RECORDER =FADDR_RECORDER_XHDATA-256+ (unsigned long)(FileName-62+1)*0x8000;
+    	}
+   else
+   	{//erro
+   	}
+   Sst26vf064b_Read(FADDR_RECORDER ,(unsigned char *)&gRecorder_Readfilecfg,sizeof(gRecorder_Readfilecfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来      
+   //Sst26vf064b_Read(FADDR_RECORDER ,(unsigned char *)&mRecorder_cfg,sizeof(mRecorder_cfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来        
+   //       if(mRecorder_cfg.lubo_flag==0x55)
+   //       break;
+      //}
     }
     if(pTXBuff[5+g_ucPara101[IECP_LINKADDR_NUM]]== CALL_TYPE)
     {
@@ -2498,9 +2513,9 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
         //FileName = MAKEWORD(gRecorder_flag.pRXBuff[leng + 1],gRecorder_flag.pRXBuff[leng + 2]);
         if(Info_val == 0x680A)
         {
-        *pTxBuf++ =mRecorder_cfg.TOTAL_Leng;
-        *pTxBuf++ =mRecorder_cfg.TOTAL_Leng>>8;
-        *pTxBuf++ =mRecorder_cfg.TOTAL_Leng>>16;
+        *pTxBuf++ =gRecorder_Readfilecfg.TOTAL_Leng;
+        *pTxBuf++ =gRecorder_Readfilecfg.TOTAL_Leng>>8;
+        *pTxBuf++ =gRecorder_Readfilecfg.TOTAL_Leng>>16;
       wSendCFGNum =0;
       wSendDATNum =0;
         }
@@ -2533,7 +2548,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
       {
   if(Info_val == 0x680A)
      {
-    pTxBuf = SectionPrepareFile(pTxBuf,leng,&mRecorder_cfg);
+    pTxBuf = SectionPrepareFile(pTxBuf,leng,&gRecorder_Readfilecfg);
   }
   else if(Info_val == 0x6804)
   {
@@ -2571,7 +2586,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
          {
           if(wSendCFGNum ==0)
                 cfg_dat_length(FileName);//(&mRecorder_cfg,FileName);
-           pTxBuf = FileDataCfg(pTxBuf,leng,&mRecorder_cfg,segment_leng);//wSecLenPtr,
+           pTxBuf = FileDataCfg(pTxBuf,leng,&gRecorder_Readfilecfg,segment_leng);//wSecLenPtr,
               
          }
          else if(gRecorder_flag.pRXBuff[leng + 2]==2)//节名称为2 则是数据文件的数据信息
@@ -2599,7 +2614,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
     else if(pTXBuff[5+g_ucPara101[IECP_LINKADDR_NUM]]== APPROVALFILE_TYPE)//认可文件、节的流程处理
     {
     if(Info_val == 0x680A)
-        pTxBuf = ApprovalFile(pTxBuf,leng,&mRecorder_cfg,wSecLenPtr);
+        pTxBuf = ApprovalFile(pTxBuf,leng,&gRecorder_Readfilecfg,wSecLenPtr);
     else if(Info_val == 0x6804)
       pTxBuf = ApprovalSoeFile(pTxBuf,leng,wSecLenPtr);
     else if(Info_val == 0x6806)
@@ -2638,17 +2653,18 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
         //pGprs->m_PaWaitCt_lubo = g_gRunPara[RP_LUBOGPRS_T];
         pGprs->m_TxNum_lubo = 0;
 
-        memcpy(&(pGprs->m_gprsSendBuf[0]),pTXBuff,pTXBuff[1]+6);
-        pGprs->m_gprsSendLen = pTXBuff[1]+6;
+       // memcpy(&(pGprs->m_gprsSendBuf[0]),pTXBuff,pTXBuff[1]+6);
+       //pGprs->m_gprsSendLen = pTXBuff[1]+6;
+	//CommSendData(pTXBuff,pTXBuff[1]+6,g_Cmid);	
   }
   else if(g_Cmid == g_CmIdDBG)
   {
     pDbg->m_PaWaitflag_lubo = ON;
         //pDbg->m_PaWaitCt_lubo = g_gRunPara[RP_LUBOGPRS_T];
         pDbg->m_TxNum_lubo = 0;
-    memcpy(&(pDbg->m_gprsSendBuf[0]),pTXBuff,pTXBuff[1]+6);
-        pDbg->m_gprsSendLen = pTXBuff[1]+6;
-    
+    //memcpy(&(pDbg->m_gprsSendBuf[0]),pTXBuff,pTXBuff[1]+6);
+    //pDbg->m_gprsSendLen = pTXBuff[1]+6;
+        //CommSendData(pTXBuff,pTXBuff[1]+6,g_Cmid);	    
   }
   
   
