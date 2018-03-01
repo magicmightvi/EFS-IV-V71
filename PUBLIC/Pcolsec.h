@@ -119,6 +119,11 @@ public:
 	BYTE m_WaitConfTpId;//等待主站确认的类型ID	
 	BYTE m_luok;//录波完成 标志；
 	BYTE m_luok_filename;//录波完成 标志；
+	BYTE m_TxNum_lubo;
+	BYTE m_PaWaitflag_lubo;
+	BYTE m_PaWaitCt_lubo;
+	BYTE m_gprsSendBuf[1];
+	BYTE m_gprsSendLen;
 };
 
 #endif
