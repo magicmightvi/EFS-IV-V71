@@ -443,68 +443,34 @@ unsigned char * SoeDirectory(unsigned char *pTxBuf, unsigned char leng,unsigned 
       pTxBuf[6+g_ucPara101[IECP_LINKADDR_NUM]] = 1| VSQ;
       pTxBuf += leng;
       gRecorder_flag.LIST_flag = OFF;
-    #ifndef GETSOEFROMRAM//从外部FLASH取个数
-       //soe_num= g_InFlashInfo.m_InFlashTailNum;
-       unsigned int Flashheadbk  =g_InFlashInfo.m_unSSoeInFlashHead;
-       soe_num =  ReadNumSoeFromFlash((WORD *)&Flashheadbk,g_unSSoeInFlashTail);  
-    #endif
+
      if(soe_num==0)//最后一段=(wSendLISTNum > wave_total) ||
       {       
 
             for(int i=0;i<13;i++)
             {
               *pTxBuf++=0;
-            }
-          
+            }          
       }
       else
       {
-        //if(wSendLISTNum == wave_total) wSendLISTNum=0;
-     
-          //sprintf((char *)ch,"SOE");
-          //*pTxBuf++ = strlen(ch);
-          //for(BYTE j = 0; j < strlen(ch); j++)
-     //*pTxBuf++  = ch[j];
-      *pTxBuf++ = 1;
-          *pTxBuf++ = 0;
-       
+      		*pTxBuf++ = 1;
+          	*pTxBuf++ = 0;      
        
           TOTAL_Leng = 12+soe_num * SOE_RECORD_LEN;//报文头9个字节
           *pTxBuf++ = TOTAL_Leng;
           *pTxBuf++ = TOTAL_Leng>>8;
           *pTxBuf++ = TOTAL_Leng>>16;       
-          /* if(((m_Recorder_cfg.lubo_total_num + 1)== g_FRecorder_Current_COUNT)||((m_Recorder_cfg.lubo_total_num+1 == FRECORDER_TOLNUM )&&(g_FRecorder_Current_COUNT==0)))
-            m_Recorder_cfg.CFG_SOF = 0x20;  <0>:=后面还有目录文件；<1>:=最后目录文件 
-          else
-            m_Recorder_cfg.CFG_SOF = 0;
-          if(wSendLISTNum >= wave_total-1)//SOF状态
-          {
-            //m_Recorder_cfg.CFG_SOF = 0x20;  <0>:=后面还有目录文件；<1>:=最后目录文件  
-            gRecorder_flag.LIST_flag = OFF;
-            
-          }      
-         else
-          {
-            //m_Recorder_cfg.CFG_SOF = 0;
-            gRecorder_flag.LIST_flag = TRUE;//ON;新修改
-          }*/
           
-        *pTxBuf++ = 0x20;//m_Recorder_cfg.CFG_SOF;
-      
+        *pTxBuf++ = 0x20;//m_Recorder_cfg.CFG_SOF;      
         *pTxBuf++= g_sRtcManager.m_gRealTimer[RTC_MICROSEC];//录波触点时间
         *pTxBuf++= g_sRtcManager.m_gRealTimer[RTC_SEC];
         *pTxBuf++= g_sRtcManager.m_gRealTimer[RTC_MINUT];
         *pTxBuf++= g_sRtcManager.m_gRealTimer[RTC_HOUR];
         *pTxBuf++= g_sRtcManager.m_gRealTimer[RTC_DATE]|(g_sRtcManager.m_gRealTimer[RTC_WEEK]<<5);
         *pTxBuf++= g_sRtcManager.m_gRealTimer[RTC_MONTH];
-        //if(m_Recorder_cfg.comtrade_time[RTC_YEAR] >=2000)
+
           *pTxBuf++=g_sRtcManager.m_gRealTimer[RTC_YEAR]-2000;// m_Recorder_cfg.comtrade_time[RTC_YEAR]-2000;
-        //else
-          /*pTxBuf++= m_Recorder_cfg.comtrade_time[RTC_YEAR];
-      if(gRecorder_flag.LIST_flag == OFF)
-      {
-        wSendLISTNum = 0;
-      }*/
      }
      return pTxBuf;
 }
@@ -1464,18 +1430,10 @@ unsigned char * SoeData(unsigned char *pTxBuf,unsigned char leng,int segment_len
   gRecorder_flag.LIST_flag = OFF;
   WORD byCurSoeNum=0;
   BYTE soe_num_max =4;//FSOE_NUM_MAX
-  #ifndef GETSOEFROMRAM//从外部FLASH取个数
-  
-    unsigned int Flashheadbk  =g_InFlashInfo.m_unSSoeInFlashHead;
-    soe_num =  ReadNumSoeFromFlash((WORD *)&Flashheadbk,g_unSSoeInFlashTail);
-   #endif
-  //WORD FileName;
-    //char ch[250];
+
   if(( soe_recorded.soe_count >= soe_num ) &&(soe_recorded.Soe_count_flag == ON))//最后一段Sample_num
   {
      pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= LASTSECTION_TYPE;//发送的最后段信息
-      //pTxBuf[wSecLenPtr] = 3;//LSQ=3 不带停止激活的节传输
-          //GLubocfg_Sum = ChkluboSum(ComtrderCfg1, strlen(ComtrderCfg1));
       pTxBuf += leng;
       *pTxBuf++ = gRecorder_flag.pRXBuff[leng ];//文件序号两个字节
       *pTxBuf++ = gRecorder_flag.pRXBuff[leng + 1];//
@@ -1495,104 +1453,59 @@ unsigned char * SoeData(unsigned char *pTxBuf,unsigned char leng,int segment_len
       
     pTxPos = pTxBuf;
     *pTxBuf++  = 0;//SEGMENT_LENGTH;
-      
-      //for(int i=0;(wSendDATNum < (DAT_NUM - offset_time_Max));wSendDATNum++)//每一行的值Sample_num
     if(soe_recorded.Soe_count_flag == OFF)//(!soe_recorded.Soe_Area )&&(!soe_recorded.soe_count)&&(!soe_recorded.Soe_Ptr)
-        {
-      sprintf((char *)ch,"%.*s,%04d,%02d\r\n",sizeof(pdat_name),pdat_name,soe_num,object_addr_length);
-      soe_sum =0;
-      for(n = 0; n < strlen(ch); n++)
+      	{
+      	sprintf((char *)ch,"%.*s,%04d,%02d\r\n",sizeof(pdat_name),pdat_name,soe_num,object_addr_length);
+      	soe_sum =0;
+      	for(n = 0; n < strlen(ch); n++)
           {
-                    *pTxBuf++ = ch[n];
-                    soe_sum += ch[n];
+           *pTxBuf++ = ch[n];
+           soe_sum += ch[n];
            }
-      soe_recorded.Soe_count_flag = ON;
-      #ifndef GETSOEFROMRAM
-        BkFlashhead =g_InFlashInfo.m_unSSoeInFlashHead;
-      #endif
-    }
+      soe_recorded.Soe_count_flag = ON;      
+      }
     else if(soe_recorded.Soe_count_flag == ON)
-    {
-      #ifdef GETSOEFROMRAM//n内部FLASH取
-      if(soe_recorded.Soe_Ptr == soe_recorded.Soe_Curren_count)
-                        {
-                    
-                          if(soe_recorded.Soe_Area < SOE_SEG)
-                          {
-                      soe_recorded.Soe_Curren_count = ReadSoe(bySoeDa,soe_recorded.Soe_Area,0,SOE_NUM_SEG);
-                        soe_recorded.Soe_Area++;
-                        soe_recorded.Soe_Ptr = 0;
-                      
-                            }
-          
-                          }
+      	{      
+     	 if(soe_recorded.Soe_Ptr == soe_recorded.Soe_Curren_count)
+       	{
+	       if(soe_recorded.Soe_Area < SOE_SEG)
+             	{
+                  	soe_recorded.Soe_Curren_count = ReadSoe(bySoeDa,soe_recorded.Soe_Area,0,SOE_NUM_SEG);
+                	soe_recorded.Soe_Area++;
+                	soe_recorded.Soe_Ptr = 0;
+	       	}
+          	}
       else
       {
-          ReadSoe(bySoeDa,soe_recorded.Soe_Area-1,0,SOE_NUM_SEG);
-      }
-      
-      
-            
-              if(soe_recorded.Soe_Curren_count - soe_recorded.Soe_Ptr > 4) 
-                  byCurSoeNum = 4;
-              else
-                  byCurSoeNum = (soe_recorded.Soe_Curren_count - soe_recorded.Soe_Ptr);
-             
-            /*if(soe_recorded.soe_count + byCurSoeNum >= soe_num)
-              *pTxBuf++ = 0;//0:无后续 1:有后续
-             else
-              *pTxBuf++ = 1;//0:无后续 1:有后续*/
-              for(i =0 ;i< byCurSoeNum;i++)
-              {
-                  second = (MAKEWORD(bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+4],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+5]))/1000;//+soe_recorded.Soe_Ptr
-                  Millisecond = (MAKEWORD(bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+4],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+5]))%1000;//+soe_recorded.Soe_Ptr
-                  sprintf((char *)ch,"%d %02x %02x %d %02d%02d%02d_%02d%02d%02d_%03d\r\n",type,MAKEWORD(bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+1])+1,(MAKEWORD(bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+1])+1)>>8,bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+2],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+9], bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+8], bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+7], bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+6],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+5],
-                  second,Millisecond);
+          	ReadSoe(bySoeDa,soe_recorded.Soe_Area-1,0,SOE_NUM_SEG);
+      }            
+     	if(soe_recorded.Soe_Curren_count - soe_recorded.Soe_Ptr > 4) 
+     		byCurSoeNum = 4;
+      else
+   		byCurSoeNum = (soe_recorded.Soe_Curren_count - soe_recorded.Soe_Ptr);
+
+      for(i =0 ;i< byCurSoeNum;i++)
+      		{
+             second = (MAKEWORD(bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+4],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+5]))/1000;//+soe_recorded.Soe_Ptr
+              Millisecond = (MAKEWORD(bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+4],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+5]))%1000;//+soe_recorded.Soe_Ptr
+             sprintf((char *)ch,"%d %02x %02x %d %02d%02d%02d_%02d%02d%02d_%03d\r\n",type,MAKEWORD(bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+1])+1,(MAKEWORD(bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+1])+1)>>8,bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+2],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+9], bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+8], bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+7], bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+6],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+5],
+              second,Millisecond);
               
-                  for(n = 0; n < strlen(ch); n++)
-                  {
-              
-        *pTxBuf++ = ch[n];
-         soe_sum += ch[n];
+             for(n = 0; n < strlen(ch); n++)
+                  {              
+        		*pTxBuf++ = ch[n];
+         		soe_sum += ch[n];
                   }
               }
-              soe_recorded.Soe_Ptr += byCurSoeNum;
-              soe_recorded.soe_count +=byCurSoeNum;
+    	soe_recorded.Soe_Ptr += byCurSoeNum;
+	soe_recorded.soe_count +=byCurSoeNum;
               //*pTxPs = pTxBuf - pTxPs-1;
-              if(soe_recorded.Soe_Curren_count ==0)
+	if(soe_recorded.Soe_Curren_count ==0)
               pTxBuf = NULL;
-            #else
-            
-                      
-      if(g_Cmid == g_CmIdGPRS)
-                byCurSoeNum =  ((CBJ101S *)pGprs)->ReadSoeFromFlash((WORD *)&BkFlashhead,g_unSSoeInFlashTail,soe_num_max,bySoeDa);
-        else if(g_Cmid == g_CmIdDBG)
-        byCurSoeNum =  ((CBJ101S *)pDbg)->ReadSoeFromFlash((WORD *)&BkFlashhead,g_unSSoeInFlashTail,soe_num_max,bySoeDa);
-      soe_recorded.Soe_Ptr = 0;
-      for(i =0 ;i< byCurSoeNum;i++)
-            {
-                second = (MAKEWORD(bySoeDa[(i)*SOE_DATA_LEN+4],bySoeDa[(i)*SOE_DATA_LEN+5]))/1000;//+soe_recorded.Soe_Ptr
-                Millisecond = (MAKEWORD(bySoeDa[(i)*SOE_DATA_LEN+4],bySoeDa[(i)*SOE_DATA_LEN+5]))%1000;//+soe_recorded.Soe_Ptr
-                sprintf((char *)ch,"%d %02x %02x %d %02d%02d%02d_%02d%02d%02d_%03d\r\n",type,MAKEWORD(bySoeDa[(i)*SOE_DATA_LEN+1],bySoeDa[(i)*SOE_DATA_LEN+2])+1,(MAKEWORD(bySoeDa[(i)*SOE_DATA_LEN+1],bySoeDa[(i)*SOE_DATA_LEN+2])+1)>>8,bySoeDa[(i)*SOE_DATA_LEN+3],bySoeDa[(i)*SOE_DATA_LEN+10], bySoeDa[(i)*SOE_DATA_LEN+9], bySoeDa[(i)*SOE_DATA_LEN+8], bySoeDa[(i)*SOE_DATA_LEN+7],bySoeDa[(i)*SOE_DATA_LEN+6],
-                second,Millisecond);
-              
-                for(n = 0; n < strlen(ch); n++)
-                {
-              
-            *pTxBuf++ = ch[n];
-            soe_sum += ch[n];
-                }
-            }
-      soe_recorded.soe_count +=byCurSoeNum;
-      if (byCurSoeNum == 0)
-            pTxBuf = NULL;  
-      #endif
-           
-        }
-      if(pTxBuf != NULL)
+     }
+     if(pTxBuf != NULL)
       {
-    *pTxPos = pTxBuf - pTxPos-1;//LL
-              
+    		*pTxPos = pTxBuf - pTxPos-1;//LL              
       }
     gRecorder_flag.LIST_flag = TRUE;//ON; 
   }
