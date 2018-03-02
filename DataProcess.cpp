@@ -246,6 +246,7 @@ void InitDataProc(void)
     if(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_DEL_LUBO])
     	{
     	temp[0]=0;temp[1]=0;temp[2]=0;temp[3]=0;temp[4]=0;temp[5]=0;
+		DelALLSOE();
     	}
     CAT_SpiWriteWords(EEPADD_LUBONUM, 6, temp); 
       g_sRecData.m_gRecANum=temp[0];//录波总条数1~32
@@ -1356,6 +1357,8 @@ int ReadSoe(unsigned char *pBuf,int iSegNo,int iStartNo,int iSoeNum)
   return num_cnt;
 }
 //张弢 SOE存FLASH
+
+
 
 //==============================================================================
 //  函数名称   : ReadSoe

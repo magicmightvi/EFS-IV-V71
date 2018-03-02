@@ -330,6 +330,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
     	{
     	//g_gRunPara[RP_CFG_KEY]=g_gRunPara[RP_CFG_KEY]&(~BIT[RPCFG_DEL_LUBO]);
     	u_dellubo  = 0;
+		DelALLSOE();
     		temp[0]=0;temp[1]=0;temp[2]=0;temp[3]=0;temp[4]=0;temp[5]=0;    	
        	CAT_SpiWriteWords(EEPADD_LUBONUM, 6, temp); 
         	g_sRecData.m_gRecANum=temp[0];//录波总条数1~32

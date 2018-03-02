@@ -265,13 +265,14 @@ void ScanDin(void)
 
 void RmInfoChk(void)
 {
-    unsigned char m,k;
+    unsigned char m;
     //unsigned int unRmtTemp = 0;
     //unsigned int j=1;
     for(m= 0;m < RMT_INFO_NUM;m++)
     {
          if(g_gRmtInfoBak[m] != g_gRmtInfo[m])
-        {        
+        {       
+        /*
                for(k = 0; k < g_ucYxTransNum;k++)
                {
                    if(m == g_ucYXAddr[k]-1)
@@ -281,7 +282,8 @@ void RmInfoChk(void)
                        break;
                    }
              
-        	 }  
+        	 }  */
+        CreatNewSoe(m,g_gRmtInfo[m],2);	 
         g_gRmtInfoBak[m] = g_gRmtInfo[m];   
        }
     }    

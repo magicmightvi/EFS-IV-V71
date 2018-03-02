@@ -625,7 +625,7 @@ typedef double         FP64;            //双精度浮点数
 
 #define         SOE_DATA_LEN            11       //每条SOE数据的长度
 #define         SOEVALID               0X55
-#define         SOE_SENDDA_LEN         10//SOE_DATA_LEN-1
+#define         SOE_SENDDA_LEN         11//SOE_DATA_LEN-1
 //SOE数据的定义
 #define         SOE_FLAG    0  
 #define         SOE_TYPEL   1 
@@ -647,7 +647,7 @@ typedef double         FP64;            //双精度浮点数
 
 #define SOE_RECORD_ADD   0x42000     //SOE记录地址区
 
-#define SOE_NUM_SEG   42
+#define SOE_NUM_SEG   4//42
 #define SOE_SEG       24 
 
 #define SOE_RECORD_LEN  0x10        //每条记录16字节

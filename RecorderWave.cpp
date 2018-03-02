@@ -1418,20 +1418,16 @@ unsigned char * SoeData(unsigned char *pTxBuf,unsigned char leng,int segment_len
   WORD second;
     WORD Millisecond,i;
     char ch[60]={0};
-  #ifdef GETSOEFROMRAM
-    BYTE bySoeDa[512];
-  #else
-    BYTE bySoeDa[100];
-  #endif
-  unsigned char type = M_SP_TB;
-  pdat_name="AU";
+    unsigned char bySoeDa[70];
+  //unsigned char type = M_SP_TB;
+  pdat_name="EFS";
   unsigned char *pTxPos;
         BYTE n;
   gRecorder_flag.LIST_flag = OFF;
   WORD byCurSoeNum=0;
-  BYTE soe_num_max =4;//FSOE_NUM_MAX
+  //BYTE soe_num_max =4;//FSOE_NUM_MAX
 
-  if(( soe_recorded.soe_count >= soe_num ) &&(soe_recorded.Soe_count_flag == ON))//最后一段Sample_num
+  if(( soe_recorded.Soe_Curren_count>= soe_recorded.soe_count) &&(soe_recorded.Soe_count_flag == ON))//最后一段Sample_num
   {
      pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= LASTSECTION_TYPE;//发送的最后段信息
       pTxBuf += leng;
@@ -1465,31 +1461,39 @@ unsigned char * SoeData(unsigned char *pTxBuf,unsigned char leng,int segment_len
       soe_recorded.Soe_count_flag = ON;      
       }
     else if(soe_recorded.Soe_count_flag == ON)
-      	{      
-     	 if(soe_recorded.Soe_Ptr == soe_recorded.Soe_Curren_count)
-       	{
-	       if(soe_recorded.Soe_Area < SOE_SEG)
-             	{
-                  	soe_recorded.Soe_Curren_count = ReadSoe(bySoeDa,soe_recorded.Soe_Area,0,SOE_NUM_SEG);
-                	soe_recorded.Soe_Area++;
-                	soe_recorded.Soe_Ptr = 0;
-	       	}
-          	}
-      else
-      {
-          	ReadSoe(bySoeDa,soe_recorded.Soe_Area-1,0,SOE_NUM_SEG);
-      }            
-     	if(soe_recorded.Soe_Curren_count - soe_recorded.Soe_Ptr > 4) 
-     		byCurSoeNum = 4;
-      else
-   		byCurSoeNum = (soe_recorded.Soe_Curren_count - soe_recorded.Soe_Ptr);
-
-      for(i =0 ;i< byCurSoeNum;i++)
+      	{
+      		for(n = 0; n < 6; n++)
+          	{     	 
+             soe_recorded.Soe_Area &= 0x3ff0;
+		if(soe_recorded.Soe_Area>=EEPADD_SOEENDADR) 
+			soe_recorded.Soe_Area = EEPADD_SOESTARTADR;	 
+		CAT_SpiReadBytes(soe_recorded.Soe_Area, 11, &bySoeDa[n*11]); 
+		soe_recorded.Soe_Area += 16;
+		if(soe_recorded.Soe_Area>=EEPADD_SOEENDADR) 
+			soe_recorded.Soe_Area = EEPADD_SOESTARTADR;
+		if(soe_recorded.Soe_Area==soe_recorded.Soe_Ptr)
+			{
+			soe_recorded.Soe_Area=EEPADD_SOESTARTADR;
+			break;
+			}
+		}
+			
+    	  	if(n>=6)
+			{byCurSoeNum=6;}
+		else
+			{byCurSoeNum=n+1;}
+		
+      		for(i =0 ;i< byCurSoeNum;i++)
       		{
-             second = (MAKEWORD(bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+4],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+5]))/1000;//+soe_recorded.Soe_Ptr
-              Millisecond = (MAKEWORD(bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+4],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+5]))%1000;//+soe_recorded.Soe_Ptr
-             sprintf((char *)ch,"%d %02x %02x %d %02d%02d%02d_%02d%02d%02d_%03d\r\n",type,MAKEWORD(bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+1])+1,(MAKEWORD(bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+1])+1)>>8,bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+2],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+9], bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+8], bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+7], bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+6],bySoeDa[(i+soe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+5],
-              second,Millisecond);
+             second = (MAKEWORD(bySoeDa[(i)*SOE_SENDDA_LEN+4],bySoeDa[(i)*SOE_SENDDA_LEN+5]))/1000;//+soe_recorded.Soe_Ptr
+              Millisecond = (MAKEWORD(bySoeDa[(i)*SOE_SENDDA_LEN+4],bySoeDa[(i)*SOE_SENDDA_LEN+5]))%1000;//+soe_recorded.Soe_Ptr
+             sprintf((char *)ch,"%02x%02x,%d,%02d-%02d-%02d %02d:%02d:%02d.%03d\r\n",
+			 	(MAKEWORD(bySoeDa[(i)*SOE_SENDDA_LEN+1],bySoeDa[(i)*SOE_SENDDA_LEN+2])+1)>>8,
+			 	(MAKEWORD(bySoeDa[(i)*SOE_SENDDA_LEN+1],bySoeDa[(i)*SOE_SENDDA_LEN+2])+1),
+			 	bySoeDa[(i)*SOE_SENDDA_LEN+3],//yx value
+			 	bySoeDa[(i)*SOE_SENDDA_LEN+10],bySoeDa[(i)*SOE_SENDDA_LEN+9], 
+			 	bySoeDa[(i)*SOE_SENDDA_LEN+8], bySoeDa[(i)*SOE_SENDDA_LEN+7], 
+			 	bySoeDa[(i)*SOE_SENDDA_LEN+6],second,Millisecond);
               
              for(n = 0; n < strlen(ch); n++)
                   {              
@@ -1497,8 +1501,8 @@ unsigned char * SoeData(unsigned char *pTxBuf,unsigned char leng,int segment_len
          		soe_sum += ch[n];
                   }
               }
-    	soe_recorded.Soe_Ptr += byCurSoeNum;
-	soe_recorded.soe_count +=byCurSoeNum;
+    	//soe_recorded.Soe_Ptr += byCurSoeNum;
+	soe_recorded.Soe_Curren_count +=byCurSoeNum;
               //*pTxPs = pTxBuf - pTxPs-1;
 	if(soe_recorded.Soe_Curren_count ==0)
               pTxBuf = NULL;
@@ -2316,7 +2320,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
   WORD Info_val;
   BYTE off=0; 
    long FADDR_RECORDER;
-  RECORDER_CFG mRecorder_cfg;
+  //RECORDER_CFG mRecorder_cfg;
   off=7+g_ucPara101[IECP_LINKADDR_NUM]+g_ucPara101[IECP_LINKADDR_NUM]+g_ucPara101[IECP_COMNADDR_NUM];//得到信息体地址，用这个变量主要考虑重发的问题
   
   CAT_SpiReadWords(EEPADD_LUBONUM, 1, &wave_total);
@@ -2466,10 +2470,11 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
   else if(Info_val == 0x6804)
   {
     pTxBuf = SectionPrepareSoe(pTxBuf,leng);
-    soe_recorded.Soe_Area =0;
-          soe_recorded.Soe_Ptr =0;
-          soe_recorded.soe_count =0;
-          soe_recorded.Soe_Curren_count =0;
+    soe_recorded.Soe_Area =g_unSSoeSaveE2ROMPtr;//每段SOE存储起始地址
+          soe_recorded.Soe_Ptr =g_unSSoeSaveE2ROMPtr;//保存SOE存储起始地址，防止阐述过程中SOE增加
+          soe_recorded.soe_count =soe_num;//保存soe数量，防止传输过程中SOE增加
+          if(soe_num<512)soe_recorded.Soe_Area=EEPADD_SOESTARTADR;
+          soe_recorded.Soe_Curren_count =0;//发送SOE数量
           soe_recorded.Soe_count_flag =OFF;
   }
   else if(Info_val == 0x6806)

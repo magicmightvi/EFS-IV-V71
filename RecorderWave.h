@@ -191,11 +191,11 @@ struct RE_SEND_REC
 };
 struct SOE_RECORDER
 {	  
-	  unsigned char Soe_Area;
-	  unsigned char Soe_Ptr;
-	  unsigned int soe_count;//文件内容的偏移指针值。
+	  unsigned int Soe_Area;//每段SOE存储起始地址
+	  unsigned int Soe_Ptr;//保存SOE存储起始地址，防止阐述过程中SOE增加
+	  unsigned int soe_count;////保存soe数量，防止传输过程中SOE增加
 	  unsigned char follow_mark;//后续标志
-	  unsigned char Soe_Curren_count;
+	  unsigned int Soe_Curren_count;//已发送SOE数量
 	  unsigned char Soe_count_flag;
 	  //char soeBuff[100]; //文件内容数据流
 	  //unsigned char check_sum;
