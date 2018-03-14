@@ -95,12 +95,12 @@ const char RECCfg[]=
 const char CfgEnd[]=
 "ASCII\n\
 1\n\
-";
+\0";
 
 const char CfgEnd1[]=
 "BINARY\n\
 1\n\
-";
+\0";
 
 /*
 const char ComtrderCfg[]=
@@ -178,6 +178,7 @@ struct FLAG_RECORDER
     //unsigned char CFG_flag;//是否在读配置文件的数据
     //unsigned char DAT_flag;//是否在读数据文件的数据
     unsigned char LIST_flag;//是否在读目录文件的数据
+    unsigned char LIST_flag_YN;
     unsigned char pRXBuff[64]; //保存101规约中68长帧的数据
 };
 

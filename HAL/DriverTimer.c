@@ -1356,9 +1356,10 @@ _EINT();//开总中断// 张弢测试中断嵌套
 	     		 
             if(SecCount >= 1000)   //秒计时
             {
+               g_STimeout = ON;                  
             	if(gRes_rec.res_timeout > 0)
             		{
-            		gRes_rec.res_timeout ++;
+            		//gRes_rec.res_timeout ++;
             		}
                 if(g_unSms_Count>0)//短信发送后g_unSms_Count置15
                 	{

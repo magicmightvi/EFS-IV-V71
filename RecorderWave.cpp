@@ -59,7 +59,11 @@ void cfg_dat_length(int file_current_num)
 {
      char ch[100]; 
      unsigned int tt=0,xt;
-     char i;	 
+     unsigned int i;
+     for( i=0;(i< 360);i++)
+      {
+      ComtrderCfg1[i]=0;
+     	}
     {  //.CFG的长度
        //添加站名
       memcpy(ComtrderCfg1,g_gLBName,g_gLBNameLen);
@@ -193,7 +197,7 @@ void cfg_dat_length(int file_current_num)
             		tt +=strlen(ch);
 			}
 		}
-	else //if(gRecorder_filecfg.CFG_Samp==800)
+	else if(gRecorder_filecfg.CFG_Samp==800)
 	{
 	      sprintf((char *)ch,"%4d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_YEAR],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
                                                                 gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
@@ -493,7 +497,7 @@ unsigned char * FileDirectory_YN(unsigned char *pTxBuf, unsigned char leng,unsig
       pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]] = CALL_TYPE_YN;
       //pTxBuf[6+g_ucPara101[IECP_LINKADDR_NUM]] = wave_total| VSQ;//张弢 长度最后写
       pTxBuf += leng;
-      gRecorder_flag.LIST_flag = OFF;
+      gRecorder_flag.LIST_flag_YN= OFF;
 
        for(;(wSendLISTNum <=  (g_sRecData.m_gRecANum+g_sRecData.m_gACTRecANum+g_sRecData.m_gXHRecANum));wSendLISTNum++,wFileNum++)
         {
@@ -538,25 +542,25 @@ unsigned char * FileDirectory_YN(unsigned char *pTxBuf, unsigned char leng,unsig
 	   		gRecorder_Readfilecfg.FileName = 0xff;
 	   		}
           	}	
-       	}
+       	
 	//if(gRecorder_Readfilecfg.FileName = 0xff)	
-	if((wSendLISTNum >= (g_sRecData.m_gRecANum+g_sRecData.m_gACTRecANum+g_sRecData.m_gXHRecANum-1))
+	if((wSendLISTNum >= (g_sRecData.m_gRecANum+g_sRecData.m_gACTRecANum+g_sRecData.m_gXHRecANum))
 		||((g_sRecData.m_gRecANum+g_sRecData.m_gACTRecANum+g_sRecData.m_gXHRecANum)==0))
 		{//文件目录发送完，发送文件目录结束帧
 		gRecorder_Readfilecfg.CFG_SOF = 0x20;  //<0>:=后面还有目录文件；<1>:=最后目录文件  
-            	gRecorder_flag.LIST_flag = OFF;
+            	gRecorder_flag.LIST_flag_YN= OFF;
 	     //总包1字节 当前包1字节
           	*pTxBuf++ = LOBYTE(wSendLISTNum/*wave_total*/);	   
           	*pTxBuf++ = LOBYTE(wSendLISTNum);	  
 	   	ptoBuf[6+g_ucPara101[IECP_LINKADDR_NUM]] = VSQ;	//张弢确定长度	
 	   	ptoBuf[7+g_ucPara101[IECP_LINKADDR_NUM]] = 10;	//传送原因=10
-      	   	wSendLISTNum = 0;     
+      	   	wSendLISTNum = 0; wFileNum=0;    
           	return pTxBuf;
 		}
 	else
 		{
 		gRecorder_Readfilecfg.CFG_SOF = 0;
-            	gRecorder_flag.LIST_flag = ON;
+            	gRecorder_flag.LIST_flag_YN= ON;
 //		}
 /*	
       for(i=wSendLISTNum;(wSendLISTNum <=(g_sRecData.m_gRecANum+g_sRecData.m_gACTRecANum+g_sRecData.m_gXHRecANum));i++,wSendLISTNum++)
@@ -658,13 +662,18 @@ unsigned char * FileDirectory_YN(unsigned char *pTxBuf, unsigned char leng,unsig
           *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_YEAR];		
 	j+=2;	
         }
-      
+//}
 	ptoBuf[6+g_ucPara101[IECP_LINKADDR_NUM]] = j| VSQ;	//张弢确定长度
-	wSendLISTNum++;            
-       if( gRecorder_flag.LIST_flag == OFF)wSendLISTNum = 0;
-     
+	wSendLISTNum++; wFileNum++;           
+       if( gRecorder_flag.LIST_flag_YN== OFF)
+	   	{
+	   	wSendLISTNum = 0;wFileNum=0;
+       	}
      return pTxBuf;
+ }
+ return pTxBuf;
 }
+
 //****************云南录波文件*****************************
 //#else
 
@@ -1055,9 +1064,9 @@ unsigned char *  FileDataCfg(unsigned char *pTxBuf, unsigned char leng,RECORDER_
           *pTxBuf++ = gRecorder_flag.pRXBuff[leng + 2];//节名称
           *pTxBuf++ = 3;//pTxBuf[wSecLenPtr]LSQ=3 不带停止激活的节传输
            GLubocfg_Sum = ChkluboSum((BYTE *)ComtrderCfg1, strlen(ComtrderCfg1));
-          *pTxBuf++ = GLubocfg_Sum ;
+          *pTxBuf++ = GLubocfg_Sum;
           wSendCFGNum=0;
-              
+          //GLubocfg_Sum=0;    
         }
         else
         {
@@ -1073,6 +1082,7 @@ unsigned char *  FileDataCfg(unsigned char *pTxBuf, unsigned char leng,RECORDER_
            for(j = 0;(j < segment_leng)&&(wSendCFGNum < wCfgTotalNum);wSendCFGNum++,j++)
            {
                *pTxBuf++ = *strtemp++;
+	       //GLubocfg_Sum += *pTxBuf;	   
            }
           
            *pTxPos = pTxBuf - pTxPos-1;//LL
@@ -1539,7 +1549,7 @@ unsigned char *  FileDatadat(unsigned char *pTxBuf,unsigned char leng,WORD wSecL
    gRes_rec.res_wSecLenPtr = wSecLenPtr;
    gRes_rec.res_segment_leng =segment_leng;
    //gRes_rec.res_timeout = 1;
-   if(gRes_rec.res_timeout >=4)
+   if(gRes_rec.res_timeout ==0x55)
    	wSendDATNum=wSendDATNumOld;
    wSendDATNumOld =wSendDATNum;	
     FileName = MAKEWORD(gRecorder_flag.pRXBuff[leng],gRecorder_flag.pRXBuff[leng + 1]);
@@ -1658,7 +1668,7 @@ unsigned char *  FileDatadat(unsigned char *pTxBuf,unsigned char leng,WORD wSecL
             for(BYTE n = 0; n < k; n++)
             {
                 *pTxBuf++ = ch[n];
-		   if(gRes_rec.res_timeout <4) GLubodat_Sum += ch[n];
+		   if(gRes_rec.res_timeout ==0) GLubodat_Sum += ch[n];
             }
             *pTxPos = pTxBuf - pTxPos-1;//LL
             gRecorder_flag.LIST_flag = ON;     
@@ -1821,7 +1831,7 @@ unsigned char *  FileDataCfg_YN(unsigned char *pTxBuf, unsigned char leng,RECORD
       ptoBuf = pTxBuf;
        
        wCfgTotalNum =strlen(ComtrderCfg1);//(pgRecorder_cfg->CFG_Leng);//张弢            
-       gRecorder_flag.LIST_flag = OFF;
+       gRecorder_flag.LIST_flag_YN= OFF;
         {
            pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= CALL_FILE_YN;//类型标示 137 0x89
            pTxBuf += leng;
@@ -1848,7 +1858,7 @@ unsigned char *  FileDataCfg_YN(unsigned char *pTxBuf, unsigned char leng,RECORD
           *pTxBuf++ =0; //pTxBuf[leng+3]  = 0;
 	if(wSendCFGNum >= wCfgTotalNum)
 	    	{//结束帧
-	    	gRecorder_flag.LIST_flag = OFF;
+	    	gRecorder_flag.LIST_flag_YN= OFF;
 		wSendCFGNum=0;
 		section_current = 0;
 		ptoBuf[7+g_ucPara101[IECP_LINKADDR_NUM]] = 10;	//传送原因=13
@@ -1868,7 +1878,7 @@ unsigned char *  FileDataCfg_YN(unsigned char *pTxBuf, unsigned char leng,RECORD
            ptoBuf[7+g_ucPara101[IECP_LINKADDR_NUM]] = 13;	//传送原因=13
            temp = g_ucPara101[IECP_LINKADDR_NUM]+g_ucPara101[IECP_TRANSRSN_NUM]+g_ucPara101[IECP_COMNADDR_NUM]+g_ucPara101[IECP_INFO_NUM];
            ptoBuf[7+temp+12] = j;	//包长度
-           gRecorder_flag.LIST_flag = ON;
+           gRecorder_flag.LIST_flag_YN= ON;
 
 
         }
@@ -1889,7 +1899,7 @@ unsigned char *  FileDatadat_YN(unsigned char *pTxBuf,unsigned char leng,WORD wS
     unsigned char datBuff[16] = {0}; //8个通道,每个通道的数值有2个
     unsigned char k,temp;
     unsigned int Sample_num;// = 100;CRG_SAMPLE_NUM;CFG_EndSamp
-    gRecorder_flag.LIST_flag = OFF;
+    gRecorder_flag.LIST_flag_YN= OFF;
     WORD FileName;
     char ch[250];
     unsigned char snum=0;
@@ -1927,7 +1937,7 @@ unsigned char *  FileDatadat_YN(unsigned char *pTxBuf,unsigned char leng,WORD wS
         if( wSendDATNum >= Sample_num )//最后一段
      		{//结束帧
      		wSendDATNum = 0;
-		gRecorder_flag.LIST_flag = OFF;
+		gRecorder_flag.LIST_flag_YN= OFF;
 		section_current = 0;
            	ptoBuf[7+g_ucPara101[IECP_LINKADDR_NUM]] = 10;	//传送原因=13
            	temp = g_ucPara101[IECP_LINKADDR_NUM]+g_ucPara101[IECP_TRANSRSN_NUM]+g_ucPara101[IECP_COMNADDR_NUM]+g_ucPara101[IECP_INFO_NUM];
@@ -1985,7 +1995,7 @@ unsigned char *  FileDatadat_YN(unsigned char *pTxBuf,unsigned char leng,WORD wS
 		   snum++;
             }
             *pTxPos = pTxBuf - pTxPos-1;//LL
-            gRecorder_flag.LIST_flag = ON;     
+            gRecorder_flag.LIST_flag_YN= ON;     
             //GLubodat_Sum += ChkluboSum((BYTE *)ch, strlen(ch));
             
               
@@ -2078,7 +2088,7 @@ unsigned char * RecCallFile_YN(unsigned char *pTxBuf, unsigned char leng,unsigne
 	ptoBuf[7+g_ucPara101[IECP_LINKADDR_NUM]] = 7;	//传送原因=7
 		
         	section_current=1;
-		gRecorder_flag.LIST_flag = ON;
+		gRecorder_flag.LIST_flag_YN= ON;
 
 	  return pTxBuf;		
 }
@@ -2099,7 +2109,7 @@ unsigned char *  FileCfgOneFrame_YN(unsigned char *pTxBuf, unsigned char leng,RE
       ptoBuf = pTxBuf;
        
        wCfgTotalNum =strlen(ComtrderCfg1);//(pgRecorder_cfg->CFG_Leng);//张弢            
-       gRecorder_flag.LIST_flag = OFF;
+       gRecorder_flag.LIST_flag_YN= OFF;
 
            pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= CALL_ONEFRAME_YN;//类型标示 137 0x89
            pTxBuf += leng;
@@ -2135,7 +2145,7 @@ unsigned char *  FileCfgOneFrame_YN(unsigned char *pTxBuf, unsigned char leng,RE
            ptoBuf[7+g_ucPara101[IECP_LINKADDR_NUM]] = 7;	//传送原因=7
            temp = g_ucPara101[IECP_LINKADDR_NUM]+g_ucPara101[IECP_TRANSRSN_NUM]+g_ucPara101[IECP_COMNADDR_NUM]+g_ucPara101[IECP_INFO_NUM];
            ptoBuf[7+temp+12] = j;	//包长度
-       gRecorder_flag.LIST_flag = OFF;
+       gRecorder_flag.LIST_flag_YN= OFF;
 	   
         return pTxBuf;    
 }
@@ -2151,7 +2161,7 @@ unsigned char *  FileDatOneFrame_YN(unsigned char *pTxBuf,unsigned char leng,WOR
     unsigned char datBuff[16] = {0}; //8个通道,每个通道的数值有2个
     unsigned char k,temp;
     unsigned int Sample_num;// = 100;CRG_SAMPLE_NUM;CFG_EndSamp
-    gRecorder_flag.LIST_flag = OFF;
+    gRecorder_flag.LIST_flag_YN= OFF;
     WORD FileName;
     char ch[250];
     unsigned char *pTxPos;
@@ -2243,7 +2253,7 @@ unsigned char *  FileDatOneFrame_YN(unsigned char *pTxBuf,unsigned char leng,WOR
            ptoBuf[7+g_ucPara101[IECP_LINKADDR_NUM]] = 7;	//传送原因=7
            temp = g_ucPara101[IECP_LINKADDR_NUM]+g_ucPara101[IECP_TRANSRSN_NUM]+g_ucPara101[IECP_COMNADDR_NUM]+g_ucPara101[IECP_INFO_NUM];
            ptoBuf[7+temp+12] = 200;	//包长度	
-           gRecorder_flag.LIST_flag = OFF; 
+           gRecorder_flag.LIST_flag_YN= OFF; 
      return pTxBuf;
  }
 unsigned char LuboGetCtrCode(BYTE control)
@@ -2464,7 +2474,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
       else if(pTXBuff[leng + 3]==2)  //请求文件
       {
   if(Info_val == 0x680A)
-     {
+     {GLubocfg_Sum=0; 
     pTxBuf = SectionPrepareFile(pTxBuf,leng,&gRecorder_Readfilecfg);
   }
   else if(Info_val == 0x6804)
@@ -2568,7 +2578,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
   if(g_Cmid == g_CmIdGPRS)
   {
         pGprs->m_PaWaitflag_lubo = ON;
-        //pGprs->m_PaWaitCt_lubo = g_gRunPara[RP_LUBOGPRS_T];
+        pGprs->m_PaWaitCt_lubo =4;
         pGprs->m_TxNum_lubo = 0;
 
        // memcpy(&(pGprs->m_gprsSendBuf[0]),pTXBuff,pTXBuff[1]+6);
@@ -2578,7 +2588,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
   else if(g_Cmid == g_CmIdDBG)
   {
     pDbg->m_PaWaitflag_lubo = ON;
-        //pDbg->m_PaWaitCt_lubo = g_gRunPara[RP_LUBOGPRS_T];
+        pDbg->m_PaWaitCt_lubo = 4;
         pDbg->m_TxNum_lubo = 0;
     //memcpy(&(pDbg->m_gprsSendBuf[0]),pTXBuff,pTXBuff[1]+6);
     //pDbg->m_gprsSendLen = pTXBuff[1]+6;
@@ -2603,9 +2613,10 @@ void Code_Lubo_YN(unsigned char *pRxBuf,unsigned char *pTXBuff)
   WORD wSecLenPtr=0;
  
   
-  CAT_SpiReadWords(EEPADD_LUBONUM, 1, &wave_total);
+  //CAT_SpiReadWords(EEPADD_LUBONUM, 1, &wave_total);
+  wave_total=g_sRecData.m_gRecANum+g_sRecData.m_gACTRecANum+g_sRecData.m_gXHRecANum;
   if(wave_total > MAX_REC_NUM)  wave_total=0;
-  gRecorder_flag.LIST_flag = OFF;
+  gRecorder_flag.LIST_flag_YN= OFF;
   
   //从接收的报文中处理发送的数据，从报文头到信息体地址68 00 00 68 08
   leng=7+g_ucPara101[IECP_LINKADDR_NUM]+g_ucPara101[IECP_TRANSRSN_NUM]+g_ucPara101[IECP_COMNADDR_NUM]+g_ucPara101[IECP_INFO_NUM];
@@ -2620,7 +2631,7 @@ void Code_Lubo_YN(unsigned char *pRxBuf,unsigned char *pTXBuff)
   if(pTXBuff[7+g_ucPara101[IECP_LINKADDR_NUM]] == 8)//传送原因==8，停止传输
   	{
     	section_current = 0;
-	gRecorder_flag.LIST_flag = OFF;
+	gRecorder_flag.LIST_flag_YN = OFF;
 	pTxBuf += leng;
 	pTXBuff[7+g_ucPara101[IECP_LINKADDR_NUM]] =9;
 	wSendDATNum = 0;
@@ -2688,7 +2699,27 @@ void Code_Lubo_YN(unsigned char *pRxBuf,unsigned char *pTXBuff)
    *pTxBuf++ = ChkluboSum(&(pTXBuff[4]),pTXBuff[1]);
    *pTxBuf++ = 0x16;
     CommSendData(pTXBuff,pTXBuff[1]+6,g_Cmid);
-    
+/*	
+  if(g_Cmid == g_CmIdGPRS)
+  {
+        pGprs->m_PaWaitflag_lubo = ON;
+        pGprs->m_PaWaitCt_lubo =4;
+        pGprs->m_TxNum_lubo = 0;
+
+       // memcpy(&(pGprs->m_gprsSendBuf[0]),pTXBuff,pTXBuff[1]+6);
+       //pGprs->m_gprsSendLen = pTXBuff[1]+6;
+	//CommSendData(pTXBuff,pTXBuff[1]+6,g_Cmid);	
+  }
+  else if(g_Cmid == g_CmIdDBG)
+  {
+    pDbg->m_PaWaitflag_lubo = ON;
+        pDbg->m_PaWaitCt_lubo = 4;
+        pDbg->m_TxNum_lubo = 0;
+    //memcpy(&(pDbg->m_gprsSendBuf[0]),pTXBuff,pTXBuff[1]+6);
+    //pDbg->m_gprsSendLen = pTXBuff[1]+6;
+        //CommSendData(pTXBuff,pTXBuff[1]+6,g_Cmid);	    
+  }	
+*/    
   }
 WORD  ReadNumSoeFromFlash(WORD *pHeadPtr,WORD TailPtr)
 {

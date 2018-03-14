@@ -18,8 +18,8 @@ extern "C"
 //	#include "SMS\PrtcSms.h"
      
 // #pragma location=0x0FF00 
- const unsigned char VerNum[]="Ver71.00";
-const unsigned char VerNum_INLCD=71;
+ const unsigned char VerNum[]="Ver72.00";
+const unsigned char VerNum_INLCD=72;
  
  
 //================================== AD采集模块 ============================================
@@ -531,7 +531,7 @@ extern unsigned int g_test;
     unsigned int g_unRELTimeFlg_101;
     
     unsigned int g_unOffset;    //物理地址转换偏移量*/
-    char  ComtrderCfg1[350];
+    char  ComtrderCfg1[360];
     char  ComtrderCfg_adj[50];
 #else
     extern struct  sTX_BUFF g_sTxBuff[COMM_PORT_NUM];
@@ -608,7 +608,7 @@ extern unsigned int g_test;
     extern unsigned char eight_pulse_counter;
     extern unsigned int unFrameNum; //临时存储待发送短信条数
     extern unsigned char g_uc101Flg;
-    extern char  ComtrderCfg1[350];
+    extern char  ComtrderCfg1[360];
     extern char  ComtrderCfg_adj[50];
    /* extern unsigned char g_ucRELConfirm;   //通信用遥控确认标志
     extern unsigned char g_ucRELUNM;       //通信用遥控继电器的顺序号
@@ -636,6 +636,7 @@ extern unsigned int g_test;
         unsigned char g_SendFault;
         unsigned int TA1OffsetNum = 250;
         unsigned char Powerdown_counter;
+	  unsigned char g_STimeout;//秒计时 	
 #else
         extern struct sTIMER_MANAGER g_sTimer[TIMER_NUM];
         extern unsigned int g_DateCount;
@@ -644,7 +645,7 @@ extern unsigned int g_test;
         extern unsigned char g_SmsSendStatus;
 	
         extern unsigned char g_SendFault;
-        
+        extern unsigned char g_STimeout;//秒计时
         extern unsigned char Powerdown_counter;
 #endif
 //=================================== 时钟模块 ==========================================

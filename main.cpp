@@ -52,6 +52,34 @@ void app(void)@"APPLICATION"
 
         SaveCfgPara();*/
         WDG_CLR;
+	if(g_STimeout == ON)
+		{
+		g_STimeout = OFF;
+		if(pGprs->m_PaWaitflag_lubo == ON)
+   			{
+      			if(pGprs->m_PaWaitCt_lubo > 0)
+      				{//ODU写参数重发计时
+          			pGprs->m_PaWaitCt_lubo--;
+          			if(pGprs->m_PaWaitCt_lubo <= 0)
+          				{
+            				pGprs->m_PaWaitflag_lubo = TRUE;
+            				//return TRUE;
+          				}
+       			}
+    			}
+               if(pDbg->m_PaWaitflag_lubo == ON)
+   			{
+      			if(pDbg->m_PaWaitCt_lubo > 0)
+      				{//ODU写参数重发计时
+          			pDbg->m_PaWaitCt_lubo--;
+          			if(pDbg->m_PaWaitCt_lubo <= 0)
+          				{
+            				pDbg->m_PaWaitflag_lubo = TRUE;
+            				//return TRUE;
+          				}
+       			}
+    			}					
+		}
 	 if(g_NolinkReset>1440)
 	 	{
 	 	g_NolinkReset=0;

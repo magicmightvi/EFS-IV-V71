@@ -352,10 +352,14 @@ BOOL CBJ101S::RecFrame10(void)
             
       if((mRecorder_flag.LIST_flag == ON)||(mRecorder_flag.xuchuanflag== ON))
         m_ackRecorder =ON;
-            if((gRecorder_flag.LIST_flag == ON) &&(m_uartId == g_Cmid))//(( gRecorder_flag.CFG_flag ==ON )||(gRecorder_flag.DAT_flag ==ON )||)//正在读配置文件的数据
+      if((gRecorder_flag.LIST_flag == ON) &&(m_uartId == g_Cmid))//(( gRecorder_flag.CFG_flag ==ON )||(gRecorder_flag.DAT_flag ==ON )||)//正在读配置文件的数据
             {
               m_ackflag =1;
             }
+      if((gRecorder_flag.LIST_flag_YN== ON) &&(m_uartId == g_Cmid))//(( gRecorder_flag.CFG_flag ==ON )||(gRecorder_flag.DAT_flag ==ON )||)//正在读配置文件的数据
+            {
+              m_ackflag =1;
+            }			
             if((pSendFrame->Frame68.Start1 == 0x68) && (m_WaitConfTpId > 0))//用以判断主站回的报文是不是对主动上报报文的确认
             {
                 #ifndef GETSOEFROMRAM
@@ -728,7 +732,7 @@ BOOL CBJ101S::SendCallAll(void)
   if (CheckClearEqpFlag(CALL_ALLSTOP))
       {
           m_callallflag=0;
-          m_acdflag=0;
+          m_acdflag=0;m_wSendZJNum = 0;
         if(SendAllStop())
             return TRUE;
       }
@@ -1279,12 +1283,12 @@ void CBJ101S::DoCommSendIdle(void)
       {
         //Code_Lubo(&pReceiveFrame->Frame68.Start1,m_SendBuf.pBuf);
         Code_Lubo(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);
-        m_comtradeflag=0;
+        m_comtradeflag=0;gRes_rec.res_timeout = 0;
       }
 	  if(m_comtradeflag_YN==0xAA)
       {
         Code_Lubo_YN(&pReceiveFrame->Frame68.Start1,m_SendBuf.pBuf);
-	gRes_rec.res_timeout = 1;	
+	//gRes_rec.res_timeout = 1;	
         m_comtradeflag_YN=0;
 	 // m_com101flag_YN=0x55;	
       }	  
@@ -1503,8 +1507,8 @@ void CBJ101S::DoCommSendIdle(void)
             
             m_PaWaitCt_lubo =  4;//g_gRunPara[RP_LUBOGPRS_T];
             m_PaWaitflag_lubo = ON;
-            SendlbRetry();
-            m_TxNum_lubo++;
+           Code_Lubo(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);// SendlbRetry();
+            m_TxNum_lubo++;gRes_rec.res_timeout = 0x55;
             return;
           }
           else
@@ -1512,19 +1516,7 @@ void CBJ101S::DoCommSendIdle(void)
             m_PaWaitflag_lubo = OFF;
             m_TxNum_lubo = 0;
             m_PaWaitCt_lubo = 0;
-      /*if(g_CmIdGPRS == g_Cmid)
-      {
-        pGprs->m_initflag = 0;//7
-              pGprs->m_linkflag=0;   //断开链路
-              pGprs->m_zdflag=0;
-      }
-      else if(g_CmIdDBG == g_Cmid)
-      {
-        pDbg->m_initflag = 0;//7
-              pDbg->m_linkflag=0;   //断开链路
-              pDbg->m_zdflag=0;
-      }*/
-        gRecorder_flag.LIST_flag = OFF;
+            gRecorder_flag.LIST_flag = OFF;
       }    
       
      }
@@ -1536,7 +1528,14 @@ void CBJ101S::DoCommSendIdle(void)
               //if(FILEPREPAR_TYPE)
               //Code_Lubo(&pReceiveFrame->Frame68.Start1,m_SendBuf.pBuf);
               Code_Lubo(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);
+		gRes_rec.res_timeout = 0;	  
      }
+     if((gRecorder_flag.LIST_flag_YN== ON)&&(m_ackflag))//(( gRecorder_flag.CFG_flag ==ON )||(gRecorder_flag.DAT_flag ==ON )||)//正在读配置文件的数据
+     {
+              m_ackflag =0;
+              Code_Lubo_YN(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);
+		gRes_rec.res_timeout = 0;	  
+     }	 
 /*	 国网读录波文件规约
    if(((mRecorder_flag.LIST_flag == ON)||(mRecorder_flag.xuchuanflag== ON))&&(m_ackRecorder ==ON))//(( gRecorder_flag.CFG_flag ==ON )||(gRecorder_flag.DAT_flag ==ON )||)//正在读配置文件的数据
      {
