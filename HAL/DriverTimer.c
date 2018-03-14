@@ -24,6 +24,7 @@
   #include "..\DataStruct.h"
 #endif
 
+unsigned char rep17,rep33,rep49;
 
 //==============================================================================
 //  函数名称   : InitTimer
@@ -573,12 +574,12 @@ void JAGACT3(void)//动作2次 只有AC相有接触器，超前相动作，另一相动作
   //unsigned int unTemp = 0;
   if((eight_pulse_counter==0)&&(efslatch_flag==0))
   {	 	   
-    if((eight_pulse_flag>0)&&(eight_pulse_flag<33))
+    if((eight_pulse_flag>0)&&(eight_pulse_flag<rep33))
     {
       eight_pulse_flag+=1;
       if(g_gOverLoadFlg == ON)
       {
-        eight_pulse_flag = 17;  //检测到过流直接退出 
+        eight_pulse_flag = rep17;  //检测到过流直接退出 
       }
       if((eight_pulse_flag%2)==0)  ///////高脉冲
       {
@@ -669,15 +670,15 @@ void JAGACT3(void)//动作2次 只有AC相有接触器，超前相动作，另一相动作
       pulse_phase_flag = 1;
       */
       
- if(eight_pulse_flag==17)
+ if(eight_pulse_flag==rep17)
   	CHECK8PLUS();  
 
-    if(eight_pulse_flag == 17 && pulse_phase_flag==1)
+    if(eight_pulse_flag == rep17 && pulse_phase_flag==1)
       pulse_phase_flag = 3;
-    else if(eight_pulse_flag == 17 && pulse_phase_flag==3)
+    else if(eight_pulse_flag == rep17 && pulse_phase_flag==3)
       pulse_phase_flag = 1;
   }  
-  if(eight_pulse_flag>=33)      ////////数据发送完毕
+  if(eight_pulse_flag>=rep33)      ////////数据发送完毕
   {
     CHECK8PLUS();
     eight_pulse_flag=0;
@@ -843,7 +844,22 @@ void JAGACT4(void)//动作1次 只有AC相有接触器，超前相动作
 void ContronlRelay(void)
 {
    // unsigned int unTemp = 0;
-    	
+    switch(g_gRunPara[RP_PLUSE_NUM])
+    	{
+    	case 8:
+		rep17=17;rep33=33;rep49=49;
+		break;
+    	case 7:
+		rep17=15;rep33=29;rep49=43;	
+		break;
+    	case 6:
+		rep17=13;rep33=25;rep49=37;	
+		break;
+    	default:
+		g_gRunPara[RP_PLUSE_NUM]=8;	
+		break;		
+    	}
+	
     if((g_gProcCnt[PC_JAG_ACT] == 4)||(g_gProcCnt[PC_EFS_MODEL]==0))          //动作2次 只有AC相有接触器，超前相动作，另一相动作
         JAGACT4();
     else if(g_gProcCnt[PC_JAG_ACT] == 3)  //动作1次 只有AC相有接触器，超前相动作
