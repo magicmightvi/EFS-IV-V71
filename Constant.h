@@ -435,7 +435,7 @@ typedef double         FP64;            //双精度浮点数
 #define RP_SEND_TIME1           37//脉冲发送间隔时间1 ，10ms为单位 默认100
 #define RP_SEND_TIME2           38//脉冲发送间隔时间2 ，10ms为单位 默认125
 
-#define RP_OVERLOAD_CNT       39//脉冲宽度修正，实际脉冲宽度为10ms为 RP_PLUSE_TIME -RP_PLUSE_MODFK 单位10ms 默认0
+#define RP_PLUSE_NUM       39//脉冲个数，6 ，7，8
 #define RP_OVERLOAD_I            40
 #define RP_OVERLOAD_T           41
 #define RP_SENDSMS_T             42//张弢 遥测起始地址修改运行参数

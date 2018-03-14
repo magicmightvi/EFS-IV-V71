@@ -326,16 +326,7 @@ void JAGACT1(void)//动作2次 超前相动作，滞后相动作
 	   eight_pulse_counter= g_gProcCnt[PC_PLUSE_TIME]-g_gRunPara[RP_PLUSE_CMODFK];	  
         }
         if(pulse_phase_flag != 2 ) //B相不录播
-        {/*
-          g_sRecData.m_gFaultRecSOE[REC_TYPE] = pulse_phase_flag;
-          unTemp = (g_sRtcManager.m_gRealTimer[RTC_SEC]*1000 + g_sRtcManager.m_gRealTimer[RTC_MICROSEC]); 
-          g_sRecData.m_gFaultRecSOE[REC_MSL] = unTemp;
-          g_sRecData.m_gFaultRecSOE[REC_MSH] = (unTemp>>8);
-          g_sRecData.m_gFaultRecSOE[REC_MINU] = g_sRtcManager.m_gRealTimer[RTC_MINUT];
-          g_sRecData.m_gFaultRecSOE[REC_HOUR] = g_sRtcManager.m_gRealTimer[RTC_HOUR];
-          g_sRecData.m_gFaultRecSOE[REC_DAY] = g_sRtcManager.m_gRealTimer[RTC_DATE];
-          g_sRecData.m_gFaultRecSOE[REC_MONTH] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
-          g_sRecData.m_gFaultRecSOE[REC_YEAR] = (g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000);*/
+        {
         }
       }	
       else if((eight_pulse_flag%4)==3)  ///////低脉冲 1S

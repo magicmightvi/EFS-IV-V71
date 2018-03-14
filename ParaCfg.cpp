@@ -274,7 +274,10 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
     {
         g_gRunPara[RP_PLUSE_CMODFK]= 0;
     }		
-	
+    if((g_gRunPara[RP_PLUSE_NUM]<6)||(g_gRunPara[RP_PLUSE_NUM]>8))
+    {
+        g_gRunPara[RP_PLUSE_NUM]= 8;
+    }	
         g_ucParaChang &= NBIT0;
         g_gRunPara[RP_CRC] = CrcCount((unsigned int *)g_gRunPara, RP_CRC);      //计算CRC
         CAT_SpiWriteWords(EEPADD_RP, RUN_PARA_NUM, g_gRunPara); //保存到EEPROM中
@@ -543,6 +546,10 @@ void CheckCfgPara(void)
     if(g_gRunPara[RP_RHPLUSE_TIME2]<=g_gRunPara[RP_PLUSEXH_MODFK])
     {
         g_gRunPara[RP_PLUSEXH_MODFK]= 0;
+    }
+    if((g_gRunPara[RP_PLUSE_NUM]<6)||(g_gRunPara[RP_PLUSE_NUM]>8))
+    {
+        g_gRunPara[RP_PLUSE_NUM]= 8;
     }		
     if(g_gRunPara[RP_CNL_MODEL] == 0)
         {
@@ -1108,7 +1115,7 @@ void RstRunPara(void)
     g_gRunPara[RP_SEND_TIME1] = 96; 		//控制方式
     g_gRunPara[RP_SEND_TIME2] = 116; 		//控制方式
 #endif	
-    g_gRunPara[RP_OVERLOAD_CNT] = 0; 
+    g_gRunPara[RP_PLUSE_NUM] = 8; 
     g_gRunPara[RP_OVERLOAD_I] = 10000; 
     g_gRunPara[RP_OVERLOAD_T] = 6; 
     g_gRunPara[RP_YC_INFADDR]=0x4001;//张弢 遥测起始地址修改运行参数	
