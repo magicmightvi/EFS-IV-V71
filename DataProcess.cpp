@@ -967,7 +967,7 @@ void RecData(void)
     {
     return; //如果故障没有恢复。则不再进行新的录波
     }
-    if(g_sRecData.m_ucActRecStart != CLOSE)
+    if(g_sRecData.m_ucActRecStart  != CLOSE)
     {
     return; //如果录波数据还没有保存结束则不再进行新的录波
     }
@@ -1045,7 +1045,7 @@ void RecActData(void)
     {
     return; //动作录波,从故障开始至存储结束，则不再进行新的录波
     }   	
-    if(g_sRecData.m_ucActRecStart != CLOSE)
+    if((g_sRecData.m_ucActRecStart == ON)||(g_sRecData.m_ucActRecStart == OFF))
     {
         g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][0] =g_unAdcData[CHAN_UA]-g_gAdjAD[CHAN_UA];// g_sSampleData.m_gAcAdcData[CHAN_UA][g_sSampleData.m_unAcDataTail];
         g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1] =g_unAdcData[CHAN_UB]-g_gAdjAD[CHAN_UB];// g_sSampleData.m_gAcAdcData[CHAN_UB][g_sSampleData.m_unAcDataTail];
@@ -1291,7 +1291,7 @@ void SaveSoeData(void)
    CAT_SpiWriteBytes(g_unSSoeSaveE2ROMPtr,11,g_gSCosBuff[0]); 
    g_unSSoeSaveE2ROMPtr+=16;
    soe_num++;  
-   
+   if(soe_num>512)soe_num=512;
    if(g_unSSoeSaveE2ROMPtr>=  EEPADD_SOEENDADR) //写满FLASH，归0重写
    	{
    	g_unSSoeSaveE2ROMPtr = EEPADD_SOESTARTADR;
@@ -1952,7 +1952,7 @@ else if(g_sRecData.m_LuboType == LuboType_ACT)
 if((g_sRecData.m_ucActRecStart == OFF))
 {
 	save_page_num =0;
-	
+	g_sRecData.m_ucActRecStart = NO;
 //张弢 录波 需要写入CFG文件  
 //张弢 录波 需要写文件目录  
   if(g_sRecData.m_LuboType == LuboType_XH)

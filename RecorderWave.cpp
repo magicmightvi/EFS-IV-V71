@@ -169,13 +169,13 @@ void cfg_dat_length(int file_current_num)
 				{xt=320;}
 			else 
 				{xt=gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC];}
-			sprintf((char *)ch,"%4d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_YEAR],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
-                                                                gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
+			sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
+                                                                (gRecorder_Readfilecfg.comtrade_time[RTC_YEAR]-2000),gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
                                                                 gRecorder_Readfilecfg.comtrade_time[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time[RTC_SEC],(xt-320));
          		memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
          		tt +=strlen(ch);
-         		sprintf((char *)ch,"%4d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_YEAR],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
-                                                                gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
+         		sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
+                                                                (gRecorder_Readfilecfg.comtrade_time[RTC_YEAR]-2000),gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
                                                                 gRecorder_Readfilecfg.comtrade_time[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time[RTC_SEC],(xt));
 	  
          		memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
@@ -183,14 +183,14 @@ void cfg_dat_length(int file_current_num)
 			}
 		else
 			{
-			sprintf((char *)ch,"%4d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_YEAR],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
-                                                                gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
+			sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
+                                                                (gRecorder_Readfilecfg.comtrade_time[RTC_YEAR]-2000),gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
                                                                 gRecorder_Readfilecfg.comtrade_time[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time[RTC_SEC],gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC]);
  
             		memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
             		tt +=strlen(ch);
-	      		sprintf((char *)ch,"%4d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time1[RTC_YEAR],gRecorder_Readfilecfg.comtrade_time1[RTC_MONTH],
-                                                                gRecorder_Readfilecfg.comtrade_time1[RTC_DATE],gRecorder_Readfilecfg.comtrade_time1[RTC_HOUR],
+	      		sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time1[RTC_DATE],gRecorder_Readfilecfg.comtrade_time1[RTC_MONTH],
+                                                                (gRecorder_Readfilecfg.comtrade_time1[RTC_YEAR]-2000),gRecorder_Readfilecfg.comtrade_time1[RTC_HOUR],
                                                                 gRecorder_Readfilecfg.comtrade_time1[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time1[RTC_SEC],gRecorder_Readfilecfg.comtrade_time1[RTC_MICROSEC]);
  			
 	     		memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
@@ -199,14 +199,14 @@ void cfg_dat_length(int file_current_num)
 		}
 	else if(gRecorder_filecfg.CFG_Samp==800)
 	{
-	      sprintf((char *)ch,"%4d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_YEAR],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
-                                                                gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
+	      sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
+                                                                (gRecorder_Readfilecfg.comtrade_time[RTC_YEAR]-2000),gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
                                                                 gRecorder_Readfilecfg.comtrade_time[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time[RTC_SEC],gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC]);
  
             memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
             tt +=strlen(ch);
-	      sprintf((char *)ch,"%4d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time1[RTC_YEAR],gRecorder_Readfilecfg.comtrade_time1[RTC_MONTH],
-                                                                gRecorder_Readfilecfg.comtrade_time1[RTC_DATE],gRecorder_Readfilecfg.comtrade_time1[RTC_HOUR],
+	      sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time1[RTC_DATE],gRecorder_Readfilecfg.comtrade_time1[RTC_MONTH],
+                                                                (gRecorder_Readfilecfg.comtrade_time1[RTC_YEAR]-2000),gRecorder_Readfilecfg.comtrade_time1[RTC_HOUR],
                                                                 gRecorder_Readfilecfg.comtrade_time1[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time1[RTC_SEC],gRecorder_Readfilecfg.comtrade_time1[RTC_MICROSEC]);
  			
 	     memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
@@ -1613,10 +1613,11 @@ unsigned char *  FileDatadat(unsigned char *pTxBuf,unsigned char leng,WORD wSecL
 	   else
 	   	dka &= NBITE;
 
-	   unsigned char a,b,c;	   
+	   unsigned char a,b,c;//,gkx;	   
 	   a=(datBuff[1]>>6)&0x01;
 	   b=(datBuff[3]>>6)&0x01;
-	   c=(datBuff[5]>>6)&0x01;
+	   c=(datBuff[5]>>6)&0x01;//高压接触器辅助触点
+	   //gkx=
 	   if((datBuff[1]>>7)&0x01)
 	   	datBuff[1] |= (1<<6);
 	   else
@@ -1650,10 +1651,12 @@ unsigned char *  FileDatadat(unsigned char *pTxBuf,unsigned char leng,WORD wSecL
 		 ch[8] = datBuff[0];ch[9] = datBuff[1];ch[10] = datBuff[2];ch[11] = datBuff[3];
 		 ch[12] = datBuff[4];ch[13] = datBuff[5];ch[14] = datBuff[6];ch[15] = datBuff[7];
 		 ch[16]=LOBYTE(dka);ch[17]=HIBYTE(dka);
-		 //ch[18]=LOBYTE(dkd);ch[19]=HIBYTE(dkd);
-		 ch[18]=a+b*2+c*4;ch[19]=0;//ch[19]=b;ch[20]=c;ch[21]=0;		 
-		 //ch[20]=b;ch[21]=0;
-		 //ch[22]=c;ch[23]=0;
+#ifdef YN_101S
+		 ch[18]=(datBuff[9]>>6)&0x01;//信号源控制信号//云南录波取控制信号
+#else
+		ch[18]=a+b*2+c*4;//取三相接触器辅助触点信号
+#endif
+		 ch[19]=0;
 		 i+=20;k=20;
           	}
 	   else

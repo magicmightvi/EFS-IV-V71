@@ -303,9 +303,9 @@ void ScanDinYX(void)
     	if(KJa1==ka)//&&(g_gKON!=100)     /////////¼ì²âµ½Ó²Ò£ÐÅ1
     		{
     		g_gPhasErrTimer[0]++;
-		if(g_gPhasErrTimer[0]>100)
+		if(g_gPhasErrTimer[0]>250)
 			{
-			g_gPhasErrTimer[0] = 100;
+			g_gPhasErrTimer[0] = 250;
     			g_gRmtInfo[YX_PHASEA_ERR]=1;
 			}
     		}
@@ -319,9 +319,9 @@ void ScanDinYX(void)
     	if(KJb1==kb)//&&(g_gKON!=100)     /////////¼ì²âµ½Ó²Ò£ÐÅ1
     		{
     		g_gPhasErrTimer[1]++;
-		if(g_gPhasErrTimer[1]>100)
+		if(g_gPhasErrTimer[1]>250)
 			{
-			g_gPhasErrTimer[1] = 100;
+			g_gPhasErrTimer[1] = 250;
     			g_gRmtInfo[YX_PHASEB_ERR]=1;
 			}
     		}
@@ -335,9 +335,9 @@ void ScanDinYX(void)
     	if(KJc1==kc)//&&(g_gKON!=100)     /////////¼ì²âµ½Ó²Ò£ÐÅ1
     		{
     		g_gPhasErrTimer[2]++;
-		if(g_gPhasErrTimer[2]>100)
+		if(g_gPhasErrTimer[2]>250)
 			{
-			g_gPhasErrTimer[2] = 100;
+			g_gPhasErrTimer[2] = 250;
     			g_gRmtInfo[YX_PHASEC_ERR]=1;
 			}
     		}

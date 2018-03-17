@@ -18,8 +18,8 @@ extern "C"
 //	#include "SMS\PrtcSms.h"
      
 // #pragma location=0x0FF00 
- const unsigned char VerNum[]="Ver72.00";
-const unsigned char VerNum_INLCD=72;
+ const unsigned char VerNum[]="Ver71.00";
+const unsigned char VerNum_INLCD=71;
  
  
 //================================== AD采集模块 ============================================
@@ -104,7 +104,8 @@ struct sSAMPLE_DATA
 //动作录波
     unsigned int m_gActRecCNum; 	    //当前录波位置
     unsigned int m_gActRecANum; 	    //最多存10条    
-    unsigned char m_ucActRecStart;     //动作录波开始标志  ON开始 OFF结束录波存储数据  CLOSE 存储结束，不再录波 
+    unsigned char m_ucActRecStart;     
+	//动作录波开始标志  ON开始 OFF结束录波  NO 存储数据  CLOSE 存储结束，不再录波 
     unsigned long m_gActRecLen;         //不定长录波，每条录波存的点数，每点5个模拟量，每个模拟量2字节	
     unsigned long m_gActRecAdr;           //动作录波多次存储，FLASH中的地址
     unsigned char m_ucActRecSavingFlag;//录波数据往Flash保存过程中 ?    									//YES存储缓存中前320点 
