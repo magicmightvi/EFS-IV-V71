@@ -289,12 +289,12 @@ void JAGACT1(void)//动作2次 超前相动作，滞后相动作
   //unsigned int unTemp = 0;
   if((eight_pulse_counter==0)&&(efslatch_flag==0))
   {	 	   
-    if((eight_pulse_flag>0)&&(eight_pulse_flag<33))
+    if((eight_pulse_flag>0)&&(eight_pulse_flag<rep33))
     {
       eight_pulse_flag+=1;
       if(g_gOverLoadFlg == ON)
       {
-        eight_pulse_flag = 17;  //检测到过流直接退出 
+        eight_pulse_flag = rep17;  //检测到过流直接退出 
       }
       if((eight_pulse_flag%2)==0)  ///////高脉冲
       {
@@ -387,17 +387,17 @@ void JAGACT1(void)//动作2次 超前相动作，滞后相动作
         pulse_phase_flag = 2;
         */
   
-  if(eight_pulse_flag==17)
+  if(eight_pulse_flag==rep17)
   	CHECK8PLUS();
 
-    if(eight_pulse_flag == 17 && pulse_phase_flag==1)
+    if(eight_pulse_flag == rep17 && pulse_phase_flag==1)
 	pulse_phase_flag = 3;
-    else if(eight_pulse_flag == 17 && pulse_phase_flag==2)
+    else if(eight_pulse_flag == rep17 && pulse_phase_flag==2)
         pulse_phase_flag = 1; 
-    else if(eight_pulse_flag == 17 && pulse_phase_flag==3)
+    else if(eight_pulse_flag == rep17 && pulse_phase_flag==3)
         pulse_phase_flag = 2;
   }	
-  if(eight_pulse_flag>=33)      ////////数据发送完毕
+  if(eight_pulse_flag>=rep33)      ////////数据发送完毕
   {
     CHECK8PLUS();
     eight_pulse_flag=0;
@@ -418,12 +418,12 @@ void JAGACT2(void)//动作3次 超前相动作，滞后相动作，故障相动作
   //unsigned int unTemp = 0;
   if((eight_pulse_counter==0)&&(efslatch_flag==0))
   {	 	   
-    if((eight_pulse_flag>0)&&(eight_pulse_flag<49))
+    if((eight_pulse_flag>0)&&(eight_pulse_flag<rep49))
     {
       eight_pulse_flag+=1;
       if(g_gOverLoadFlg == ON)
       {
-        eight_pulse_flag = 17;  //检测到过流直接退出 
+        eight_pulse_flag = rep17;  //检测到过流直接退出 
       }
       if((eight_pulse_flag%2)==0)  ///////高脉冲
       {
@@ -526,26 +526,26 @@ void JAGACT2(void)//动作3次 超前相动作，滞后相动作，故障相动作
       pulse_phase_flag = 2; 
       */
 	
- if(eight_pulse_flag==17)
+ if(eight_pulse_flag==rep17)
   	CHECK8PLUS(); 
- if(eight_pulse_flag==33)
+ if(eight_pulse_flag==rep33)
   	CHECK8PLUS(); 
 
-  if(eight_pulse_flag == 17 && pulse_phase_flag==1)
+  if(eight_pulse_flag == rep17 && pulse_phase_flag==1)
       pulse_phase_flag = 3;
-    else if(eight_pulse_flag == 17 && pulse_phase_flag==2)
+    else if(eight_pulse_flag == rep17 && pulse_phase_flag==2)
       pulse_phase_flag = 1;  
-    else if(eight_pulse_flag == 17 && pulse_phase_flag==3)
+    else if(eight_pulse_flag == rep17 && pulse_phase_flag==3)
       pulse_phase_flag = 2;
     
-    if(eight_pulse_flag == 33 && pulse_phase_flag==1)
+    if(eight_pulse_flag == rep33 && pulse_phase_flag==1)
       pulse_phase_flag = 3;
-    else if(eight_pulse_flag == 33 && pulse_phase_flag==2)
+    else if(eight_pulse_flag == rep33 && pulse_phase_flag==2)
       pulse_phase_flag = 1;  
-    else if(eight_pulse_flag == 33 && pulse_phase_flag==3)
+    else if(eight_pulse_flag == rep33 && pulse_phase_flag==3)
       pulse_phase_flag = 2; 
  } 
- if(eight_pulse_flag>=49)      ////////数据发送完毕
+ if(eight_pulse_flag>=rep49)      ////////数据发送完毕
   {
     CHECK8PLUS();
     eight_pulse_flag=0;
@@ -708,12 +708,12 @@ void JAGACT4(void)//动作1次 只有AC相有接触器，超前相动作
     //unsigned int unTemp = 0;
         if((eight_pulse_counter==0)&&(efslatch_flag==0))
         {	 	   
-            if((eight_pulse_flag>0)&&(eight_pulse_flag<49))
+            if((eight_pulse_flag>0)&&(eight_pulse_flag<rep17))
             {
                 eight_pulse_flag+=1;
                 if(g_gOverLoadFlg == ON)
                 {
-                    eight_pulse_flag = 17;  //检测到过流直接退出 
+                    eight_pulse_flag = rep17;  //检测到过流直接退出 
                 }
 
                  if((eight_pulse_flag%2)==0)  ///////高脉冲
@@ -806,7 +806,7 @@ void JAGACT4(void)//动作1次 只有AC相有接触器，超前相动作
               	
              } 	
          }      
-         if(eight_pulse_flag>=17)      ////////数据发送完毕
+         if(eight_pulse_flag>=rep17)      ////////数据发送完毕
          {
              CHECK8PLUS();	
              eight_pulse_flag=0;

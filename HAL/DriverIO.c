@@ -380,7 +380,7 @@ void ScanDinYX(void)
             g_gExtDinYesTimer[0] = g_gRunPara[YX_delay];
             g_gExtDinStat[1] |= 1;
             //ucTemp[0] = 1;
-	     g_gRmtInfo[YX_KJA]=1;
+	     g_gRmtInfo[YX_KJA]=0;
         }
     }
     else
@@ -404,7 +404,7 @@ void ScanDinYX(void)
             g_gExtDinYesTimer[1] = g_gRunPara[YX_delay];
             g_gExtDinStat[1] |= 0x02;
             //ucTemp[1] = 1;
-            g_gRmtInfo[YX_KJB]=1;
+            g_gRmtInfo[YX_KJB]=0;
         }
     }
     else
@@ -429,7 +429,7 @@ void ScanDinYX(void)
             g_gExtDinYesTimer[2] = g_gRunPara[YX_delay];
             g_gExtDinStat[1] |= 1;
             //ucTemp[0] = 1;
-	     g_gRmtInfo[YX_KJC]=1;
+	     g_gRmtInfo[YX_KJC]=0;
         }
     }
     else
