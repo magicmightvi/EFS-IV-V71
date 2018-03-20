@@ -1009,7 +1009,11 @@ void RecData(void)
     else if(g_sRecData.m_ucFaultRecStart == ON)//开始录波，录1024点结束
     {
         g_sRecData.m_unRecAcLockCnt++; 
+#ifdef YN_101S
+	 if(g_sRecData.m_unRecAcLockCnt >= 10)   //故障发生后的5个周波记录完毕，记录最后时间，
+#else
 	 if(g_sRecData.m_unRecAcLockCnt >= 120)   //故障发生后的5个周波记录完毕，记录最后时间，
+#endif
         {
             g_sRecData.m_ucFaultRecStart = CLOSE;//录波结束，故障恢复后，恢复OFF
             g_sRecData.m_unRecAcLockCnt = 1000;

@@ -197,7 +197,7 @@ void cfg_dat_length(int file_current_num)
             		tt +=strlen(ch);
 			}
 		}
-	else if(gRecorder_filecfg.CFG_Samp==800)
+	else if(gRecorder_Readfilecfg.CFG_Samp==800)
 	{
 	      sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
                                                                 (gRecorder_Readfilecfg.comtrade_time[RTC_YEAR]-2000),gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
