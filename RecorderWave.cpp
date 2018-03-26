@@ -128,7 +128,7 @@ void cfg_dat_length(int file_current_num)
 	  	memcpy(&ComtrderCfg1[tt],RECCfg,strlen(RECCfg));
 		tt +=strlen(RECCfg);	
 	  	}
-	else //if(gRecorder_filecfg.CFG_Samp==800)  
+	else //if(gRecorder_Readfilecfg.CFG_Samp==800)  
       	{	//gRecorder_cfg[temp[1]].CFG_EndSamp  
       		memcpy(&ComtrderCfg1[tt],ACTCfg,5);
 		tt +=5;
@@ -1912,23 +1912,23 @@ unsigned char *  FileDatadat_YN(unsigned char *pTxBuf,unsigned char leng,WORD wS
 		  
     temp= gRecorder_flag.pRXBuff[leng+7];//文件名8个字节 7字节时间+1字节编号
     FileName = temp>>1;
-    Sample_num=gRecorder_filecfg.CFG_EndSamp;	//张弢 录波的条数
+    Sample_num=gRecorder_Readfilecfg.CFG_EndSamp;	//张弢 录波的条数
 	
      {
         pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= CALL_FILE_YN;//类型标示 137 0x89
          pTxBuf += leng;
 	//文件名（8个字节）
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_MICROSEC];//录波触点时间
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_SEC];
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_MINUT];
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_HOUR];        
-	 *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_DATE]|(g_gWeekNum<<5);	//张弢	
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_MONTH];
-        if(gRecorder_filecfg.comtrade_time[RTC_YEAR] >=2000)
-          	*pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_YEAR]-2000;
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC];//录波触点时间
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_SEC];
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MINUT];
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_HOUR];        
+	 *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_DATE]|(g_gWeekNum<<5);	//张弢	
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MONTH];
+        if(gRecorder_Readfilecfg.comtrade_time[RTC_YEAR] >=2000)
+          	*pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_YEAR]-2000;
         else
-          	*pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_YEAR];
-	 *pTxBuf++ = (gRecorder_filecfg.FileName<<1) |0x1;//0位=0， cfg文件
+          	*pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_YEAR];
+	 *pTxBuf++ = (gRecorder_Readfilecfg.FileName<<1) |0x1;//0位=0， cfg文件
 	//总包（2字节）当前包（2字节）
 	 *pTxBuf++= LOBYTE(Sample_num/10);
 	 *pTxBuf++=HIBYTE(Sample_num/10);	
@@ -1952,13 +1952,28 @@ unsigned char *  FileDatadat_YN(unsigned char *pTxBuf,unsigned char leng,WORD wS
         
         for(int i=0;(wSendDATNum < Sample_num);wSendDATNum++)//每一行的值
         {
-          	unsigned long FLbAddrV = ((unsigned long)(FADDR_RECORDER_DATA+FileName*4)<<16)+(unsigned long)wSendDATNum*10;
-	       Sst26vf064b_Read(FLbAddrV,&datBuff[0],10);//WRITEPECORDER+电压每只指示器的第一报数据存相关信息
-	       
+          	unsigned long FLbAddrV;// = ((unsigned long)(FADDR_RECORDER_DATA+FileName*4)<<16)+(unsigned long)wSendDATNum*10;
+	      // Sst26vf064b_Read(FLbAddrV,&datBuff[0],10);//WRITEPECORDER+电压每只指示器的第一报数据存相关信息
+	   if(FileName<(MAX_REC_NUM+1))
+              	{
+              	FLbAddrV = FADDR_RECORDER_DATA+(unsigned long)(FileName)*0x2000+(unsigned long)wSendDATNum*10;
+              	}
+		else if(FileName<(MAX_REC_NUM+MAX_ACTREC_NUM+2))	
+			{
+			FLbAddrV =FADDR_RECORDER_ACTDATA+(unsigned long)(FileName-51)*0x90000+(unsigned long)wSendDATNum*10;
+			}
+		else if(FileName<(MAX_REC_NUM+MAX_ACTREC_NUM+MAX_XHREC_NUM+3))	
+			{
+			FLbAddrV = FADDR_RECORDER_XHDATA+(unsigned long)(FileName-62)*0x8000+(unsigned long)wSendDATNum*10;
+			}
+		else
+			{//err
+			}  
+		Sst26vf064b_Read(FLbAddrV,&datBuff[0],10);
           unsigned long xt =250;
-          if(gRecorder_filecfg.CFG_Samp==800)xt=1250;//张弢 动作录波 频率800 时间间隔1250
-      	   if(gRecorder_filecfg.CFG_Samp==1600)xt=625;//张弢 动作录波 频率1600 时间间隔625
-      	   if(gRecorder_filecfg.CFG_Samp==2000)xt=500;//张弢 动作录波 频率1600 时间间隔625
+          if(gRecorder_Readfilecfg.CFG_Samp==800)xt=1250;//张弢 动作录波 频率800 时间间隔1250
+      	   if(gRecorder_Readfilecfg.CFG_Samp==1600)xt=625;//张弢 动作录波 频率1600 时间间隔625
+      	   if(gRecorder_Readfilecfg.CFG_Samp==2000)xt=500;//张弢 动作录波 频率1600 时间间隔625
           unsigned int dka,dkd;
 	   dka = MAKEWORD(datBuff[8],datBuff[9]);
 	   dkd = (dka>>14)&0x1;
@@ -1966,6 +1981,21 @@ unsigned char *  FileDatadat_YN(unsigned char *pTxBuf,unsigned char leng,WORD wS
 	   	dka |=(1<<14);
 	   else
 	   	dka &= NBITE;
+	   
+	   if((datBuff[1]>>7)&0x01)
+	   	datBuff[1] |= (1<<6);
+	   else
+	   	datBuff[1] &= 0xbf;
+	   
+	   if((datBuff[3]>>7)&0x01)
+	   	datBuff[3] |= (1<<6);
+	   else
+	   	datBuff[3] &= 0xbf;
+	   
+	   if((datBuff[5]>>7)&0x01)
+	   	datBuff[5] |= (1<<6);
+	   else
+	   	datBuff[5] &= 0xbf;
 	   
           unsigned long xtt = (long)wSendDATNum*xt;
 		  
@@ -1979,7 +2009,9 @@ unsigned char *  FileDatadat_YN(unsigned char *pTxBuf,unsigned char leng,WORD wS
 		 ch[8] = datBuff[0];ch[9] = datBuff[1];ch[10] = datBuff[2];ch[11] = datBuff[3];
 		 ch[12] = datBuff[4];ch[13] = datBuff[5];ch[14] = datBuff[6];ch[15] = datBuff[7];
 		 ch[16]=LOBYTE(dka);ch[17]=HIBYTE(dka);
-		 ch[18]=LOBYTE(dkd);ch[19]=HIBYTE(dkd);
+		 //ch[18]=LOBYTE(dkd);ch[19]=HIBYTE(dkd);
+		 ch[18]=(datBuff[9]>>6)&0x01;//信号源控制信号//云南录波取控制信号
+		 ch[19]=0;
 		 i+=20;k=20;
           	}
 	   else
@@ -2046,30 +2078,30 @@ unsigned char * RecCallFile_YN(unsigned char *pTxBuf, unsigned char leng,unsigne
 	  
 	pTxBuf += leng;
           //cfg文件名 8字节 7字节时间+1字节编号	   
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_MICROSEC];//录波触点时间
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_SEC];
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_MINUT];
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_HOUR];        
-	 *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_DATE]|(g_gWeekNum<<5);	//张弢	
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_MONTH];
-        if(gRecorder_filecfg.comtrade_time[RTC_YEAR] >=2000)
-          *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_YEAR]-2000;
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC];//录波触点时间
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_SEC];
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MINUT];
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_HOUR];        
+	 *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_DATE]|(g_gWeekNum<<5);	//张弢	
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MONTH];
+        if(gRecorder_Readfilecfg.comtrade_time[RTC_YEAR] >=2000)
+          *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_YEAR]-2000;
         else
-          *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_YEAR];
-		*pTxBuf++ = (gRecorder_filecfg.FileName<<1) &0xfe;//0位=0， cfg文件
+          *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_YEAR];
+		*pTxBuf++ = (gRecorder_Readfilecfg.FileName<<1) &0xfe;//0位=0， cfg文件
           //文件长度 3字节
           if(filetype==1)
           	{
-          	*pTxBuf++ = gRecorder_filecfg.TOTAL_Leng*20;
-          	*pTxBuf++ = (gRecorder_filecfg.TOTAL_Leng*20)>>8;
-          	*pTxBuf++ = (gRecorder_filecfg.TOTAL_Leng*20)>>16;            	
+          	*pTxBuf++ = gRecorder_Readfilecfg.TOTAL_Leng*20;
+          	*pTxBuf++ = (gRecorder_Readfilecfg.TOTAL_Leng*20)>>8;
+          	*pTxBuf++ = (gRecorder_Readfilecfg.TOTAL_Leng*20)>>16;            	
           	}
 	   else
 	   	{
 	   	cfg_dat_length(filename);
-          	*pTxBuf++ = gRecorder_filecfg.CFG_Leng;
-          	*pTxBuf++ = (gRecorder_filecfg.CFG_Leng)>>8;
-          	*pTxBuf++ = (gRecorder_filecfg.CFG_Leng)>>16; 		
+          	*pTxBuf++ = gRecorder_Readfilecfg.CFG_Leng;
+          	*pTxBuf++ = (gRecorder_Readfilecfg.CFG_Leng)>>8;
+          	*pTxBuf++ = (gRecorder_Readfilecfg.CFG_Leng)>>16; 		
          	// *pTxBuf++ = 0x11;
 	  	// *pTxBuf++ = 0x01;	  
 	   	// *pTxBuf++ = 0;	 
@@ -2077,15 +2109,15 @@ unsigned char * RecCallFile_YN(unsigned char *pTxBuf, unsigned char leng,unsigne
           //SOF 1字节 	
         *pTxBuf++ = 0x80;
           //文件创建时间 7字节       
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_MICROSEC];//录波触点时间
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_SEC];
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_MINUT];
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_HOUR];        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_DATE]|(g_gWeekNum<<5);	//张弢	
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_MONTH];
-        if(gRecorder_filecfg.comtrade_time[RTC_YEAR] >=2000)
-          *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_YEAR]-2000;
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC];//录波触点时间
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_SEC];
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MINUT];
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_HOUR];        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_DATE]|(g_gWeekNum<<5);	//张弢	
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MONTH];
+        if(gRecorder_Readfilecfg.comtrade_time[RTC_YEAR] >=2000)
+          *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_YEAR]-2000;
         else
-          *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_YEAR];
+          *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_YEAR];
 	//文件单包长度(1个字节)
 	*pTxBuf++= 200;	//文件单包长度(1个字节)
 	ptoBuf[7+g_ucPara101[IECP_LINKADDR_NUM]] = 7;	//传送原因=7
@@ -2174,22 +2206,22 @@ unsigned char *  FileDatOneFrame_YN(unsigned char *pTxBuf,unsigned char leng,WOR
     framenum = framenum*10;		  
     temp= gRecorder_flag.pRXBuff[leng+7];//文件名8个字节 7字节时间+1字节编号
     FileName = temp>>1;
-    Sample_num=gRecorder_filecfg.CFG_EndSamp;	//张弢 录波的条数	
+    Sample_num=gRecorder_Readfilecfg.CFG_EndSamp;	//张弢 录波的条数	
 
         pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= CALL_ONEFRAME_YN;//类型标示 138 0x8a
          pTxBuf += leng;
 	//文件名（8个字节）
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_MICROSEC];//录波触点时间
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_SEC];
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_MINUT];
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_HOUR];        
-	 *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_DATE]|(g_gWeekNum<<5);	//张弢	
-        *pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_MONTH];
-        if(gRecorder_filecfg.comtrade_time[RTC_YEAR] >=2000)
-          	*pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_YEAR]-2000;
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC];//录波触点时间
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_SEC];
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MINUT];
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_HOUR];        
+	 *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_DATE]|(g_gWeekNum<<5);	//张弢	
+        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MONTH];
+        if(gRecorder_Readfilecfg.comtrade_time[RTC_YEAR] >=2000)
+          	*pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_YEAR]-2000;
         else
-          	*pTxBuf++= gRecorder_filecfg.comtrade_time[RTC_YEAR];
-	 *pTxBuf++ = (gRecorder_filecfg.FileName<<1) |0x1;//0位=0， cfg文件
+          	*pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_YEAR];
+	 *pTxBuf++ = (gRecorder_Readfilecfg.FileName<<1) |0x1;//0位=0， cfg文件
 	//总包（2字节）当前包（2字节）
 	 *pTxBuf++= LOBYTE(Sample_num/10);
 	 *pTxBuf++=HIBYTE(Sample_num/10);	
@@ -2205,9 +2237,9 @@ unsigned char *  FileDatOneFrame_YN(unsigned char *pTxBuf,unsigned char leng,WOR
 	       Sst26vf064b_Read(FLbAddrV,&datBuff[0],10);//WRITEPECORDER+电压每只指示器的第一报数据存相关信息
 	       
           unsigned long xt =250;
-          if(gRecorder_filecfg.CFG_Samp==800)xt=1250;//张弢 动作录波 频率800 时间间隔1250
-      	   if(gRecorder_filecfg.CFG_Samp==1600)xt=625;//张弢 动作录波 频率1600 时间间隔625
-      	   if(gRecorder_filecfg.CFG_Samp==2000)xt=500;//张弢 动作录波 频率1600 时间间隔625
+          if(gRecorder_Readfilecfg.CFG_Samp==800)xt=1250;//张弢 动作录波 频率800 时间间隔1250
+      	   if(gRecorder_Readfilecfg.CFG_Samp==1600)xt=625;//张弢 动作录波 频率1600 时间间隔625
+      	   if(gRecorder_Readfilecfg.CFG_Samp==2000)xt=500;//张弢 动作录波 频率1600 时间间隔625
           unsigned int dka,dkd;
 	   dka = MAKEWORD(datBuff[8],datBuff[9]);
 	   dkd = (dka>>14)&0x1;
@@ -2653,8 +2685,43 @@ void Code_Lubo_YN(unsigned char *pRxBuf,unsigned char *pTXBuff)
     		{//响应召唤文件
     		temp= gRecorder_flag.pRXBuff[leng+7];//文件名8个字节 7字节时间+1字节编号
     		FileName = temp>>1;
-    		long FADDR_RECORDER = FADDR_RECORDER_INFO +(long)FileName*(long)FLINEADDR;
-    		Sst26vf064b_Read(FADDR_RECORDER ,(unsigned char *)&gRecorder_filecfg,sizeof(gRecorder_filecfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来        
+          	if(FileName<(MAX_REC_NUM+1))
+          		{//故障录波文件
+          		if((FileName!=g_sRecData.m_gRecCNum)
+					&&((FileName<g_sRecData.m_gRecANum)
+					      ||((FileName==g_sRecData.m_gRecANum)&&(FileName==MAX_REC_NUM))))
+          			{
+          			 long FADDR_RECORDER =FADDR_RECORDER_DATA-256+ (unsigned long)(FileName+1)*0x2000;
+          			 Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&gRecorder_Readfilecfg,sizeof(gRecorder_Readfilecfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来 
+				//break;
+				}
+          		}
+	   	else if(FileName<(MAX_REC_NUM+MAX_ACTREC_NUM+2))
+	   		{//动作录波
+          		if(((FileName-51)!=g_sRecData.m_gACTRecCNum)
+					&&(((FileName-51)<g_sRecData.m_gACTRecANum)
+					      ||(((FileName-51)==g_sRecData.m_gACTRecANum)&&((FileName-51)==MAX_ACTREC_NUM))))
+          			{
+          			 long FADDR_RECORDER =FADDR_RECORDER_ACTDATA-256+ (unsigned long)(FileName-51+1)*0x90000;
+          			 Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&gRecorder_Readfilecfg,sizeof(gRecorder_Readfilecfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来       			
+				//break;
+				}
+	   		}
+	   	else if(wFileNum<MAX_ALLREC_NUM)
+	   		{//熄弧录波
+          		if(((FileName-62)!=g_sRecData.m_gXHRecCNum)
+					&&(((FileName-62)<g_sRecData.m_gXHRecANum)
+					      ||(((FileName-62)==g_sRecData.m_gXHRecANum)&&((FileName-62)==MAX_XHREC_NUM))))
+          			{
+          			 long FADDR_RECORDER =FADDR_RECORDER_XHDATA-256+(unsigned long)(FileName-62+1)*0x8000;
+          			 Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&gRecorder_Readfilecfg,sizeof(gRecorder_Readfilecfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来       			
+				//break;
+				}	   		
+	   		}
+	   	else
+	   		{//erro
+	   		gRecorder_Readfilecfg.FileName = 0xff;
+	   		}				
 		pTxBuf = RecCallFile_YN(pTxBuf,leng,temp);
 		if(temp&0x01)
 			section_current = 2;
@@ -2667,7 +2734,7 @@ void Code_Lubo_YN(unsigned char *pRxBuf,unsigned char *pTXBuff)
     		FileName = temp>>1;
 		if(wSendCFGNum ==0)
               	cfg_dat_length(FileName);
-           	pTxBuf = FileDataCfg_YN(pTxBuf,leng,&gRecorder_filecfg,200);//wSecLenPtr,
+           	pTxBuf = FileDataCfg_YN(pTxBuf,leng,&gRecorder_Readfilecfg,200);//wSecLenPtr,
            	//section_current = 0;
 		}
 	else if(section_current==2)
@@ -2682,7 +2749,7 @@ void Code_Lubo_YN(unsigned char *pRxBuf,unsigned char *pTXBuff)
 	temp= gRecorder_flag.pRXBuff[leng+7];//文件名8个字节 7字节时间+1字节编号
     	FileName = temp>>1; 
     	long FADDR_RECORDER = FADDR_RECORDER_INFO +(long)FileName*(long)FLINEADDR;
-    	Sst26vf064b_Read(FADDR_RECORDER ,(unsigned char *)&gRecorder_filecfg,sizeof(gRecorder_filecfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来        
+    	Sst26vf064b_Read(FADDR_RECORDER ,(unsigned char *)&gRecorder_Readfilecfg,sizeof(gRecorder_Readfilecfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来        
        framenum = MAKEWORD(gRecorder_flag.pRXBuff[leng+8], gRecorder_flag.pRXBuff[leng+9]);
 	if(temp&0x01)
 		{
@@ -2691,7 +2758,7 @@ void Code_Lubo_YN(unsigned char *pRxBuf,unsigned char *pTXBuff)
 	else
 		{
 		cfg_dat_length(FileName);
-           	pTxBuf = FileCfgOneFrame_YN(pTxBuf,leng,&gRecorder_filecfg,framenum);//wSecLenPtr,
+           	pTxBuf = FileCfgOneFrame_YN(pTxBuf,leng,&gRecorder_Readfilecfg,framenum);//wSecLenPtr,
 		}    				
     	}
   }
