@@ -7,11 +7,11 @@
 #define GETSOEFROMRAM     //发送的SOE从外部FLASH取，还是从内部取。
 //#define ZT_SOE_IN_FLASH //SOE存内部FLASH
 //#define ZDSENDADDR //主动给中心站定时发送自身站地址(特殊应用) 
-#define YN_101S      //定义=云南101规约；不定义=标准101规约
+//#define YN_101S      //定义=云南101规约；不定义=标准101规约
 //#define CQ_101S      //定义=重庆101规约；不定义=标准101规约
 //#define INT_NEST      //张弢测试中断嵌套       0//1=GPRS;0=SMS
 //#define DH_101S      //定义=丹华昊博101规约；不定义=标准101规约
-//#define SD_101S      //定义=丹华昊博101规约；不定义=标准101规约
+#define SD_101S      //定义=丹华昊博101规约；不定义=标准101规约
 
 #define CONDIN_3      //接触器输出3路开合信号  取消信号源异常遥信(辅助开关跳开)
 

@@ -1195,7 +1195,11 @@ void CBJ101S::DoCommSendIdle(void)
      // return;//GPRS通道中如果GPRS没打开则不发任何数据
 
     if(m_guiyuepara.mode==1)		
-        m_PRM =0;   //云南
+#ifdef YN_101S		
+        	m_PRM =0;  //云南
+#else
+		m_PRM =1; 
+#endif
     else if(m_recfalg!=3)   //非平衡式
         return;
     if((m_uartId == 2) && (g_GPRSSendLink == ON)&&(m_linkflag == 0))
@@ -2148,7 +2152,7 @@ BYTE CBJ101S::GetCtrCode(BYTE PRM,BYTE dwCode,BYTE fcv)
           CodeTmp&=0x7f;
         else 
           CodeTmp|=0x80;
-/*#ifndef YN_101s
+/*#ifndef YN_101s*/
         if(fcv)
         {
             if(!m_resendflag)//非重发报文才进行fcb的翻转
@@ -2160,7 +2164,7 @@ BYTE CBJ101S::GetCtrCode(BYTE PRM,BYTE dwCode,BYTE fcv)
             }
             CodeTmp|=(m_fcb|0x10);            
         }
-#endif*/
+/*#endif*/
     }
     return CodeTmp;
 }

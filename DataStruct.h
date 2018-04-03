@@ -18,8 +18,8 @@ extern "C"
 //	#include "SMS\PrtcSms.h"
      
 // #pragma location=0x0FF00 
- const unsigned char VerNum[]="Ver72.00";
-const unsigned char VerNum_INLCD=72;
+ const unsigned char VerNum[]="Ver71.00";
+const unsigned char VerNum_INLCD=71;
  
  
 //================================== AD²É¼¯Ä£¿é ============================================
