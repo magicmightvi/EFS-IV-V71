@@ -911,7 +911,7 @@ BOOL CProtocol::RecWriteFile(void)
         case 32:
         if(bySec == 0 )//Ò£²â¶Ôµã
         {
-          for(i = wPaStartId,j = 0; j < wSecLen && i < RMT_INFO_NUM;i++,j++)
+          for(i = wPaStartId,j = 0; j < wSecLen && i < IEC_YC_NUM;i++,j++)
           {
             g_unYcTrans[i] =MAKEWORD(pData[0],pData[1]);
 		pData += 2;
