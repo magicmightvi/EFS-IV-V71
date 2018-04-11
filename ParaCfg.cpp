@@ -1136,8 +1136,10 @@ void RstRunPara(void)
    g_gRunPara[RP_RHSEND_TIME1] = 0; 
    g_gRunPara[RP_RHPLUSE_TIME2] = 0; 
    g_gRunPara[RP_RHT_DELAY]=0;//60s
-   g_gRunPara[RP_CT_TRANS]=15;//CT变比 =20 
+   g_gRunPara[RP_CT_TRANS]=15;//CT变比 =20    
 #endif
+	g_gRunPara[RP_KM_TIME]=100;
+
     state_counter= g_gRunPara[RP_SENDSMS_T]*60;	//张弢 遥测起始地址修改运行参数    
 }
 
