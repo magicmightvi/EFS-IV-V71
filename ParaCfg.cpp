@@ -405,7 +405,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         g_ucPara101[IECP_CRC] = AddChar(g_ucPara101, IECP_CRC);      //计算CS
         CAT_SpiWriteBytes(EEPADD_IECPARA , IEC_PARA_NUM, g_ucPara101);     //保存到EEPROM中
         CAT_SpiWriteBytes(EEPADDBK_IECPARA, IEC_PARA_NUM, g_ucPara101);    //保存到EEPROM的备份区中
-        InitSCI();
+        //InitSCI();
     }
     //遥信地址点表
     if((g_ucParaChang & BIT2) == BIT2)

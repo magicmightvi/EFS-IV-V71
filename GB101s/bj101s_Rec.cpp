@@ -992,8 +992,8 @@ void CBJ101S::ReadFileDataDat(WORD FileName,RECORDER_CFG *pgRecorder_cfg)
     int segment_leng = SEGMENT_LENGTH_NEW;
   	//unsigned int  DAT_NUM;
 	unsigned long FLbAddrV;
-	unsigned char tt[8] = {0}; //8个通道,每个通道的数值有2个
-    unsigned char datBuff[12] = {0};
+	//unsigned char tt[8] = {0}; //8个通道,每个通道的数值有2个
+    unsigned char datBuff[16] = {0};
 	char ch[200];
 	unsigned char k;
 	
@@ -1010,34 +1010,54 @@ void CBJ101S::ReadFileDataDat(WORD FileName,RECORDER_CFG *pgRecorder_cfg)
         {
         if(FileName<(MAX_REC_NUM+1))
         	{
-          	FLbAddrV = FADDR_RECORDER_DATA+(unsigned long)(FileName)*0x2000+(unsigned long)mSendDATNum*8;
+          	FLbAddrV = FADDR_RECORDER_DATA+(unsigned long)(FileName)*0x2000+(unsigned long)mSendDATNum*10;
            	}
 		else if(FileName<(MAX_REC_NUM+MAX_ACTREC_NUM+2))	
 			{
-			FLbAddrV =FADDR_RECORDER_ACTDATA+(unsigned long)(FileName-51)*0x90000+(unsigned long)mSendDATNum*8;
+			FLbAddrV =FADDR_RECORDER_ACTDATA+(unsigned long)(FileName-51)*0x90000+(unsigned long)mSendDATNum*10;
 			}
 		else if(FileName<(MAX_REC_NUM+MAX_ACTREC_NUM+MAX_XHREC_NUM+3))	
 			{
-			FLbAddrV = FADDR_RECORDER_XHDATA+(unsigned long)(FileName-62)*0x8000+(unsigned long)mSendDATNum*8;
+			FLbAddrV = FADDR_RECORDER_XHDATA+(unsigned long)(FileName-62)*0x8000+(unsigned long)mSendDATNum*10;
 			}
 		else
 			{//err
 			}
-		Sst26vf064b_Read(FLbAddrV,&tt[0],8);//
-
+		Sst26vf064b_Read(FLbAddrV,&datBuff[0],10);
+		
 		unsigned long xt =250;
        	if(pgRecorder_cfg->CFG_Samp==800)xt=1250;//张弢 动作录波 频率800 时间间隔1250
       	if(pgRecorder_cfg->CFG_Samp==1600)xt=625;//张弢 动作录波 频率1600 时间间隔625
       	if(pgRecorder_cfg->CFG_Samp==2000)xt=500;//张弢 动作录波 频率1600 时间间隔625
-       	datBuff[0]=tt[0];datBuff[2]=tt[1];datBuff[4]=tt[2];datBuff[6]=tt[3]; datBuff[8]=tt[4];
-	  	datBuff[1]=tt[5]&0x0f;datBuff[3]=(tt[5]>>4)&0x0f;datBuff[5]=tt[6]&0x0f;datBuff[7]=(tt[6]>>4)&0x0f; datBuff[9]=tt[7]&0x0f; 
-	  	if(tt[7]&BIT7)datBuff[1]|=0xf0;
-	  	if(tt[7]&BIT6)datBuff[3]|=0xf0;
-	  	if(tt[7]&BIT5)datBuff[5]|=0xf0;
-	  	if(tt[7]&BIT4)datBuff[7]|=0xf0;
-	  	if(tt[4]&BIT0)datBuff[9]|=0xf0;
-	  	datBuff[11]=0;
-	  	datBuff[10]=tt[0]&BIT0+(tt[1]&BIT0)*2+(tt[2]&BIT0)*4;
+
+		unsigned int dka;//,dkd;
+	   	dka = MAKEWORD(datBuff[8],datBuff[9]);
+	   
+	   	if(dka&((unsigned int)(1<<15)))
+	   		dka |=(1<<14);
+	   	else
+	   		dka &= NBITE;
+
+	   	unsigned char a,b,c;//,gkx;	   
+	   a=(datBuff[1]>>6)&0x01;
+	   b=(datBuff[3]>>6)&0x01;
+	   c=(datBuff[5]>>6)&0x01;//高压接触器辅助触点
+	   
+	   if((datBuff[1]>>7)&0x01)
+	   	datBuff[1] |= (1<<6);
+	   else
+	   	datBuff[1] &= 0xbf;
+	   
+	   if((datBuff[3]>>7)&0x01)
+	   	datBuff[3] |= (1<<6);
+	   else
+	   	datBuff[3] &= 0xbf;
+	   
+	   if((datBuff[5]>>7)&0x01)
+	   	datBuff[5] |= (1<<6);
+	   else
+	   	datBuff[5] &= 0xbf;
+	   
 		unsigned long xtt = (long)mSendDATNum*xt;
 		if(g_gRunPara[RP_CFG_KEY]&BIT[RP_COMTRADE_TYPE])
        		{
@@ -1045,19 +1065,23 @@ void CBJ101S::ReadFileDataDat(WORD FileName,RECORDER_CFG *pgRecorder_cfg)
 		 	ch[4] = LOBYTE(LOWORD(xtt));
            	ch[5] = HIBYTE(LOWORD(xtt));
            	ch[6] = LOBYTE(HIWORD(xtt));
-           	ch[7] = HIBYTE(HIWORD(xtt));
+          	ch[7] = HIBYTE(HIWORD(xtt));
 		 	ch[8] = datBuff[0];ch[9] = datBuff[1];ch[10] = datBuff[2];ch[11] = datBuff[3];
-		 	ch[12] = datBuff[4];ch[13] = datBuff[5];ch[14] = datBuff[6];ch[15] = datBuff[7];		 
-		 	ch[16]=datBuff[8];ch[17]=datBuff[9];
-			ch[18]=datBuff[10];
+		 	ch[12] = datBuff[4];ch[13] = datBuff[5];ch[14] = datBuff[6];ch[15] = datBuff[7];
+		 	ch[16]=LOBYTE(dka);ch[17]=HIBYTE(dka);
+#ifdef YN_101S
+		 	ch[18]=(datBuff[9]>>6)&0x01;//信号源控制信号//云南录波取控制信号
+#else
+			ch[18]=a+b*2+c*4;//取三相接触器辅助触点信号
+#endif
 		 	ch[19]=0;
 		 	i+=20;k=20;
           	}
 	   else
 	   		{
           	sprintf((char *)ch,"%ld,%ld,%d,%d,%d,%d,%d,%d,%d,%d\n",mSendDATNum,xtt,MAKEWORD(datBuff[0],datBuff[1]),MAKEWORD(datBuff[2],datBuff[3]),
-                                 //MAKEWORD(datBuff[4],datBuff[5]),MAKEWORD(datBuff[6],datBuff[7]),dka,(unsigned int)a,(unsigned int)b,(unsigned int)c);//每个周期80个点，采样周期250微妙//张弢
-                                 MAKEWORD(datBuff[4],datBuff[5]),MAKEWORD(datBuff[6],datBuff[7]),MAKEWORD(datBuff[8],datBuff[9]),(unsigned int)(tt[0]&BIT0),(unsigned int)(tt[1]&BIT0),(unsigned int)(tt[2]&BIT0));//每个周期80个点，采样周期250微妙//张弢
+                                 MAKEWORD(datBuff[4],datBuff[5]),MAKEWORD(datBuff[6],datBuff[7]),
+                                 dka,(unsigned int)a,(unsigned int)b,(unsigned int)c);//每个周期80个点，采样周期250微妙//张弢
                                  
           	i+= strlen(ch);k=strlen(ch);
 	   		}
