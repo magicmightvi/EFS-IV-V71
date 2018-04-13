@@ -409,6 +409,17 @@ typedef struct
     BYTE Data[MAX_FRAME_LEN-15];//从文件名开始
 }VFrame69;//69报文的链路地址，传输原因，公共地址和信息体地址长度都为两字节
 
+typedef struct 
+{
+    BYTE Start1; 
+    BYTE LengthH; 
+    BYTE LengthL; 
+    BYTE Start2; 
+    BYTE FrameType[2];  //报文类型,高位在前，高位为0
+    BYTE AppType;       //应用类型
+    BYTE Data[MAX_ENC_FRAME_LEN-8];//
+}VFrameEB;//EB加密报文的
+
 
 typedef union 
 {
@@ -443,7 +454,7 @@ class CProtocol
         virtual void CloseTcp(BYTE byReason = 0){return;};
 		virtual void Run(void){return;}; 
 	virtual BOOL SendFrameHead(BYTE Style, BYTE Reason){return TRUE;};
-	virtual BOOL SendFrameTail(BYTE PRM, BYTE dwCode, BYTE Num){return TRUE;};
+	virtual BOOL SendFrameTail(BYTE PRM, BYTE dwCode, BYTE Num,BYTE EncType){return TRUE;};
 	virtual void write_infoadd(int  data){return;};
                
         void NeatenCommBuf(VCommBuf *pCommIO);

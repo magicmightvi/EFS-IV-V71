@@ -494,7 +494,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
     {
         g_ucParaChang &= NBIT7;
     }	
- 
+
 }
 //==============================================================================
 //  函数名称   : CheckCfgPara
@@ -682,6 +682,100 @@ void CheckCfgPara(void)
     }
     */
 }
+void CheckCfgERR(void)
+{    
+    if (g_gRunPara[RP_CRC] != CrcCount((unsigned int *)g_gRunPara, RP_CRC)) //CRC校验错误
+    {
+    	CAT_SpiReadWords(EEPADDBK_RP, RUN_PARA_NUM, g_gRunPara);  //读出当前保护定值
+    	if (g_gRunPara[RP_CRC] != CrcCount((unsigned int *)g_gRunPara, RP_CRC)) //CRC校验错误
+      		{
+      		RstRunPara();
+      		//CalcProtCnt();      		
+    		}
+		g_ucParaChang |= BIT0;   //调用保存函数
+    }
+    if(g_gRunPara[RP_PLUSE_TIME]<=g_gRunPara[RP_PLUSE_MODFK])
+    {
+        g_gRunPara[RP_PLUSE_MODFK]= 0;
+    }	
+    if(g_gRunPara[RP_PLUSE_TIME]<=g_gRunPara[RP_PLUSE_AMODFK])
+    {
+        g_gRunPara[RP_PLUSE_AMODFK]= 0;
+    }	
+    if(g_gRunPara[RP_PLUSE_TIME]<=g_gRunPara[RP_PLUSE_BMODFK])
+    {
+        g_gRunPara[RP_PLUSE_BMODFK]= 0;
+    }	
+    if(g_gRunPara[RP_PLUSE_TIME]<=g_gRunPara[RP_PLUSE_CMODFK])
+    {
+        g_gRunPara[RP_PLUSE_CMODFK]= 0;
+    }		
+    if(g_gRunPara[RP_RHPLUSE_TIME2]<=g_gRunPara[RP_PLUSEXH_MODFK])
+    {
+        g_gRunPara[RP_PLUSEXH_MODFK]= 0;
+    }
+    if((g_gRunPara[RP_PLUSE_NUM]<6)||(g_gRunPara[RP_PLUSE_NUM]>8))
+    {
+        g_gRunPara[RP_PLUSE_NUM]= 8;
+    }		
+    if(g_gRunPara[RP_CNL_MODEL] == 0)
+        {
+           
+           g_gRunPara[RP_JAG_P] = 0;       //相判据标志
+           g_gRunPara[RP_JAG_Z] = 0;       //零序判据标志
+           delayms(500);
+           g_gRmtInfo[YX_FUN_ON] = 0;
+        }
+        else
+        {
+           
+          // g_gRunPara[RP_JAG_P] = 0x55;       //相判据标志
+          // g_gRunPara[RP_JAG_Z] = 0x55;       //零序判据标志
+           delayms(500);
+           g_gRmtInfo[YX_FUN_ON] = 1;
+        }
+    if((g_gRunPara[RP_SENDSMS_T]<2)||(g_gRunPara[RP_SENDSMS_T]>48))
+    {
+        g_gRunPara[RP_SENDSMS_T]= 24;
+    }
+	if(g_gRunPara[RP_KM_TIME]==0)
+		g_gRunPara[RP_KM_TIME]=100;
+	
+    //101的系统参数  
+    if (g_ucPara101[IECP_CRC] != AddChar(g_ucPara101, IECP_CRC))       //CRC校验
+    {
+        CAT_SpiReadBytes(EEPADDBK_IECPARA, IEC_PARA_NUM, g_ucPara101);    //读出       
+        if (g_ucPara101[IECP_CRC] != AddChar(g_ucPara101, IECP_CRC))       //CRC校验
+        	{        
+            RstIEC101Para();  //IEC para initial
+        	}
+       	g_ucParaChang |= BIT1;   //调用保存函数        
+    }
+	
+    //101的遥信点表     
+    if (g_ucYXAddr[IEC_YX_NUM] != AddChar(g_ucYXAddr, IEC_YX_NUM))       //CRC校验
+    {
+        CAT_SpiReadBytes(EEPADDBK_IECYXADDR, IEC_YX_NUM + 1, g_ucYXAddr);    //读出
+        if (g_ucYXAddr[IEC_YX_NUM] != AddChar(g_ucYXAddr, IEC_YX_NUM))       //CRC校验
+        {
+            RstIEC101YxAddr();  //遥信点表初始化
+        }
+        g_ucParaChang |= BIT2;   //调用保存函数        
+    }
+     
+    //101的遥测点表
+    if (g_ucYCAddr[IEC_YC_NUM] != AddChar(g_ucYCAddr, IEC_YC_NUM))       //CRC校验
+    {
+        CAT_SpiReadBytes(EEPADDBK_IECYCADDR, IEC_YC_NUM + 1, g_ucYCAddr);    //读出
+        if (g_ucYCAddr[IEC_YC_NUM] != AddChar(g_ucYCAddr, IEC_YC_NUM))       //CRC校验
+        {
+             RstIEC101YcAddr();  //遥测点表初始化
+        }
+        g_ucParaChang |= BIT3;   //调用保存函数        
+    }
+    
+}
+
 //==============================================================================
 //  函数名称   : CheckProtCnt
 //  功能描述   : 根据当前保护定值组号从EEPROM中读取保护定值，并做校验判断数据的有效性，数据错误则报保护定值错误遥信

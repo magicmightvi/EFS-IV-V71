@@ -91,7 +91,8 @@ void app(void)@"APPLICATION"
             g_sRtcManager.m_ucRtcSynFlag = NO;
 #ifndef YN_101S
 	    if(pGprs!= null) ((CPrtcSms*)pGprs)->SendRCmdToIHD(84,11,null);//读CSQ	
-#endif	    
+#endif	
+			CheckCfgERR();
         }
     
         CalcuRmtMeas();//有效值计算，并更新对应的遥测值

@@ -139,6 +139,7 @@ extern "C"
         void InitcfgPara(void);
         void SaveCfgPara(void); 
         void CheckCfgPara(void);
+		void CheckCfgERR(void);
     	void InitTsYxInfo(void);
         void InitTsYcInfo(void);
         void RstRunPara(void);
@@ -171,6 +172,7 @@ extern "C"
         extern void InitcfgPara(void);   
         extern void SaveCfgPara(void);
         extern void CheckCfgPara(void);
+		extern void CheckCfgERR(void);
         extern void InitTsYxInfo(void);
         extern void InitTsYcInfo(void);
         extern void RstRunPara(void);
@@ -612,6 +614,49 @@ extern "C"
 
 #endif        
         
+//======================================================================
+//                  ÖÇÐ¾Î¢¼ÓÃÜÐ¾Æ¬Çý¶¯Ä£¿é                
+//======================================================================
+#ifdef _DRIVER_ENCRYPT
+        unsigned char CheckLrc (unsigned char *ptr,int num);
+        int SendCmdToEncChip(const char *sCmd,BYTE *EncDate,WORD DataLen);
+        int RecBytesFromEsam(unsigned char *pRecDataTemp);
+        
+        
+#else
+        extern unsigned char CheckLrc (unsigned char *ptr,int num);
+        extern int SendCmdToEncChip(const char *sCmd,BYTE *EncDate,WORD DataLen);
+        extern int RecBytesFromEsam(unsigned char *pRecDataTemp);
+		
+#endif
+//================================== MD5Ð£Ñé ===========================================
+                
+//#define MD5_LONG unsigned int
+#define MD5_LONG unsigned long int
+
+
+#define MD5_CBLOCK	64
+#define MD5_LBLOCK	(MD5_CBLOCK/4)
+#define MD5_DIGEST_LENGTH 16
+
+typedef struct MD5state_st
+{
+	MD5_LONG state[5];
+	MD5_LONG count[2];
+	unsigned char buffer[MD5_CBLOCK];
+} MD5_CTX;
+#ifdef _MD5_DGST_
+    void MD5_Init(MD5_CTX *ctx);
+    void MD5_Update(MD5_CTX *ctx, const unsigned char *data, size_t len);
+    void MD5_Final(MD5_CTX *ctx, unsigned char *md);
+    void MD5(const unsigned char *d, size_t n, unsigned char *md);
+#else
+    extern void MD5_Init(MD5_CTX *ctx);
+    extern void MD5_Update(MD5_CTX *ctx, const unsigned char *data, size_t len);
+    extern void MD5_Final(MD5_CTX *ctx, unsigned char *md);
+    extern void MD5(const unsigned char *d, size_t n, unsigned char *md);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

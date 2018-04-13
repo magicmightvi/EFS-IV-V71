@@ -12,6 +12,8 @@
 
 #ifdef INCLUDE_BJ101_S
 
+static unsigned int  bR_FileNum = 0;////已经发送的目录的条数
+
 /***************************************************************
     Function：Init_Rec
         规约初始化
@@ -235,7 +237,7 @@ BOOL CBJ101S::Recfileprocessing(unsigned char *pRxBuf)
               {
                 mluboYX_flag =OFF;
                 g_gRmtLockLB =0;
-                CreatNewSoe(RI_LUBO_FLAG,0);
+                //CreatNewSoe(RI_LUBO_FLAG,0);
               }
               
                                 //mfile_flag = 2;//DAT
@@ -291,8 +293,9 @@ BOOL CBJ101S::Recfileprocessing(unsigned char *pRxBuf)
    
   return TRUE;
 }
+#ifndef YN_101S
 BOOL CBJ101S:: RecYSCommand(void)
-{
+{/*
   BYTE bVsq = m_dwasdu.VSQ;
   WORD wval =0;
   WORD InfoAddr = MAKEWORD(pReceiveFrame->Frame68.Data[m_byInfoShift],pReceiveFrame->Frame68.Data[m_byInfoShift+1]);
@@ -396,9 +399,10 @@ BOOL CBJ101S:: RecYSCommand(void)
           else  
             RecWriteData(136,1,0x80);
       }
-  }
+  }*/
   return TRUE;
 }
+#endif
 
 void CBJ101S:: ReadFileDataUlog(WORD FileName,BYTE section_current,BYTE flag)
 {
@@ -515,7 +519,7 @@ void CBJ101S:: ReadFileDataUlog(WORD FileName,BYTE section_current,BYTE flag)
 
 void CBJ101S::ReadFileDataSoe_Flash(WORD FileName)
 {
-
+/*
   unsigned char *pTxPos;
   char *pdat_name;
   pdat_name="AU";
@@ -583,7 +587,7 @@ void CBJ101S::ReadFileDataSoe_Flash(WORD FileName)
           //msoe_recorded.soe_count +=byCurSoeNum;
       //if(msoe_recorded.soe_count >= soe_num)
         //houxu_flag = ON;
-              //*pTxPs = pTxBuf - pTxPs-1;
+              // *pTxPs = pTxBuf - pTxPs-1;
               //if(soe_recorded.Soe_Curren_count ==0)
               //pTxBuf = NULL;      
   }
@@ -599,14 +603,14 @@ void CBJ101S::ReadFileDataSoe_Flash(WORD FileName)
           mRecorder_flag.xuchuanflag= OFF;
       }
    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = soesum;
-  
+ */ 
 }
 void CBJ101S:: ReadFileDataSoe(WORD FileName)
 {
 
   unsigned char *pTxPos;
   char *pdat_name;
-  pdat_name="AU";
+  pdat_name="EFS";
   unsigned int object_addr_length =2;
   BYTE n;
   BYTE soesum =0;
@@ -615,7 +619,7 @@ void CBJ101S:: ReadFileDataSoe(WORD FileName)
   WORD second;
     WORD Millisecond,i;
   BYTE houxu_flag = OFF;
-  BYTE bySoeDa[512];
+  BYTE bySoeDa[64];
   unsigned char type = M_SP_TB;
   pTxPos = &m_SendBuf.pBuf[m_SendBuf.wWritePtr];
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0;  //数据段号
@@ -624,65 +628,66 @@ void CBJ101S:: ReadFileDataSoe(WORD FileName)
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; //后续标志
   if(msoe_recorded.Soe_count_flag == OFF)//(!soe_recorded.Soe_Area )&&(!soe_recorded.soe_count)&&(!soe_recorded.Soe_Ptr)
-        {
-      sprintf((char *)ch,"%.*s,%04d,%02d\r\n",sizeof(pdat_name),pdat_name,soe_num,object_addr_length);
-      soesum =0;
-      for(n = 0; n < strlen(ch); n++)
-                  {
-                    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch[n];
-                soesum += ch[n];
-                  }
-      msoe_recorded.Soe_count_flag = ON;
-  }
+ 	{//第一行
+   	sprintf((char *)ch,"%.*s,%04d,%02d\r\n",sizeof(pdat_name),pdat_name,soe_num,object_addr_length);
+   	soesum =0;
+   	for(n = 0; n < strlen(ch); n++)
+   		{
+      	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch[n];
+       	soesum += ch[n];
+       	}
+   	msoe_recorded.Soe_count_flag = ON;
+  	}
   else if(msoe_recorded.Soe_count_flag == ON)
-  {
-    
-      if(msoe_recorded.Soe_Ptr == msoe_recorded.Soe_Curren_count)
-        {
-          if(msoe_recorded.Soe_Area < SOE_SEG)
-            {
-                msoe_recorded.Soe_Curren_count = ReadSoe(bySoeDa,msoe_recorded.Soe_Area,0,SOE_NUM_SEG);
-                
-                msoe_recorded.Soe_Area++;
-                msoe_recorded.Soe_Ptr = 0;
-                
-            }
-        }
-    else
-    {
-      ReadSoe(bySoeDa,msoe_recorded.Soe_Area,0,SOE_NUM_SEG);
-    }
-            
-         if(msoe_recorded.Soe_Curren_count - msoe_recorded.Soe_Ptr > 4) 
-              byCurSoeNum = 4;
-         else
-              byCurSoeNum = (msoe_recorded.Soe_Curren_count - msoe_recorded.Soe_Ptr);
-             
-      
-          for(i =0 ;i< byCurSoeNum;i++)
-          {
-            second = (MAKEWORD(bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+4],bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+5]))/1000;//+soe_recorded.Soe_Ptr
-            Millisecond = (MAKEWORD(bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+4],bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+5]))%1000;//+soe_recorded.Soe_Ptr
-            sprintf((char *)ch,"%d %02x %02x %d %02d%02d%02d_%02d%02d%02d_%03d\r\n",type,MAKEWORD(bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN],bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+1])+1,(MAKEWORD(bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN],bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+1])+1)>>8,bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+2],bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+9], bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+8], bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+7], bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+6],bySoeDa[(i+msoe_recorded.Soe_Ptr)*SOE_SENDDA_LEN+5],
-            second,Millisecond);
-              
-            for(n = 0; n < strlen(ch); n++)
-            {
-              
-         m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch[n];
-         soesum += ch[n];
-             }
-          }
-          msoe_recorded.Soe_Ptr += byCurSoeNum;
-          msoe_recorded.soe_count +=byCurSoeNum;
-      if(msoe_recorded.soe_count >= soe_num)
+  	{
+  	for(n = 0; n < SOE_NUM_SEG; n++)
+   		{     	 
+      	msoe_recorded.Soe_Area &= 0x3ff0;
+		if(msoe_recorded.Soe_Area>=EEPADD_SOEENDADR) 
+			msoe_recorded.Soe_Area = EEPADD_SOESTARTADR;	 
+		CAT_SpiReadBytes(msoe_recorded.Soe_Area, SOE_SENDDA_LEN, &bySoeDa[n*SOE_SENDDA_LEN]); 
+		msoe_recorded.Soe_Area += 16;
+		if(msoe_recorded.Soe_Area>=EEPADD_SOEENDADR) 
+			msoe_recorded.Soe_Area = EEPADD_SOESTARTADR;
+		if(msoe_recorded.Soe_Area==msoe_recorded.Soe_Ptr)
+			{
+			msoe_recorded.Soe_Area=EEPADD_SOESTARTADR;
+			break;
+			}
+  		}
+	if(n>=SOE_NUM_SEG)
+		{byCurSoeNum=SOE_NUM_SEG;}
+	else
+		{byCurSoeNum=n+1;}	
+         
+	for(i =0 ;i< byCurSoeNum;i++)
+   		{
+       	second = (MAKEWORD(bySoeDa[(i)*SOE_SENDDA_LEN+4],bySoeDa[(i)*SOE_SENDDA_LEN+5]))/1000;//+soe_recorded.Soe_Ptr
+        Millisecond = (MAKEWORD(bySoeDa[(i)*SOE_SENDDA_LEN+4],bySoeDa[(i)*SOE_SENDDA_LEN+5]))%1000;//+soe_recorded.Soe_Ptr
+		sprintf((char *)ch,"%d %02x %02x %d %02d%02d%02d_%02d%02d%02d_%03d\r\n",type,
+				(MAKEWORD(bySoeDa[(i)*SOE_SENDDA_LEN+1],bySoeDa[(i)*SOE_SENDDA_LEN+2])+1),
+			 	(MAKEWORD(bySoeDa[(i)*SOE_SENDDA_LEN+1],bySoeDa[(i)*SOE_SENDDA_LEN+2])+1)>>8,
+			 	bySoeDa[(i)*SOE_SENDDA_LEN+3],//yx value
+			 	bySoeDa[(i)*SOE_SENDDA_LEN+10],bySoeDa[(i)*SOE_SENDDA_LEN+9], 
+			 	bySoeDa[(i)*SOE_SENDDA_LEN+8], bySoeDa[(i)*SOE_SENDDA_LEN+7], 
+			 	bySoeDa[(i)*SOE_SENDDA_LEN+6],second,Millisecond);
+
+	    for(n = 0; n < strlen(ch); n++)
+      		{              
+         	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch[n];
+         	soesum += ch[n];
+           	}
+       	}
+   	msoe_recorded.Soe_Ptr += byCurSoeNum;
+  	msoe_recorded.Soe_Curren_count +=byCurSoeNum;
+  	if(msoe_recorded.Soe_Curren_count >= msoe_recorded.soe_count)
         houxu_flag = ON;
               //*pTxPs = pTxBuf - pTxPs-1;
               //if(soe_recorded.Soe_Curren_count ==0)
               //pTxBuf = NULL;      
   }
-  *pTxPos = msoe_recorded.soe_count;
-  *(pTxPos+1)= msoe_recorded.soe_count>>8;
+  *pTxPos = msoe_recorded.Soe_Curren_count;
+  *(pTxPos+1)= msoe_recorded.Soe_Curren_count>>8;
   *(pTxPos+2)= 0;//msoe_recorded.soe_count>>16;
   *(pTxPos+3)= 0;//msoe_recorded.soe_count>>24;
   *(pTxPos+4)= 1;//有后续
@@ -692,8 +697,7 @@ void CBJ101S:: ReadFileDataSoe(WORD FileName)
           *(pTxPos+4)= 0;//无后续
           mRecorder_flag.xuchuanflag= OFF;
       }
-   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = soesum;
-  
+   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = soesum;  
 }
 
 /*void CBJ101S::ReadFileDataExv(WORD FileName,BYTE section_current,BYTE flag)
@@ -983,428 +987,149 @@ void CBJ101S::ReadFileDataFixpt(WORD FileName,BYTE section_current,BYTE flag)
 void CBJ101S::ReadFileDataDat(WORD FileName,RECORDER_CFG *pgRecorder_cfg)
 {
 
-  unsigned char *pTxPos;
-  BYTE LuboDat_Sum = 0;
+	unsigned char *pTxPos;
+  	BYTE LuboDat_Sum = 0;
     int segment_leng = SEGMENT_LENGTH_NEW;
-  unsigned int  DAT_NUM;
-  pTxPos = &m_SendBuf.pBuf[m_SendBuf.wWritePtr];
+  	//unsigned int  DAT_NUM;
+	unsigned long FLbAddrV;
+	unsigned char tt[8] = {0}; //8个通道,每个通道的数值有2个
+    unsigned char datBuff[12] = {0};
+	char ch[200];
+	unsigned char k;
+	
+  	pTxPos = &m_SendBuf.pBuf[m_SendBuf.wWritePtr];
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0;  //数据段号
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; //后续标志
+  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
+  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
+  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; //后续标志
 
-  #ifndef FILTER_COM
-    unsigned char datBuff[16] = {0}; //8个通道,每个通道的数值有2个
-    unsigned int offset[4]={0};
-    BYTE comtrade_length = 22;//24;//16+8
-    #else
-    unsigned char datBuff[20] = {0}; //8个通道,每个通道的数值有2个
-    unsigned int offset[5]={0};
-    BYTE comtrade_length = 28;//20+8
-    #endif
-    unsigned char datBuff_BK[30] = {0}; 
-  
-    int ia,ib,ic,i0,ua,ub,uc,u0;
-    char ch[250]={0};
-    unsigned int  offset_time_Max =0;
-    
-    unsigned int  Total_lubo;
-  unsigned int offset_num;
-    int mid_Value;
-  unsigned int start_point ;
-   // unsigned int wSendDAT = 0;
-    //FileName = MAKEWORD(gRecorder_flag.pRXBuff[leng],gRecorder_flag.pRXBuff[leng + 1]);//-1;
-    DAT_NUM = DAT_AD_NUM;
-    CAT_SpiReadWords(EEPADD_ALEN + FileName*EELEN_LENG, 3, offset);
-    CAT_SpiReadWords(EEPADD_COMLEN + FileName*EELEN_LENG, 1, &offset_time_Max); 
-  if(g_gRunPara[RP_LUBO_CYCLE] ==0)//(||(offset_time_Max ==0))//对时没对上
-    Total_lubo = DAT_NUM-offset_time_Max;
-  else
-    Total_lubo = (g_gRunPara[RP_LUBO_CYCLE] * 80);
-     {
-        
-        for(int i=0;(mSendDATNum < Total_lubo);mSendDATNum++)//(DAT_NUM - offset_time_Max)每一行的值Sample_num
+
+
+	for(int i=0;(mSendDATNum < pgRecorder_cfg->TOTAL_Leng);mSendDATNum++)//(DAT_NUM - offset_time_Max)每一行的值Sample_num
         {
-          #ifndef FILTER_COM     
-          for(int j=0;j<4;j++)//ABC0四相
-          {
-            
-      if(Total_lubo == (DAT_NUM-offset_time_Max))
-      {
-            unsigned long FLbAddrI = FADDR_RECORDER_START+(unsigned long)FileName*FLINEADDR+(unsigned long)j*FPHASEADDR+(unsigned long)(mSendDATNum*2)+(unsigned long)(offset[j]*2);
-                Sst26vf064b_Read(FLbAddrI,&datBuff[j*2],2);//WRITEPECORDER+电流每只指示器的第一报数据存相关信息
-                unsigned long FLbAddrV = FADDR_RECORDER_STARTV+(unsigned long)FileName*FLINEADDR+(unsigned long)j*FPHASEADDR+(unsigned long)(mSendDATNum*2)+(unsigned long)(offset[j]*2);
-                Sst26vf064b_Read(FLbAddrV,&datBuff[j*2+8],2);//WRITEPECORDER+电压每只指示器的第一报数据存相关信息
+        if(FileName<(MAX_REC_NUM+1))
+        	{
+          	FLbAddrV = FADDR_RECORDER_DATA+(unsigned long)(FileName)*0x2000+(unsigned long)mSendDATNum*8;
+           	}
+		else if(FileName<(MAX_REC_NUM+MAX_ACTREC_NUM+2))	
+			{
+			FLbAddrV =FADDR_RECORDER_ACTDATA+(unsigned long)(FileName-51)*0x90000+(unsigned long)mSendDATNum*8;
+			}
+		else if(FileName<(MAX_REC_NUM+MAX_ACTREC_NUM+MAX_XHREC_NUM+3))	
+			{
+			FLbAddrV = FADDR_RECORDER_XHDATA+(unsigned long)(FileName-62)*0x8000+(unsigned long)mSendDATNum*8;
+			}
+		else
+			{//err
+			}
+		Sst26vf064b_Read(FLbAddrV,&tt[0],8);//
 
-           if(mSendDATNum > Total_lubo)//DAT_NUM - offset_time_Max多传的数据清0，因为从flash读取出来的数据都是-1
-                {
-                  datBuff[j*2]=0;
-                  datBuff[j*2+1]=0;
-                  datBuff[j*2+8]=0;
-                  datBuff[j*2+9]=0;
-                }
-      }
-      else if(Total_lubo < (DAT_NUM-offset_time_Max))
-      {
-          offset_num = ((DAT_NUM-offset_time_Max) - Total_lubo)>>1;
-          unsigned long FLbAddrI = FADDR_RECORDER_START+(unsigned long)FileName*FLINEADDR+(unsigned long)j*FPHASEADDR+(unsigned long)(mSendDATNum*2)+(unsigned long)((offset[j] +offset_num)*2);
-                Sst26vf064b_Read(FLbAddrI,&datBuff[j*2],2);//WRITEPECORDER+电流每只指示器的第一报数据存相关信息
-                unsigned long FLbAddrV = FADDR_RECORDER_STARTV+(unsigned long)FileName*FLINEADDR+(unsigned long)j*FPHASEADDR+(unsigned long)(mSendDATNum*2)+(unsigned long)((offset[j] +offset_num)*2);
-                Sst26vf064b_Read(FLbAddrV,&datBuff[j*2+8],2);//WRITEPECORDER+电压每只指示器的第一报数据存相关信息
-      }
-      else
-      {
-          offset_num = Total_lubo-(DAT_NUM-offset_time_Max);
-        
-          if(mSendDATNum < DAT_NUM-offset_time_Max)
-          {
-            unsigned long FLbAddrI = FADDR_RECORDER_START+(unsigned long)FileName*FLINEADDR+(unsigned long)j*FPHASEADDR+(unsigned long)(mSendDATNum*2)+(unsigned long)(offset[j]*2);
-                  Sst26vf064b_Read(FLbAddrI,&datBuff[j*2],2);//WRITEPECORDER+电流每只指示器的第一报数据存相关信息
-                  unsigned long FLbAddrV = FADDR_RECORDER_STARTV+(unsigned long)FileName*FLINEADDR+(unsigned long)j*FPHASEADDR+(unsigned long)(mSendDATNum*2)+(unsigned long)(offset[j]*2);
-                  Sst26vf064b_Read(FLbAddrV,&datBuff[j*2+8],2);//WRITEPECORDER+电压每只指示器的第一报数据存相关信息
-          }
-          else
-          {
-          
-            if((offset_num + (80 - offset_num % 80)) < (DAT_NUM-offset_time_Max-1))
-            {
-            start_point = (DAT_NUM-offset_time_Max)-(offset_num + (80 - offset_num % 80))+(mSendDATNum - (DAT_NUM-offset_time_Max));//-1
-            unsigned long FLbAddrI = FADDR_RECORDER_START+(unsigned long)FileName*FLINEADDR+(unsigned long)j*FPHASEADDR+(unsigned long)(start_point*2)+(unsigned long)(offset[j]*2);
-                  Sst26vf064b_Read(FLbAddrI,&datBuff[j*2],2);//WRITEPECORDER+电流每只指示器的第一报数据存相关信息
-                  unsigned long FLbAddrV = FADDR_RECORDER_STARTV+(unsigned long)FileName*FLINEADDR+(unsigned long)j*FPHASEADDR+(unsigned long)(start_point*2)+(unsigned long)(offset[j]*2);
-                  Sst26vf064b_Read(FLbAddrV,&datBuff[j*2+8],2);//WRITEPECORDER+电压每只指示器的第一报数据存相关信息
-            }
-          
-
-          }
-        
-          }
-          }
-         mid_Value = MAKEWORD(datBuff[0],datBuff[1]);
-         //ia = mid_Value;//(long)(I_Value) * mid_Value/10000;
-         if(g_gRunPara[RP_CFG_KEYH] & (BIT[RP_ACURRENT_REVERSE-16]))
-          ia =0-((long)(g_gRunPara[RP_CURRENT_CA]) * mid_Value/1000);
-         else
-          ia = (long)(g_gRunPara[RP_CURRENT_CA]) * mid_Value/1000;
-         mid_Value = MAKEWORD(datBuff[2],datBuff[3]);
-         //ib = mid_Value;//(long)(I_Value) * mid_Value/10000;
-          if(g_gRunPara[RP_CFG_KEYH] & (BIT[RP_BCURRENT_REVERSE-16]))
-          ib =0-((long)(g_gRunPara[RP_CURRENT_CB]) * mid_Value/1000);
-         else
-          ib = (long)(g_gRunPara[RP_CURRENT_CB]) * mid_Value/1000;
-         
-         mid_Value = MAKEWORD(datBuff[4],datBuff[5]);
-         //ic = mid_Value;//(long)(I_Value) * mid_Value/10000;
-         if(g_gRunPara[RP_CFG_KEYH] & (BIT[RP_CCURRENT_REVERSE-16]))
-          ic = 0-((long)(g_gRunPara[RP_CURRENT_CC]) * mid_Value/1000);
-         else
-          ic = (long)(g_gRunPara[RP_CURRENT_CC]) * mid_Value/1000;
-          i0 = ia + ib+ ic;
-         
-           mid_Value = MAKEWORD(datBuff[8],datBuff[9]);
-            if(g_gRunPara[RP_CFG_KEYH] & (BIT[RP_AVOLTAGE_REVERSE-16]))
-               ua = 0-((long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000);
-            else
-            ua = (long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000;
-            
-      mid_Value = MAKEWORD(datBuff[10],datBuff[11]);
-            if(g_gRunPara[RP_CFG_KEYH] & (BIT[RP_BVOLTAGE_REVERSE-16])) 
-              ub = 0-((long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000);
-            else
-            ub = (long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000;
-      mid_Value = MAKEWORD(datBuff[12],datBuff[13]);
-            if(g_gRunPara[RP_CFG_KEYH] & (BIT[RP_CVOLTAGE_REVERSE-16])) 
-        uc = 0-((long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000);
-            else
-                 uc = (long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000;
-            u0 = ua+ub+uc;
-    /* mid_Value = MAKEWORD(datBuff[14],datBuff[15]);
-     u0 = (long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000;*/
-          //if(wSendDATNum >917)  
-           //wSendDAT=(unsigned int)wSendDATNum*250;
-          /*sprintf((char *)ch,"%u,%lu,%d,%d,%d,%d,%d,%d,%d,%d\n",wSendDATNum,(unsigned long)wSendDATNum*250,MAKEWORD(datBuff[0],datBuff[1]),MAKEWORD(datBuff[2],datBuff[3]),
-                                 MAKEWORD(datBuff[4],datBuff[5]),MAKEWORD(datBuff[6],datBuff[7]),MAKEWORD(datBuff[8],datBuff[9]),MAKEWORD(datBuff[10],datBuff[11]),
-                                 MAKEWORD(datBuff[12],datBuff[13]),MAKEWORD(datBuff[14],datBuff[15]));//每个周期80个点，采样周期250微妙*/
-          if(g_gRunPara[RP_CFG_KEY] & BIT[RP_COMTRADE_TYPE])
-          {
-              
-               datBuff_BK[0] = LOBYTE(mSendDATNum);
-               datBuff_BK[1] = HIBYTE(mSendDATNum);
-               datBuff_BK[2] = 0;
-               datBuff_BK[3] = 0;
-               datBuff_BK[4] = LOBYTE(LOWORD((unsigned long)mSendDATNum*250));
-               datBuff_BK[5] = HIBYTE(LOWORD((unsigned long)mSendDATNum*250));
-               datBuff_BK[6]  = LOBYTE(HIWORD((unsigned long)mSendDATNum*250));
-               datBuff_BK[7]  = HIBYTE(HIWORD((unsigned long)mSendDATNum*250));
-               datBuff_BK[8]  = LOBYTE(ua);//LOBYTE(ia); 
-               datBuff_BK[9]  = HIBYTE(ua);//HIBYTE(ia);
-               datBuff_BK[10]  = LOBYTE(ub);//LOBYTE(ib);
-               datBuff_BK[11]  = HIBYTE(ub);//HIBYTE(ib);
-               datBuff_BK[12]  = LOBYTE(uc);//LOBYTE(ic);
-               datBuff_BK[13] = HIBYTE(uc);//HIBYTE(ic);
-               datBuff_BK[14]  = LOBYTE(ia); //LOBYTE(i0); 
-               datBuff_BK[15]  = HIBYTE(ia);//HIBYTE(i0);
-
-             datBuff_BK[16]  = LOBYTE(ib); //LOBYTE(ua); 
-               datBuff_BK[17]  = HIBYTE(ib);// HIBYTE(ua);
-               datBuff_BK[18]  = LOBYTE(ic);//LOBYTE(ub);
-               datBuff_BK[19]  = HIBYTE(ic);//HIBYTE(ub);
-               datBuff_BK[20]  = LOBYTE(i0);//LOBYTE(uc);
-               datBuff_BK[21] = HIBYTE(i0);//HIBYTE(uc);
-               /*for(int n=8;n<16;n++)
-               {
-                 datBuff_BK[n+8]= datBuff[n];
-               }*/
-               
-          }
-          else
-          {
-            sprintf((char *)ch,"%u,%lu,%d,%d,%d,%d,%d,%d,%d\r\n",(unsigned int)mSendDATNum,(unsigned long)mSendDATNum*250,ua,ub,uc,ia,ib,ic,i0);//,MAKEWORD(datBuff[8],datBuff[9]),MAKEWORD(datBuff[10],datBuff[11]),
-                                 //MAKEWORD(datBuff[12],datBuff[13]),MAKEWORD(datBuff[14],datBuff[15]));//每个周期80个点，采样周期250微妙
-          }
-          #else
-          //int I_Value = 1414;
-          for(int j=0;j<5;j++)//ABC0四相
-          {
-            if(j<4)
-            {
-            unsigned long FLbAddrI = FADDR_RECORDER_START+(unsigned long)FileName*FLINEADDR+(unsigned long)j*FPHASEADDR+(unsigned long)(mSendDATNum*2)+(unsigned long)(offset[j]*2);
-            Sst26vf064b_Read(FLbAddrI,&datBuff[j*2],2);//WRITEPECORDER+电流每只指示器的第一报数据存相关信息
-            
-            unsigned long FLbAddrV = FADDR_RECORDER_STARTV+(unsigned long)FileName*FLINEADDR+(unsigned long)j*FPHASEADDR+(unsigned long)(mSendDATNum*2)+(unsigned long)(offset[j]*2);
-            Sst26vf064b_Read(FLbAddrV,&datBuff[j*2+10],2);//WRITEPECORDER+电压每只指示器的第一报数据存相关信息
-            }
-            else
-            {
-            unsigned long FLbAddrI = FADDR_WAVE_FILTERI+(unsigned long)FileName*FPHASEADDR+(unsigned long)(mSendDATNum*2);//+(unsigned long)j*FPHASEADDR+(unsigned long)(offset[j]*2);
-            Sst26vf064b_Read(FLbAddrI,&datBuff[8],2);//WRITEPECORDER+电流每只指示器的第一报数据存相关信息
-            
-            unsigned long FLbAddrV = FADDR_WAVE_FILTERV+(unsigned long)FileName*FPHASEADDR+(unsigned long)(mSendDATNum*2);//(unsigned long)j*FPHASEADDR++(unsigned long)(offset[j]*2);
-            Sst26vf064b_Read(FLbAddrV,&datBuff[18],2);//WRITEPECORDER+电压每只指示器的第一报数据存相关信息
-            }
-            if(mSendDATNum > Total_lubo)//DAT_NUM - offset_time_Max多传的数据清0，因为从flash读取出来的数据都是-1
-            {
-                if(j<4)
-                {
-                  datBuff[j*2]=0;
-                  datBuff[j*2+1]=0;
-                  datBuff[j*2+10]=0;
-                  datBuff[j*2+11]=0;
-                }
-                else
-                {
-                  datBuff[18]=0;
-                  datBuff[19]=0;
-                  datBuff[8]=0;
-                  datBuff[9]=0;
-                }
-            }
-            
-          }
-         
-          mid_Value = MAKEWORD(datBuff[0],datBuff[1]);
-          if(g_gRunPara[RP_CFG_KEYH] & (BIT[RP_ACURRENT_REVERSE-16]))
-          ia =0-((long)(g_gRunPara[RP_CURRENT_CA]) * mid_Value/1000);
-         else
-          ia = (long)(g_gRunPara[RP_CURRENT_CA]) * mid_Value/1000;
-         mid_Value = MAKEWORD(datBuff[2],datBuff[3]);
-         //ib = mid_Value;//(long)(I_Value) * mid_Value/10000;
-          if(g_gRunPara[RP_CFG_KEYH] & (BIT[RP_BCURRENT_REVERSE-16]))
-          ib =0-((long)(g_gRunPara[RP_CURRENT_CB]) * mid_Value/1000);
-         else
-          ib = (long)(g_gRunPara[RP_CURRENT_CB]) * mid_Value/1000;
-         
-         mid_Value = MAKEWORD(datBuff[4],datBuff[5]);
-         //ic = mid_Value;//(long)(I_Value) * mid_Value/10000;
-         if(g_gRunPara[RP_CFG_KEYH] & (BIT[RP_CCURRENT_REVERSE-16]))
-          ic = 0-((long)(g_gRunPara[RP_CURRENT_CC]) * mid_Value/1000);
-         else
-          ic = (long)(g_gRunPara[RP_CURRENT_CC]) * mid_Value/1000;
-          i0 = ia + ib+ ic;
-      
-    mid_Value = MAKEWORD(datBuff[10],datBuff[11]);
-        if(g_gRunPara[RP_CFG_KEYH] & (BIT[RP_AVOLTAGE_REVERSE-16]))
-          ua = 0-((long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000);
-        else
-      ua = (long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000;
-    mid_Value = MAKEWORD(datBuff[12],datBuff[13]);
-        if(g_gRunPara[RP_CFG_KEYH] & (BIT[RP_BVOLTAGE_REVERSE-16]))
-          ub = 0-((long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000);
-        else
-        ub = (long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000;
-    mid_Value = MAKEWORD(datBuff[14],datBuff[15]);
-        if(g_gRunPara[RP_CFG_KEYH] & (BIT[RP_CVOLTAGE_REVERSE-16]))
-          uc = 0-((long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000);
-        else
-      uc = (long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000;
-        
-         u0 = ua+ub+uc;
-  /* mid_Value = MAKEWORD(datBuff[16],datBuff[17]);
-    u0 = (long)(g_gRunPara[RP_VOLTAGE_V0]) * mid_Value/1000;
-         mid_Value = MAKEWORD(datBuff[6],datBuff[7]);
-         if(g_gRunPara[RP_CFG_KEYH] & (BIT[RP_CURRENT_REVERSE-16]))
-           i0 = 0-mid_Value;
-         else
-          i0 = mid_Value;//(long)(I_Value) * mid_Value/10000;
-         //ia = mid_Value;//(long)(I_Value) * mid_Value/10000;
-         ia = (long)(g_gRunPara[RP_CURRENT_CA]) * mid_Value/1000;
-         mid_Value = MAKEWORD(datBuff[2],datBuff[3]);
-         //ib = mid_Value;//(long)(I_Value) * mid_Value/10000;
-         ib = (long)(g_gRunPara[RP_CURRENT_CB]) * mid_Value/1000;
-         mid_Value = MAKEWORD(datBuff[4],datBuff[5]);
-         //ic = mid_Value;//(long)(I_Value) * mid_Value/10000;
-         ic = (long)(g_gRunPara[RP_CURRENT_CC]) * mid_Value/1000;
-         mid_Value = MAKEWORD(datBuff[6],datBuff[7]);
-         i0 = mid_Value;//(long)(I_Value) * mid_Value/10000;
-       
-          sprintf((char *)ch,"%u,%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",wSendDATNum,(unsigned long)wSendDATNum*250,MAKEWORD(datBuff[0],datBuff[1]),MAKEWORD(datBuff[2],datBuff[3]),
-                                 MAKEWORD(datBuff[4],datBuff[5]),MAKEWORD(datBuff[6],datBuff[7]),MAKEWORD(datBuff[8],datBuff[9]),MAKEWORD(datBuff[10],datBuff[11]),
-                                 MAKEWORD(datBuff[12],datBuff[13]),MAKEWORD(datBuff[14],datBuff[15]),MAKEWORD(datBuff[16],datBuff[17]),MAKEWORD(datBuff[18],datBuff[19]));//每个周期80个点，采样周期250微妙*/
-            
-            if(g_gRunPara[RP_CFG_KEY] & BIT[RP_COMTRADE_TYPE])
-            {
-                datBuff_BK[0]= LOBYTE(mSendDATNum);
-                datBuff_BK[1] = HIBYTE(mSendDATNum);
-                datBuff_BK[2] = 0;
-                datBuff_BK[3] = 0;
-               
-                datBuff_BK[4]= LOBYTE(LOWORD((unsigned long)mSendDATNum*250));
-                datBuff_BK[5]= HIBYTE(LOWORD((unsigned long)mSendDATNum*250));
-                datBuff_BK[6] = LOBYTE(HIWORD((unsigned long)mSendDATNum*250));
-                datBuff_BK[7] = HIBYTE(HIWORD((unsigned long)mSendDATNum*250));
-                datBuff_BK[8]= LOBYTE(ia);
-                datBuff_BK[9] = HIBYTE(ia);
-                datBuff_BK[10] = LOBYTE(ib); 
-                datBuff_BK[11] = HIBYTE(ib);
-                datBuff_BK[12] = LOBYTE(ic); 
-                datBuff_BK[13] = HIBYTE(ic);
-                datBuff_BK[14] = LOBYTE(i0);
-                datBuff_BK[15] = HIBYTE(i0);
-        datBuff_BK[16] = datBuff[8];
-        datBuff_BK[17] = datBuff[9];
-            datBuff_BK[18]  = LOBYTE(ua); 
-               datBuff_BK[19]  = HIBYTE(ua);
-               datBuff_BK[20]  = LOBYTE(ub);
-               datBuff_BK[21]  = HIBYTE(ub);
-               datBuff_BK[22]  = LOBYTE(uc);
-               datBuff_BK[23] = HIBYTE(uc);
-               datBuff_BK[24]  = LOBYTE(u0); 
-               datBuff_BK[25]  = HIBYTE(u0);
-        datBuff_BK[26]  = datBuff[18];; 
-               datBuff_BK[27]  = datBuff[19];;
-               
-            }
-            else
-            {
-              sprintf((char *)ch,"%u,%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n",(unsigned int)mSendDATNum,(unsigned long)mSendDATNum*250,ia,ib,
-                                 ic,i0,MAKEWORD(datBuff[8],datBuff[9]),ua,ub,uc,u0,MAKEWORD(datBuff[18],datBuff[19]));//每个周期80个点，采样周期250微妙MAKEWORD(datBuff[10],datBuff[11]),
-                                 //MAKEWORD(datBuff[12],datBuff[13]),MAKEWORD(datBuff[14],datBuff[15]),MAKEWORD(datBuff[16],datBuff[17]),
-            }
+		unsigned long xt =250;
+       	if(pgRecorder_cfg->CFG_Samp==800)xt=1250;//张弢 动作录波 频率800 时间间隔1250
+      	if(pgRecorder_cfg->CFG_Samp==1600)xt=625;//张弢 动作录波 频率1600 时间间隔625
+      	if(pgRecorder_cfg->CFG_Samp==2000)xt=500;//张弢 动作录波 频率1600 时间间隔625
+       	datBuff[0]=tt[0];datBuff[2]=tt[1];datBuff[4]=tt[2];datBuff[6]=tt[3]; datBuff[8]=tt[4];
+	  	datBuff[1]=tt[5]&0x0f;datBuff[3]=(tt[5]>>4)&0x0f;datBuff[5]=tt[6]&0x0f;datBuff[7]=(tt[6]>>4)&0x0f; datBuff[9]=tt[7]&0x0f; 
+	  	if(tt[7]&BIT7)datBuff[1]|=0xf0;
+	  	if(tt[7]&BIT6)datBuff[3]|=0xf0;
+	  	if(tt[7]&BIT5)datBuff[5]|=0xf0;
+	  	if(tt[7]&BIT4)datBuff[7]|=0xf0;
+	  	if(tt[4]&BIT0)datBuff[9]|=0xf0;
+	  	datBuff[11]=0;
+	  	datBuff[10]=tt[0]&BIT0+(tt[1]&BIT0)*2+(tt[2]&BIT0)*4;
+		unsigned long xtt = (long)mSendDATNum*xt;
+		if(g_gRunPara[RP_CFG_KEY]&BIT[RP_COMTRADE_TYPE])
+       		{
+          	ch[0]=LOBYTE(mSendDATNum);ch[1]=HIBYTE(mSendDATNum);ch[2]=0;ch[3]=0;
+		 	ch[4] = LOBYTE(LOWORD(xtt));
+           	ch[5] = HIBYTE(LOWORD(xtt));
+           	ch[6] = LOBYTE(HIWORD(xtt));
+           	ch[7] = HIBYTE(HIWORD(xtt));
+		 	ch[8] = datBuff[0];ch[9] = datBuff[1];ch[10] = datBuff[2];ch[11] = datBuff[3];
+		 	ch[12] = datBuff[4];ch[13] = datBuff[5];ch[14] = datBuff[6];ch[15] = datBuff[7];		 
+		 	ch[16]=datBuff[8];ch[17]=datBuff[9];
+			ch[18]=datBuff[10];
+		 	ch[19]=0;
+		 	i+=20;k=20;
+          	}
+	   else
+	   		{
+          	sprintf((char *)ch,"%ld,%ld,%d,%d,%d,%d,%d,%d,%d,%d\n",mSendDATNum,xtt,MAKEWORD(datBuff[0],datBuff[1]),MAKEWORD(datBuff[2],datBuff[3]),
+                                 //MAKEWORD(datBuff[4],datBuff[5]),MAKEWORD(datBuff[6],datBuff[7]),dka,(unsigned int)a,(unsigned int)b,(unsigned int)c);//每个周期80个点，采样周期250微妙//张弢
+                                 MAKEWORD(datBuff[4],datBuff[5]),MAKEWORD(datBuff[6],datBuff[7]),MAKEWORD(datBuff[8],datBuff[9]),(unsigned int)(tt[0]&BIT0),(unsigned int)(tt[1]&BIT0),(unsigned int)(tt[2]&BIT0));//每个周期80个点，采样周期250微妙//张弢
                                  
-
-          #endif
-          if(g_gRunPara[RP_CFG_KEY] & BIT[RP_COMTRADE_TYPE])
-          {
-            i+=comtrade_length;
-          }
-          else
-          {
-            i+= strlen(ch);
-          }
-          if(i <=segment_leng)
-          {
-            if(!(g_gRunPara[RP_CFG_KEY] & BIT[RP_COMTRADE_TYPE]))
-            {
-              for(BYTE n = 0; n < strlen(ch); n++)
-                {
-                    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch[n];
-                    LuboDat_Sum += ch[n];
-                }
-            }
-            else
-            {
-              for(BYTE n = 0; n < comtrade_length; n++)
-                {
-                    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = datBuff_BK[n];
-                    LuboDat_Sum += datBuff_BK[n];
-                }
-            }
-            *pTxPos = mSendDATNum;//pTxBuf - pTxPos-1;//LL
-            *(pTxPos +1)= mSendDATNum >>8;
-      *(pTxPos +2)= mSendDATNum >>16;
-      *(pTxPos +3)= mSendDATNum >>24;
-      *(pTxPos +4)= 1;//有后续
-       mRecorder_flag.xuchuanflag= ON;
-                   //     mRecorder_flag.LIST_flag = ON;
-            //gRecorder_flag.LIST_flag = TRUE;//ON;     
-            //GLubodat_Sum += ChkluboSum((BYTE *)ch, strlen(ch));  
-          }
-          else
-          {
-            
-            //wSendDATNum--;
-            break;//return pTxBuf;
-          }
-          if(mSendDATNum == Total_lubo-1)//DAT_NUM -offset_time_MaxSample_num-1
-          {
-      *(pTxPos +4)= 0;
-      mRecorder_flag.xuchuanflag= OFF;
-      mSendDATNum++;
-      mluboYX_flag = ON;//检测到该标志位表示录波召唤完成
+          	i+= strlen(ch);k=strlen(ch);
+	   		}
+  
+     	if(i <=segment_leng)
+       		{
+           	for(BYTE n = 0; n < k; n++)
+           		{
+              	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch[n];
+              	LuboDat_Sum += ch[n];
+                } 
+      		*pTxPos = mSendDATNum;//pTxBuf - pTxPos-1;//LL
+       		*(pTxPos +1)= mSendDATNum >>8;
+      		*(pTxPos +2)= mSendDATNum >>16;
+      		*(pTxPos +3)= mSendDATNum >>24;
+      		*(pTxPos +4)= 1;//有后续
+       		mRecorder_flag.xuchuanflag= ON;                  
+     		}
+  		else
+     		{
+       		break;//return pTxBuf;
+     		}
+   		if(mSendDATNum == ((pgRecorder_cfg->TOTAL_Leng)-1))//DAT_NUM -offset_time_MaxSample_num-1
+  			{
+      		*(pTxPos +4)= 0;
+      		mRecorder_flag.xuchuanflag= OFF;
+      		mSendDATNum++;
+      		mluboYX_flag = ON;//检测到该标志位表示录波召唤完成
                         //mRecorder_flag.LIST_flag = OFF;
-            //break;//return pTxBuf;
-          }
+     		}
              
-        }
-     }
+   }
+     
      m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = LuboDat_Sum;
+  
 }
 
 
 void CBJ101S::ReadFileDataCfg(RECORDER_CFG *pmRecorder_cfg)
 {
-   int segment_leng = SEGMENT_LENGTH_NEW;
-   BYTE j;
-   BYTE LuboCfg_Sum = 0;
-   unsigned char strtemp;
-   unsigned char *pTxPos;
+	int segment_leng = SEGMENT_LENGTH_NEW;
+   	BYTE j;
+   	BYTE LuboCfg_Sum = 0;
+   	unsigned char strtemp;
+   	unsigned char *pTxPos;
      
-        pTxPos = &m_SendBuf.pBuf[m_SendBuf.wWritePtr];
-            m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0;  //数据段号
-            m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
-      m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
-      m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
-      m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; //后续标志
+    pTxPos = &m_SendBuf.pBuf[m_SendBuf.wWritePtr];
+   	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0;  //数据段号
+   	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
+   	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
+   	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
+   	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; //后续标志
       
-           for(j = 0;(j < segment_leng)&&(mSendCFGNum < pmRecorder_cfg->CFG_Leng);mSendCFGNum++,j++)
-           {
-              strtemp =  CAT_SpiReadByte(EEPADD_CFG+mSendCFGNum);
-
-         //LuboCfg_Sum += *strtemp;
-         LuboCfg_Sum += strtemp;
-           m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= strtemp;
-         //m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= *strtemp++;
-        
-           }
-       *pTxPos = mSendCFGNum;
-       *(pTxPos+1)= mSendCFGNum>>8;
-       *(pTxPos+2)= mSendCFGNum>>16;
-       *(pTxPos+3)= mSendCFGNum>>24;
-       *(pTxPos+4)= 1;//有后续
+   	for(j = 0;(j < segment_leng)&&(mSendCFGNum < pmRecorder_cfg->CFG_Leng);mSendCFGNum++,j++)
+   		{
+       	strtemp =  CAT_SpiReadByte(EEPADD_CFG+mSendCFGNum);
+       	LuboCfg_Sum += strtemp;
+       	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= strtemp;     
+	   	}
+   	*pTxPos = mSendCFGNum;
+  	*(pTxPos+1)= mSendCFGNum>>8;
+   	*(pTxPos+2)= mSendCFGNum>>16;
+  	*(pTxPos+3)= mSendCFGNum>>24;
+    *(pTxPos+4)= 1;//有后续
        
-       mRecorder_flag.xuchuanflag= ON;
-           if(mSendCFGNum >= pmRecorder_cfg->CFG_Leng)//最后一段
-           {
-              *(pTxPos+4)= 0;//无后续
-              mRecorder_flag.xuchuanflag= OFF;
-                       // mRecorder_flag.LIST_flag = OFF;
-           }
-           //else
-                 // mRecorder_flag.LIST_flag = ON;
-           m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = LuboCfg_Sum;
-            //*pTxPos = pTxBuf - pTxPos-1;//LL
-     
+  	mRecorder_flag.xuchuanflag= ON;
+  	if(mSendCFGNum >= pmRecorder_cfg->CFG_Leng)//最后一段
+    	{
+      	*(pTxPos+4)= 0;//无后续
+      	mRecorder_flag.xuchuanflag= OFF;
+       	}
+   	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = LuboCfg_Sum;
 }
 
 
@@ -1417,17 +1142,37 @@ void CBJ101S::Send_ReadFile_Data(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,unsig
     //WORD wave_total;
   unsigned int VSQ=1;
   RECORDER_CFG m_Recorder_cfg;
-  unsigned int  DAT_NUM_1;
-  unsigned int  offset_time_Max =0;
-  unsigned int  Total_packet;
+  //unsigned int  DAT_NUM_1;
+  //unsigned int  offset_time_Max =0;
+  //unsigned int  Total_packet;
   BYTE Loadday=0;
-  for(int j =0;j<3;j++)
-    {
-        long FADDR_RECORDER = FADDR_RECORDER_INFO +(long)File_ID*(long)FLINEADDR + (long)j*(long)FPHASEADDR;
-        Sst26vf064b_Read(FADDR_RECORDER ,(unsigned char *)&m_Recorder_cfg,sizeof(m_Recorder_cfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来        
-        if(m_Recorder_cfg.lubo_flag==0x55)
-          break;
-    }
+  //unsigned int t_FileNum;
+  long FADDR_RECORDER;
+
+  m_Recorder_cfg.FileName = 0xff;
+  	if(File_ID<(MAX_REC_NUM+1))
+  		{
+		FADDR_RECORDER =FADDR_RECORDER_DATA-256+ (unsigned long)(File_ID+1)*0x2000;
+  		}
+	else if(File_ID<(MAX_REC_NUM+MAX_ACTREC_NUM+2))	
+		{
+		FADDR_RECORDER = FADDR_RECORDER_ACTDATA-256 +(unsigned long)(File_ID+1)*0x90000;
+		}
+	else if(File_ID<(MAX_REC_NUM+MAX_ACTREC_NUM+MAX_XHREC_NUM+3))	
+		{
+		FADDR_RECORDER = FADDR_RECORDER_XHDATA-256 +(unsigned long)(File_ID+1)*0x8000;
+		}
+	else
+		{//err
+		return;
+		}
+	Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&m_Recorder_cfg,sizeof(m_Recorder_cfg));
+	if(m_Recorder_cfg.FileName>=MAX_ALLREC_NUM)
+		{//err
+		return;
+		}
+
+
     SendFrameHead(Style, Reason);
   write_infoadd(InfoAddr);
   
@@ -1444,8 +1189,10 @@ void CBJ101S::Send_ReadFile_Data(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,unsig
       {
         mSendCFGNum =0;
         mSendDATNum =0;
-          cfg_dat_length(&m_Recorder_cfg,File_ID);
-        
+        cfg_dat_length(&m_Recorder_cfg,File_ID);
+        //cfg_dat_length(File_ID);
+        m_Recorder_cfg.FileName=File_ID;
+		m_Recorder_cfg.CFG_Leng=CAT_SpiReadWord(EEPADD_CFG-2);
       }
       if(mSendCFGNum >= (m_Recorder_cfg.CFG_Leng))//最后一段
       {
@@ -1454,7 +1201,7 @@ void CBJ101S::Send_ReadFile_Data(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,unsig
         return;
       }
       else 
-        
+          m_Recorder_cfg.CFG_Leng=CAT_SpiReadWord(EEPADD_CFG-2);
             ReadFileDataCfg(&m_Recorder_cfg);//wSecLenPtr,
   }
   else if(File_TYPE ==2)//DAT
@@ -1465,19 +1212,18 @@ void CBJ101S::Send_ReadFile_Data(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,unsig
         mSendDATNum =0;
           mluboYX_flag=OFF;
       }
+	  /* 录波周期不为16 截取RP_LUBO_CYCLE个周波
        DAT_NUM_1 = DAT_AD_NUM;
-        // CAT_SpiReadWords(EEPADD_ALEN + FileName*EELEN_LENG, 3, offset);
         CAT_SpiReadWords(EEPADD_COMLEN + File_ID*EELEN_LENG, 1, &offset_time_Max); 
-      if(g_gRunPara[RP_LUBO_CYCLE] ==0)//||(offset_time_Max ==0))//对时没对上
+      if(g_gRunPara[RP_LUBO_CYCLE] ==0)//对时没对上
         Total_packet = DAT_NUM_1-offset_time_Max;
       else
         Total_packet = (g_gRunPara[RP_LUBO_CYCLE] * 80);
-      if(mSendDATNum >= Total_packet)//最后一段
+        */
+       //读FILE_ID的m_Recorder_cfg  
+      if(mSendDATNum >= m_Recorder_cfg.TOTAL_Leng)//最后一段
       {
         mSendDATNum =0;
-        //g_gRmtLockLB =0;
-        //CreatNewSoe(RI_LUBO_FLAG,0);
-        //mRecorder_flag.xuchuanflag= OFF;
         return;
       }
       else  //前面流程已发送过数据
@@ -1527,37 +1273,36 @@ void CBJ101S::Send_ReadFile_Data(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,unsig
       }
               
   }
-  else if(File_TYPE == 4)
+  else if(File_TYPE == 4)//SOE
   {
     if(Packet_Num==1)
-    {
-      msoe_recorded.Soe_Area =0;
-                  msoe_recorded.Soe_Ptr =0;
-                  msoe_recorded.soe_count =0;
-                  msoe_recorded.Soe_Curren_count =0;
-                  msoe_recorded.Soe_count_flag =OFF;
-          #ifndef GETSOEFROMRAM//从外部FLASH取个数
-          unsigned int Flashheadbk  =g_InFlashInfo.m_unSSoeInFlashHead;
+    	{
+      	msoe_recorded.Soe_Area =g_unSSoeSaveE2ROMPtr;
+     	msoe_recorded.Soe_Ptr =g_unSSoeSaveE2ROMPtr;
+       	msoe_recorded.soe_count =soe_num;
+		if(soe_num<512)msoe_recorded.Soe_Area=EEPADD_SOESTARTADR;
+       	msoe_recorded.Soe_Curren_count =0;
+       	msoe_recorded.Soe_count_flag =OFF;
+      	#ifndef GETSOEFROMRAM//从外部FLASH取个数
+          	unsigned int Flashheadbk  =g_InFlashInfo.m_unSSoeInFlashHead;
             soe_num =  ReadNumSoeFromFlash((WORD *)&Flashheadbk,g_unSSoeInFlashTail);
-          //m_BkFlashhead =g_InFlashInfo.m_unSSoeInFlashHead;
-          #endif
-      
-    }
-    if(( msoe_recorded.soe_count >= soe_num ) &&(msoe_recorded.Soe_count_flag == ON))//最后一段Sample_num
-    {
-       msoe_recorded.soe_count = 0;
-      // mRecorder_flag.xuchuanflag= OFF;
-      return;
-    }
+          	//m_BkFlashhead =g_InFlashInfo.m_unSSoeInFlashHead;
+     	#endif      
+    	}
+    if(( msoe_recorded.Soe_Curren_count >= soe_num ) &&(msoe_recorded.Soe_count_flag == ON))//最后一段Sample_num
+    	{
+       	msoe_recorded.Soe_Curren_count = 0;
+      	// mRecorder_flag.xuchuanflag= OFF;
+      	return;
+    	}
     else
-    {
-      #ifdef GETSOEFROMRAM
-       ReadFileDataSoe(File_ID);//wSecLenPtr,
-       #else
-       ReadFileDataSoe_Flash(File_ID);
-        
-      #endif
-    }
+    	{
+      	#ifdef GETSOEFROMRAM
+       		ReadFileDataSoe(File_ID);//wSecLenPtr,
+       	#else
+       		ReadFileDataSoe_Flash(File_ID);        
+      	#endif
+    	}
   }
   else if(File_TYPE == 5)
   {
@@ -1600,16 +1345,10 @@ void CBJ101S::Send_ReadFile_Data(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,unsig
       //else if(m_loghouxu_flag == OFF)
         //ReadFileDataFixpt(File_ID,m_current_section,0x55);
     }
-    /*if((mlog_recorded.log_Ptr >= mlog_recorded.log_Curren_count ) &&(mlog_recorded.log_count_flag == ON))//最后一段Sample_num
-    {
-      //msoe_recorded.soe_count = 0;
-      return;
-    }
-    else
-       ReadFileDataUlog(File_ID);//wSecLenPtr,*/
-    
+   
   }
    SendFrameTail(PRM, dwCode, VSQ,0);
+
 }
 
 
@@ -1623,21 +1362,40 @@ void CBJ101S::Send_ReadFile_Confirm(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,un
   unsigned int VSQ=1;
   BYTE LoadDay = 0;
   BYTE YC_NUM =0;
-  
+  //unsigned int t_FileNum;
   BYTE YcIndex;
   //char ph[10];
    // int YxIndex = 0;
   //unsigned char sc_num =0;
   //unsigned char *pTxPos,*pTxPos1;
   RECORDER_CFG m_Recorder_cfg;
-  for(int j =0;j<3;j++)
-    {
-        long FADDR_RECORDER = FADDR_RECORDER_INFO +(long)File_ID*(long)FLINEADDR + (long)j*(long)FPHASEADDR;
-        Sst26vf064b_Read(FADDR_RECORDER ,(unsigned char *)&m_Recorder_cfg,sizeof(m_Recorder_cfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来        
-        if(m_Recorder_cfg.lubo_flag==0x55)
-          break;
-    }
-    SendFrameHead(Style, Reason);
+  long FADDR_RECORDER;
+
+  m_Recorder_cfg.FileName = 0xff;
+  	if(File_ID<(MAX_REC_NUM+1))
+  		{
+		FADDR_RECORDER =FADDR_RECORDER_DATA-256+ (unsigned long)(File_ID+1)*0x2000;
+  		}
+	else if(File_ID<(MAX_REC_NUM+MAX_ACTREC_NUM+2))	
+		{
+		FADDR_RECORDER = FADDR_RECORDER_ACTDATA-256 +(unsigned long)(File_ID+1)*0x90000;
+		}
+	else if(File_ID<(MAX_REC_NUM+MAX_ACTREC_NUM+MAX_XHREC_NUM+3))	
+		{
+		FADDR_RECORDER = FADDR_RECORDER_XHDATA-256 +(unsigned long)(File_ID+1)*0x8000;
+		}
+	else
+		{//err
+		return;
+		}
+	Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&m_Recorder_cfg,sizeof(m_Recorder_cfg));
+	if(m_Recorder_cfg.FileName>=MAX_ALLREC_NUM)
+		{//err
+		return;
+		}
+
+
+  SendFrameHead(Style, Reason);
   write_infoadd(InfoAddr);
   
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =2;  //在信息体地址后面，附加数据包类型1个字节，备用1,3,4.文件传输 2
@@ -1807,8 +1565,7 @@ void CBJ101S::soe_directory_confirm(WORD InfoAddr,DWORD Directory_ID)
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =1; //文件数量
   mRecorder_flag.LIST_flag = OFF;
 
-   #ifndef GETSOEFROMRAM//从外部FLASH取个数
-       //soe_num= g_InFlashInfo.m_InFlashTailNum;
+   #ifndef GETSOEFROMRAM//从外部FLASH取个数       
        unsigned int Flashheadbk  =g_InFlashInfo.m_unSSoeInFlashHead;
        soe_num =  ReadNumSoeFromFlash((WORD *)&Flashheadbk,g_unSSoeInFlashTail);  
    #endif
@@ -2118,112 +1875,209 @@ unsigned char CBJ101S::Get_time_read(WORD wave_total,DWORD start_minute,DWORD st
 
 void CBJ101S::lubo_directory_confirm(WORD InfoAddr,DWORD Directory_ID,BYTE call_sign,DWORD start_minute_time,DWORD start_date_time,DWORD end_minute_time,DWORD end_date_time)
 {
-  BYTE Style = F_FP_FA;
-  BYTE Reason = COT_REQ;
+	BYTE Style = F_FP_FA;
+  	BYTE Reason = COT_REQ;
     BYTE PRM = 0;
     BYTE dwCode = 8;
     WORD wave_total;
-  //unsigned int VSQ=0x80;
-  char ph[50];
-  DWORD date_time =0;
-  DWORD minute_time=0;
-  BYTE  lubo_sign =OFF;
-  BYTE m_send_flag =0;
-  long FADDR_RECORDER;
-  //unsigned int lubo_num;
-  //long FADDR_RECORDER;
-   // int YxIndex = 0;
-  unsigned char sc_num =0;
-  BYTE count_num =0;
-  unsigned char *pTxPos,*pTxPos1;
-  RECORDER_CFG m_Recorder_cfg;
-        SendFrameHead(Style, Reason);
-  write_infoadd(InfoAddr);
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =2;  //在信息体地址后面，附加数据包类型1个字节，备用1,3,4.文件传输 2
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =OPERATING_LOGO2;
+  	char ph[50];
+  	//DWORD date_time =0;
+  	//DWORD minute_time=0;
+  	//BYTE  lubo_sign =OFF;
+  	//BYTE m_send_flag =0;
+  	//long FADDR_RECORDER;
+  	//unsigned char sc_num =0;
+  	//BYTE count_num =0;
+  	unsigned char *pTxPos,*pTxPos1;
+  	RECORDER_CFG m_Recorder_cfg;
+
+	if(m_SendListNum==0)
+		bR_FileNum=0;
+  	SendFrameHead(Style, Reason);
+  	write_infoadd(InfoAddr);
+  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =2;  //在信息体地址后面，附加数据包类型1个字节，备用1,3,4.文件传输 2
+  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =OPERATING_LOGO2;
   
-  pTxPos = &m_SendBuf.pBuf[m_SendBuf.wWritePtr];
+  	pTxPos = &m_SendBuf.pBuf[m_SendBuf.wWritePtr];
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; //结果描述字
   
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = Directory_ID;
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = Directory_ID >>8;
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = Directory_ID >>16;
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = Directory_ID >>24;
-  pTxPos1 = &m_SendBuf.pBuf[m_SendBuf.wWritePtr];//后续标志
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; //后续标志
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; //文件数量
-  mRecorder_flag.LIST_flag = OFF;
-  CAT_SpiReadWords(EEPADD_LUBONUM, 1, (unsigned int*)&wave_total);
-  if(g_gRunPara[RP_LBSTORAGE_TIME] >0)
-    {
-  
-    LuBoGetNum(wave_total);//lubo_total = 
-    }
-    if(g_gRunPara[RP_LUBO_NUM] >0)
-    {
-  
-    LuBoNum(wave_total);//lubo_total = 
-    }
-    if(wave_total >= 0xFE)  wave_total = 0;
+  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = Directory_ID;
+  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = Directory_ID >>8;
+  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = Directory_ID >>16;
+  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = Directory_ID >>24;
+  	pTxPos1 = &m_SendBuf.pBuf[m_SendBuf.wWritePtr];//后续标志
+  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =1; //1=有后续标志
+  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =(m_SendListNum+1)*2; //文件数量
+  	mRecorder_flag.LIST_flag = OFF;
+  	CAT_SpiReadWords(EEPADD_LUBONUM, 1, (unsigned int*)&wave_total);
+  	//if(g_gRunPara[RP_LBSTORAGE_TIME] >0)
+    	{  
+    	//LuBoGetNum(wave_total);//lubo_total = 
+    	}
+  	//if(g_gRunPara[RP_LUBO_NUM] >0)
+    	{  
+    	//LuBoNum(wave_total);//lubo_total = 
+    	}
+  	if(wave_total >= 0xFE)  wave_total = 0;
+
+	for(;(m_SendListNum <=  (g_sRecData.m_gRecANum+g_sRecData.m_gACTRecANum+g_sRecData.m_gXHRecANum));m_SendListNum++,bR_FileNum++)
+  		{
+        m_Recorder_cfg.FileName = 0xff;
+      	for(;bR_FileNum<MAX_ALLREC_NUM;bR_FileNum++)
+       		{
+          	if(bR_FileNum<(MAX_REC_NUM+1))
+          		{//故障录波文件
+          		if((bR_FileNum!=g_sRecData.m_gRecCNum)
+					&&((bR_FileNum<g_sRecData.m_gRecANum)
+					      ||((bR_FileNum==g_sRecData.m_gRecANum)&&(bR_FileNum==MAX_REC_NUM))))
+          			{
+          			 long FADDR_RECORDER =FADDR_RECORDER_DATA-256+ (unsigned long)(bR_FileNum+1)*0x2000;
+          			 Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&m_Recorder_cfg,sizeof(m_Recorder_cfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来 
+					break;
+					}
+          		}
+	   		else if(bR_FileNum<(MAX_REC_NUM+MAX_ACTREC_NUM+2))
+	   			{//动作录波
+          		if(((bR_FileNum-51)!=g_sRecData.m_gACTRecCNum)
+					&&(((bR_FileNum-51)<g_sRecData.m_gACTRecANum)
+					      ||(((bR_FileNum-51)==g_sRecData.m_gACTRecANum)&&((bR_FileNum-51)==MAX_ACTREC_NUM))))
+          			{
+          			 long FADDR_RECORDER =FADDR_RECORDER_ACTDATA-256+ (unsigned long)(bR_FileNum-51+1)*0x90000;
+          			 Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&m_Recorder_cfg,sizeof(m_Recorder_cfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来       			
+					break;
+					}
+	   			}
+	   		else if(bR_FileNum<MAX_ALLREC_NUM)
+	   			{//熄弧录波
+          		if(((bR_FileNum-62)!=g_sRecData.m_gXHRecCNum)
+					&&(((bR_FileNum-62)<g_sRecData.m_gXHRecANum)
+					      ||(((bR_FileNum-62)==g_sRecData.m_gXHRecANum)&&((bR_FileNum-62)==MAX_XHREC_NUM))))
+          			{
+          			 long FADDR_RECORDER =FADDR_RECORDER_XHDATA-256+(unsigned long)(bR_FileNum-62+1)*0x8000;
+          			 Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&m_Recorder_cfg,sizeof(m_Recorder_cfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来       			
+					break;
+					}	   		
+	   			}
+	   		else
+	   			{//erro
+	   			m_Recorder_cfg.FileName = 0xff;
+	   			}
+          	}				
      
-     if((m_SendListNum > wave_total) ||(wave_total==0))//最后一段=
-      {       
-          m_SendListNum = 0;
-          if(wave_total == 0)
-          {
-              *pTxPos = 1;
-        *pTxPos1 = 0;//后续标志  
-        *(pTxPos1 + 1) = 0;//文件数量     
-          }
-      
-      SendFrameTail(PRM, dwCode, 0x01,0);
-	  	return;
-      }
-      else
-      {
-        if(m_SendListNum == wave_total) m_SendListNum=0;
+  		//if((m_SendListNum > wave_total) ||(wave_total==0))//最后一段=
+  		if((m_SendListNum >= (g_sRecData.m_gRecANum+g_sRecData.m_gACTRecANum+g_sRecData.m_gXHRecANum))
+			||((g_sRecData.m_gRecANum+g_sRecData.m_gACTRecANum+g_sRecData.m_gXHRecANum)==0))
+   			{ //最后一段=      
+      		m_SendListNum = 0;
+			bR_FileNum = 0;
+      		if((g_sRecData.m_gRecANum+g_sRecData.m_gACTRecANum+g_sRecData.m_gXHRecANum)==0)
+      			{
+       			*pTxPos = 1;
+       			*pTxPos1 = 0;//后续标志  
+        		*(pTxPos1 + 1) = 0;//文件数量     
+        		}
+			*pTxPos1 = 0;//后续标志  
+        	*(pTxPos1 + 1) = 0;//文件数量
+      		SendFrameTail(PRM, dwCode, 0x01,0);
+	  		return;
+      		}
+  		else
+      		{
+	  		sprintf((char *)ph,"BAY01_%04d_%04d%02d%02d_%02d%02d%02d_%03d.cfg",(m_Recorder_cfg.FileName),m_Recorder_cfg.comtrade_time[RTC_YEAR],m_Recorder_cfg.comtrade_time[RTC_MONTH],
+			  	m_Recorder_cfg.comtrade_time[RTC_DATE],m_Recorder_cfg.comtrade_time[RTC_HOUR],m_Recorder_cfg.comtrade_time[RTC_MINUT],m_Recorder_cfg.comtrade_time[RTC_SEC],m_Recorder_cfg.comtrade_time[RTC_MICROSEC]);
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = strlen(ph);
+	  		for(BYTE n = 0; n < strlen(ph); n++)
+				m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = ph[n]; 
+	  		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0;//文件属性
+	  		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= m_Recorder_cfg.CFG_Leng;//文件大小
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.CFG_Leng>>8;
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.CFG_Leng>>16; 
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.CFG_Leng>>24;
+	  		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = (m_Recorder_cfg.comtrade_time[RTC_MICROSEC]+m_Recorder_cfg.comtrade_time[RTC_SEC]*1000)&0XFF;
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = (m_Recorder_cfg.comtrade_time[RTC_MICROSEC]+m_Recorder_cfg.comtrade_time[RTC_SEC]*1000)>>8;
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_MINUT];
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_HOUR];
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_DATE]|(g_gWeekNum<<5);
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_MONTH];
+      		if(m_Recorder_cfg.comtrade_time[RTC_YEAR] >=2000)
+      			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_YEAR]-2000;
+      		else
+      			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_YEAR];
+						
+	  		sprintf((char *)ph,"BAY01_%04d_%04d%02d%02d_%02d%02d%02d_%03d.dat",(m_Recorder_cfg.FileName),m_Recorder_cfg.comtrade_time[RTC_YEAR],m_Recorder_cfg.comtrade_time[RTC_MONTH],
+			  	m_Recorder_cfg.comtrade_time[RTC_DATE],m_Recorder_cfg.comtrade_time[RTC_HOUR],m_Recorder_cfg.comtrade_time[RTC_MINUT],m_Recorder_cfg.comtrade_time[RTC_SEC],m_Recorder_cfg.comtrade_time[RTC_MICROSEC]);
+	  		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = strlen(ph);
+	  		for(BYTE n = 0; n < strlen(ph); n++)
+		  		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = ph[n]; 
+	  		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0;//文件属性
+	  		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= m_Recorder_cfg.TOTAL_Leng*20;//文件大小
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = (m_Recorder_cfg.TOTAL_Leng*20)>>8;
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = (m_Recorder_cfg.TOTAL_Leng*20)>>16; 
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = (m_Recorder_cfg.TOTAL_Leng*20)>>24;
+	 		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = (m_Recorder_cfg.comtrade_time[RTC_MICROSEC]+m_Recorder_cfg.comtrade_time[RTC_SEC]*1000)&0XFF;
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = (m_Recorder_cfg.comtrade_time[RTC_MICROSEC]+m_Recorder_cfg.comtrade_time[RTC_SEC]*1000)>>8;
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_MINUT];
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_HOUR];
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_DATE]|(g_gWeekNum<<5);
+      		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_MONTH];
+      		if(m_Recorder_cfg.comtrade_time[RTC_YEAR] >=2000)
+      			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_YEAR]-2000;
+      		else
+      			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_YEAR];
+			m_SendListNum++;bR_FileNum++;
+			if(m_SendListNum >= (g_sRecData.m_gRecANum+g_sRecData.m_gACTRecANum+g_sRecData.m_gXHRecANum))
+				*pTxPos1 = 0;//0=无后续标志
+	  		SendFrameTail(PRM, dwCode, 0x01,0);
+			mRecorder_flag.LIST_flag = ON; 
+			
+	  		return;
+  	  		}
+		}
+  /*
+  	{
+      if(m_SendListNum == wave_total) m_SendListNum=0;
     
-    if(call_sign ==1)
-    {
-      m_send_flag = Get_time_read(wave_total,start_minute_time,start_date_time,end_minute_time,end_date_time);
-    }
-        for(int i=0;(m_SendListNum < wave_total)&&(i< 2);i++,m_SendListNum++)//i++
+      if(call_sign ==1)
+    	{
+      	m_send_flag = Get_time_read(wave_total,start_minute_time,start_date_time,end_minute_time,end_date_time);
+    	}
+      for(int i=0;(m_SendListNum < wave_total)&&(i< 2);i++,m_SendListNum++)//i++
         {
-      //flag_lb =0;
+      	  //flag_lb =0;
           lubo_sign = OFF;
           for(int j=0;j<3;j++)
-          {
+          	{
             //long FADDR_RECORDER =FADDR_RECORDER_INFO+ (long)m_SendListNum*(long)FLINEADDR +(long)j*(long)FPHASEADDR; 
-      if(g_Recorder_Total_COUNT < FRECORDER_TOLNUM)//总条数小于64，从头开始取值 g_FRecorder_Current_COUNT;//flash保存到第几条了
-      {
-        FADDR_RECORDER =FADDR_RECORDER_INFO+ (long)m_SendListNum*(long)FLINEADDR +(long)j*(long)FPHASEADDR; 
-        count_num = m_SendListNum;
-      }
-      else
-      {
+      		if(g_Recorder_Total_COUNT < FRECORDER_TOLNUM)//总条数小于64，从头开始取值 g_FRecorder_Current_COUNT;//flash保存到第几条了
+      			{
+        		FADDR_RECORDER =FADDR_RECORDER_INFO+ (long)m_SendListNum*(long)FLINEADDR +(long)j*(long)FPHASEADDR; 
+        		count_num = m_SendListNum;
+      			}
+      		else
+      			{
         
-        FADDR_RECORDER =FADDR_RECORDER_INFO+ (long)BK_FRecorder_Current_COUNT*(long)FLINEADDR +(long)j*(long)FPHASEADDR; 
-        count_num = BK_FRecorder_Current_COUNT;
-      }
-      Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&m_Recorder_cfg,sizeof(m_Recorder_cfg)); //(unsigned char *)不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来 
+        		FADDR_RECORDER =FADDR_RECORDER_INFO+ (long)BK_FRecorder_Current_COUNT*(long)FLINEADDR +(long)j*(long)FPHASEADDR; 
+        		count_num = BK_FRecorder_Current_COUNT;
+      			}
+      		Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&m_Recorder_cfg,sizeof(m_Recorder_cfg)); //(unsigned char *)不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来 
             //flag_lb++;
             if(m_Recorder_cfg.lubo_flag ==0x55)
-            {
+            	{
               //flag_lb =0;
                 break;
-            }
-          }
-        BK_FRecorder_Current_COUNT++;
-        if(BK_FRecorder_Current_COUNT >= FRECORDER_TOLNUM)
-          BK_FRecorder_Current_COUNT =0;
+            	}
+          	}
+          BK_FRecorder_Current_COUNT++;
+          if(BK_FRecorder_Current_COUNT >= FRECORDER_TOLNUM)
+          	BK_FRecorder_Current_COUNT =0;
           if(m_SendListNum >= wave_total-1)//SOF状态
-            {
-              //m_Recorder_cfg.CFG_SOF = 0x20;  /*<0>:=后面还有目录文件；<1>:=最后目录文件*/  
-              mRecorder_flag.LIST_flag = OFF;
-        mRecorder_flag.xuchuanflag= OFF;
+          	{
+              //m_Recorder_cfg.CFG_SOF = 0x20;  //<0>:=后面还有目录文件；<1>:=最后目录文件 
+            mRecorder_flag.LIST_flag = OFF;
+        	mRecorder_flag.xuchuanflag= OFF;
             
             }      
-            else
+          else
             {
               //m_Recorder_cfg.CFG_SOF = 0;
               mRecorder_flag.LIST_flag= ON;//TRUE;//新修改
@@ -2231,161 +2085,145 @@ void CBJ101S::lubo_directory_confirm(WORD InfoAddr,DWORD Directory_ID,BYTE call_
       //if(flag_lb >=3) 
         //continue;
           if((((lubo_valid[count_num] ==0x55)&&(g_gRunPara[RP_LBSTORAGE_TIME] > 0))||(g_gRunPara[RP_LBSTORAGE_TIME] == 0)) &&(((lubonum_valid[count_num] ==ON)&&(g_gRunPara[RP_LUBO_NUM] > 0))||(g_gRunPara[RP_LUBO_NUM] == 0)))
-          {
-      if(call_sign == 1)
-      {
-        date_time = m_Recorder_cfg.comtrade_time[RTC_DATE] ;
-        date_time+= (DWORD)m_Recorder_cfg.comtrade_time[RTC_MONTH]<< 8;
-        date_time+=((DWORD)m_Recorder_cfg.comtrade_time[RTC_YEAR]-2000)<<16;
-        minute_time = m_Recorder_cfg.comtrade_time[RTC_SEC];
-        minute_time += (DWORD)m_Recorder_cfg.comtrade_time[RTC_MINUT]<<8;
-        minute_time +=  (DWORD)m_Recorder_cfg.comtrade_time[RTC_HOUR] <<16;
-        if((date_time >= start_date_time) &&(date_time <=end_date_time)) 
-        {
+          	{
+      		if(call_sign == 1)
+      			{
+        		date_time = m_Recorder_cfg.comtrade_time[RTC_DATE] ;
+        		date_time+= (DWORD)m_Recorder_cfg.comtrade_time[RTC_MONTH]<< 8;
+        		date_time+=((DWORD)m_Recorder_cfg.comtrade_time[RTC_YEAR]-2000)<<16;
+        		minute_time = m_Recorder_cfg.comtrade_time[RTC_SEC];
+        		minute_time += (DWORD)m_Recorder_cfg.comtrade_time[RTC_MINUT]<<8;
+        		minute_time +=  (DWORD)m_Recorder_cfg.comtrade_time[RTC_HOUR] <<16;
+        		if((date_time >= start_date_time) &&(date_time <=end_date_time)) 
+        			{
           
-                  if((date_time == start_date_time) &&(date_time ==end_date_time))
-                    {
-                      if((minute_time >= start_minute_time ) &&(minute_time <= end_minute_time))
-                        {
-              lubo_sign = ON;//满足时间召唤条件条件
-              m_lubo_num++;
-                        }
-                    }
+                  	if((date_time == start_date_time) &&(date_time ==end_date_time))
+                    	{
+                      	if((minute_time >= start_minute_time ) &&(minute_time <= end_minute_time))
+                        	{
+              				lubo_sign = ON;//满足时间召唤条件条件
+              				m_lubo_num++;
+                        	}
+                    	}
                     else if(date_time == start_date_time)
-                    {
-                      if(minute_time >= start_minute_time ) 
-                        {
-                lubo_sign = ON;//满足
-                m_lubo_num++;
-                        }
-                    }
+                    	{
+                      	if(minute_time >= start_minute_time ) 
+                        	{
+                			lubo_sign = ON;//满足
+                			m_lubo_num++;
+                        	}
+                    	}
                     else if(date_time ==end_date_time)
-                  {
-                      if(minute_time <= end_minute_time)
-                        {
-                          lubo_sign = ON;//满足
+                  		{
+                      	if(minute_time <= end_minute_time)
+                        	{
+                          	lubo_sign = ON;//满足
                             m_lubo_num++;
-                        }
-                    }
+                        	}
+                    	}
                     else
-                    {
-                      lubo_sign = ON;//满足
-                         m_lubo_num++;
-                    }
+                    	{
+                      	lubo_sign = ON;//满足
+                      	m_lubo_num++;
+                    	}
             
-        }
-        if((lubo_sign == OFF)&&(i==1)&&(m_SendListNum < wave_total))//每条报文发送2条CFG和dat,若其中一条不符合继续寻找
-          i=0;
+        		}
+            	if((lubo_sign == OFF)&&(i==1)&&(m_SendListNum < wave_total))//每条报文发送2条CFG和dat,若其中一条不符合继续寻找
+          		i=0;
 		
-      }
+      		}
 	 
-      if((call_sign == 0) ||((call_sign == 1) &&(lubo_sign ==ON)))//召唤全部录波或满足条件的录波
-      {
-        sc_num ++;
-        /*sprintf((char *)ph,"COMTRADE");
-            m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = strlen(ph)+2;
-            for(BYTE j = 0; j < strlen(ph); j++)
-                m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = ph[j]; 
-        m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.lubo_total_num;
-        m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.lubo_total_num >> 8;
-        m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0;//文件属性*/
-        for(BYTE j = 0; j < 2; j++)
-        {
-          if(j ==0)
-            sprintf((char *)ph,"BAY01_%04d_%04d%02d%02d_%02d%02d%02d_%03d.cfg",(m_Recorder_cfg.lubo_total_num),m_Recorder_cfg.comtrade_time[RTC_YEAR],m_Recorder_cfg.comtrade_time[RTC_MONTH],
+      	    if((call_sign == 0) ||((call_sign == 1) &&(lubo_sign ==ON)))//召唤全部录波或满足条件的录波
+      			{
+        		sc_num ++;
+
+        		for(BYTE j = 0; j < 2; j++)
+        			{
+          			if(j ==0)
+            			sprintf((char *)ph,"BAY01_%04d_%04d%02d%02d_%02d%02d%02d_%03d.cfg",(m_Recorder_cfg.lubo_total_num),m_Recorder_cfg.comtrade_time[RTC_YEAR],m_Recorder_cfg.comtrade_time[RTC_MONTH],
                             m_Recorder_cfg.comtrade_time[RTC_DATE],m_Recorder_cfg.comtrade_time[RTC_HOUR],m_Recorder_cfg.comtrade_time[RTC_MINUT],m_Recorder_cfg.comtrade_time[RTC_SEC],m_Recorder_cfg.comtrade_time[RTC_MICROSEC]);
-          else
-            sprintf((char *)ph,"BAY01_%04d_%04d%02d%02d_%02d%02d%02d_%03d.dat",(m_Recorder_cfg.lubo_total_num),m_Recorder_cfg.comtrade_time[RTC_YEAR],m_Recorder_cfg.comtrade_time[RTC_MONTH],
+          			else
+            			sprintf((char *)ph,"BAY01_%04d_%04d%02d%02d_%02d%02d%02d_%03d.dat",(m_Recorder_cfg.lubo_total_num),m_Recorder_cfg.comtrade_time[RTC_YEAR],m_Recorder_cfg.comtrade_time[RTC_MONTH],
                             m_Recorder_cfg.comtrade_time[RTC_DATE],m_Recorder_cfg.comtrade_time[RTC_HOUR],m_Recorder_cfg.comtrade_time[RTC_MINUT],m_Recorder_cfg.comtrade_time[RTC_SEC],m_Recorder_cfg.comtrade_time[RTC_MICROSEC]);
                             m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = strlen(ph);
-          for(BYTE n = 0; n < strlen(ph); n++)
-                  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = ph[n]; 
-          m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0;//文件属性
-                                        if(j ==0)//文件大小需要修改
-                                        {
-                          m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= m_Recorder_cfg.CFG_Leng;//文件大小
-                          m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.CFG_Leng>>8;
-                          m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.CFG_Leng>>16; 
-            m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.CFG_Leng>>24; 
-                                        }
-                                        else
-                                        {
-                                            m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=  m_Recorder_cfg.DATA_Leng;//文件大小
-                            m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.DATA_Leng>>8;
-                            m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.DATA_Leng>>16; 
-              m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.DATA_Leng>>24; 
-                                        }
-          m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = (m_Recorder_cfg.comtrade_time[RTC_MICROSEC]+m_Recorder_cfg.comtrade_time[RTC_SEC]*1000)&0XFF;
-              m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = (m_Recorder_cfg.comtrade_time[RTC_MICROSEC]+m_Recorder_cfg.comtrade_time[RTC_SEC]*1000)>>8;
-              m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_MINUT];
-              m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_HOUR];
-              m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_DATE]|(m_Recorder_cfg.comtrade_time[RTC_WEEK]<<5);
-              m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_MONTH];
-              if(m_Recorder_cfg.comtrade_time[RTC_YEAR] >=2000)
-                  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_YEAR]-2000;
-              else
-                  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_YEAR];
-              }
-      }
+          			for(BYTE n = 0; n < strlen(ph); n++)
+                  		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = ph[n]; 
+          			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0;//文件属性
+            		if(j ==0)//文件大小需要修改
+            			{
+                		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= m_Recorder_cfg.CFG_Leng;//文件大小
+            			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.CFG_Leng>>8;
+           				m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.CFG_Leng>>16; 
+            			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.CFG_Leng>>24; 
+                		}
+            		else
+             			{
+               			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=  m_Recorder_cfg.DATA_Leng;//文件大小
+               			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.DATA_Leng>>8;
+              			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.DATA_Leng>>16; 
+              			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.DATA_Leng>>24; 
+                		}
+          			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = (m_Recorder_cfg.comtrade_time[RTC_MICROSEC]+m_Recorder_cfg.comtrade_time[RTC_SEC]*1000)&0XFF;
+          			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = (m_Recorder_cfg.comtrade_time[RTC_MICROSEC]+m_Recorder_cfg.comtrade_time[RTC_SEC]*1000)>>8;
+          			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_MINUT];
+         			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_HOUR];
+          			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_DATE]|(m_Recorder_cfg.comtrade_time[RTC_WEEK]<<5);
+          			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_MONTH];
+          			if(m_Recorder_cfg.comtrade_time[RTC_YEAR] >=2000)
+                  		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_YEAR]-2000;
+          			else
+                  		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_Recorder_cfg.comtrade_time[RTC_YEAR];
+            		}
+      	   		}
           }
        
    }
       
-  }
-      *pTxPos = 0;
-    if(call_sign == 0)
-    {
+  	  }
+    *pTxPos = 0;
+	if(call_sign == 0)
+    	{
         if(m_SendListNum >= wave_total)//+218每报数传8条录波数据，每条对应CFG DAT两个目录
-      *pTxPos1 = 0;//后续标志
+      		*pTxPos1 = 0;//后续标志
         else
-      *pTxPos1 = 1;//后续标志
-    }
+      		*pTxPos1 = 1;//后续标志
+    	}
     else if(call_sign == 1)
-    {
-      if(m_lubo_num >= m_send_flag)
-      {
-              *pTxPos1 = 0;//后续标志 
+    	{
+      	if(m_lubo_num >= m_send_flag)
+      		{
+           	*pTxPos1 = 0;//后续标志 
             }
-      else
-      { 
-              *pTxPos1 = 1;//后续标志
-      }
+      	else
+      		{ 
+          	*pTxPos1 = 1;//后续标志
+      		}
     }
-        if(mRecorder_flag.LIST_flag == OFF)
-        {
-              m_SendListNum = 0;
+ 	if(mRecorder_flag.LIST_flag == OFF)
+  		{
+      	m_SendListNum = 0;
         }
   //if(g_gRunPara[RP_LBSTORAGE_TIME] > 0)
   //{
     *(pTxPos1+1) = sc_num*2;
-        if(sc_num ==0)//按条件查询，没查询到相关的录波
+	if(sc_num ==0)//按条件查询，没查询到相关的录波
         {
-      		mRecorder_flag.xuchuanflag= OFF;
-	   		*pTxPos = 1;//结果描述字失败 
-	    	*pTxPos1 =0;
-                if(m_lubo_num ==0)//确认回复时该变量不为0
-		  SendFrameTail(PRM, dwCode, 0x01,0);
-                else
-      		  return;
+      	mRecorder_flag.xuchuanflag= OFF;
+	  	*pTxPos = 1;//结果描述字失败 
+		*pTxPos1 =0;
+       	if(m_lubo_num ==0)//确认回复时该变量不为0
+			SendFrameTail(PRM, dwCode, 0x01,0);
+      	else
+      		return;
         }
-         else
-    SendFrameTail(PRM, dwCode, 0x01,0);
-    
-
-  //}
-  /*else
-  { 
-    *(pTxPos1+1) = wave_total*2;
-    SendFrameTail(PRM, dwCode, (wave_total*2) | VSQ);
-  }*/
-
-  
-   //pTxBuf[6+g_ucPara101[IECP_LINK
+   	else
+    	SendFrameTail(PRM, dwCode, 0x01,0);
+*/
     
 }
 
 void CBJ101S::RecReadParaData(BYTE Style,BYTE VSQ)
-{
+{/*
    BYTE Reason = 0X05;
   BYTE PRM = 0, dwCode = 3;
   BYTE cpypara=0;
@@ -2432,7 +2270,7 @@ void CBJ101S::RecWriteData(BYTE Style,BYTE mQos,BYTE VSQ)
     //memcpy(&m_SendBuf.pBuf[m_SendBuf.wWritePtr],pData,byInfoLen + cpypara);
     //m_SendBuf.wWritePtr += (byInfoLen + cpypara); 
   
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = mQos;
+  m_SendBuf.pBuf[ (m_SendBuf.wWritePtr++) ] = mQos;
     SendFrameTail(PRM,dwCode, (cpypara/2) | VSQ,0);//SET ACD
    
     //memcpy(&m_SendBuf.pBuf[m_SendBuf.wWritePtr],&pReceiveFrame->Frame68.InfoAddr[0],cpypara + 2 );
@@ -2469,10 +2307,11 @@ void CBJ101S::RecFIUpdata(BYTE Type)
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = 0x16;
     wLinkAddress = m_dwasdu.LinkAddr;
     WriteToComm(wLinkAddress);
+  */
 }
 #ifndef YN_101S
 void CBJ101S::RecReadData(void)
-{
+{/*
   BYTE *pData = &pReceiveFrame->Frame68.Data[m_byInfoShift];
   WORD InfoAddr = MAKEWORD(pData[0],pData[1]);
   WORD wInfoAddr =0;
@@ -2540,7 +2379,7 @@ void CBJ101S::RecReadData(void)
         RecReadParaData(102,0);
       else  
         RecReadParaData(132,0x80);  
-  }  
+  }  */
 }
 #endif
 

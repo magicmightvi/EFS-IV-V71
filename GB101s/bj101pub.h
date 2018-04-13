@@ -149,8 +149,74 @@
 //////////////架空二遥指示器命令字定义
 //#define     REVERT            0x01
 //#define     VERT              0x03
+///////////////加密报文类型宏定义
+#define    CONNECT_OBJECT_BIT     0xC0
+#define    MASTER_STATION         0x00
+#define    SET_TOOL               0x40
+#define    GATEWAY                0x80
+#define    RES                    0xC0
 
- 
+#define    ENC_TURN_BIT           0x08
+#define    ENC_ON                 0x08
+#define    ENC_OFF                0x00
+
+#define    SYMMETRIC_KEY_BIT      0x07
+#define    MASTER_STATION_KEY     0x01
+#define    SET_TOOL_KEY           0x02
+
+#define    GAETWAY_VERIFI         0x20
+#define    GAETWAY_VERIFI_ACK     0x21
+
+/////////////////给加密芯片发送的数据字符串定义
+#define GET_CHIP_ID                  "00B0990500020008"
+#define GET_RRI_KEY                  "801A00000000"
+#define GET_RANDOM                   "008400080000"                  
+#define GET_RANDOM_SIGN              "801600800008"
+#define VERIFY_SIGN                  "801800"
+#define ENCRYPT_DATA                 "80266001"   //加密
+#define DECRYPT_DATA                 "802C6001"   //解密
+#define VERIFY_DATA_SIGN             "800800"
+#define UPDATA_CERTIFICATE           "8022"
+#define LOAD_CERTIFICATE             "80240000"
+#define READ_CERTIFICATE_LEN         "00B0810000020002"
+#define READ_TEST_CERTIFICATE        "00B081020002"
+#define READ_REAL_CERTIFICATE        "803001000000"
+#define RECOV_PRIVATE_KEY            "801C01"
+#define UPDATA_PRIVATE_KEY           "801C00"
+//运维工具 (   在与主站网关通讯的基础上增加的命令)
+#define TOOL_VERIFY_CER               "801E0000"
+#define TOOL_VERIFY_SIGN             "802000000040"
+#define TOOL_READ_PUBK               "803000000000"
+#define TOOL_ENCRYPT_DATA            "80266202"   //加密
+#define TOOL_DECRYPT_DATA            "802C6202"   //解密
+#define TOOL_GET_SIGN                "800A0080"  
+#define TOOL_RECOV_PRIVATE_KEY       "801C0200"
+#define TOOL_LOAD_CER                "8024"
+
+#define MAX_ENC_CMD_BYTES            9 //最长命令字节数 
+
+#define CHINP_ID_BYTES                8
+#define RANDOM_BYTES                  8
+#define SIGN_BYTES                    64 
+//各种数据在扩展区中的位置
+#define FRAME_HEAD                   0
+#define FRAME_BYTES                  3
+#define ENC_CHIP_DATA                4
+
+#define HOST_RANDOM                  2
+#define CHIP_ID                      4
+#define KEY_VER                      4
+
+//各种信息在加密数据-应用数据中的位置
+
+#define APPDATA_LEN                 0
+#define APPDATA                     1
+
+
+#define NEW_KEY_VER                 2
+#define UPDATA_KEY_DATA             3
+#define SIGN_KEY_DATA               183
+#define S_KEY_ID                    247
 
 typedef union 
 {
@@ -158,6 +224,7 @@ typedef union
     VFrame68 Frame68;
     VFrame69 Frame69;//自定义协议 报文结构与101相同，只是报文头为0x69 for 参数读写 
     VFrameAA FrameAA;
+    VFrameEB FrameEB;//EB加密帧	
 } VIec101Frame; 
 
 

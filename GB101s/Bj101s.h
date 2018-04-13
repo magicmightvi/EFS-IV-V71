@@ -116,8 +116,9 @@ class CBJ101S : public CPrtcSms//CPSecondary
         BYTE m_YKflag;
         BYTE m_YKSelectAck;
         BYTE m_timeflag;
-	 BYTE m_timeREQflag;
+		BYTE m_timeREQflag;
 		BYTE m_delayflag;
+		BYTE m_time;
         BYTE m_testflag;
         BYTE m_resetflag;
  		BOOL m_DIR;  /*get DIR */
@@ -186,8 +187,8 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		BYTE m_bHostCertifyFlag;  //主站认证标志位，认证以后置0x55
 		BYTE m_bToolCertifyFlag;  //运维工具证标志位，认证以后置0x55
         BYTE m_bEncDataFlag;     //数据加密标志位
-		//char ch[31][20];
-        WORD m_wUpdataFaultFlag;		
+        WORD m_wUpdataFaultFlag;                
+
 	public:
 		CBJ101S();
 		virtual BOOL Init(WORD wTaskID);
@@ -265,7 +266,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		BOOL SendCos(void);
 		BOOL SendLBML(void);		
 		BOOL SendFrameHead(BYTE Style, BYTE Reason);
-		BOOL SendFrameTail(BYTE PRM, BYTE dwCode, BYTE Num);
+		BOOL SendFrameTail(BYTE PRM, BYTE dwCode, BYTE Num,BYTE EncType);
 		BOOL SendReadYCAck(WORD YCNo);
 		BOOL SendReadYXAck(WORD YXNo);
 		BOOL SendNoData(void);
@@ -298,6 +299,63 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		BOOL SenddelayeAck(void);
 		BOOL SendDCos(void) ;
 		BOOL SendDSoe(void) ;
+
+		WORD GetDataFromeEncChip(BYTE *pRecData);
+        BOOL GetChipID(BYTE *pChipID);
+        BOOL GetChipKeyVer(BYTE *Key);
+        BOOL GetChipRandom(BYTE *pRandom);
+        BOOL GetChipRandomSign(BYTE*pHostRandom,BYTE *pRecSign);
+        BOOL VerifySign(BYTE KeyIndex,BYTE*Sign);
+        WORD EncryptData(BYTE *pClearData,WORD DataLen,BYTE *pEncData);
+        WORD DecryptData(BYTE *EncData,WORD EncDataLen,BYTE *ClearData);
+        BOOL VerifyDataSign(BYTE asKey,BYTE* pData,WORD Datalen,BYTE* pSign,WORD SignLen);
+        BOOL UpdataCer(BYTE CerID, BYTE* CerTxt, WORD CerTxtLen);
+        BOOL LoadCer(BYTE* CerTxt, WORD CerTxtLen);
+        BOOL ReadCerLen(BYTE *CerLen);
+        BOOL ReadTestCer(BYTE *CerLen,BYTE *CerTxt);
+        WORD ReadRealCer(BYTE *CerTxt);
+        BOOL UpdataPrivateKey(BYTE asKID,BYTE NewKeyVer,BYTE* keySignData,WORD dataLen);
+        BOOL RecovPrivateKey(BYTE asKID,BYTE* keySignData,WORD dataLen);
+        BOOL VerifyToolCer(BYTE *pCerTxt,WORD CerLen);
+        BOOL VerifyToolSignData(BYTE *pSignTxt,BYTE SignLen);
+        BOOL ReadPubKey(BYTE *pPubKey);
+        WORD EncryptToolData(BYTE *pOriginalData, WORD  OriginalDataLen,BYTE *pEncData);
+        WORD DecryptToolData(BYTE *pEncData, WORD  EncDataLen,BYTE *pClearData);
+        BOOL RecovToolKey(BYTE *pKeyData, BYTE KeyDataLen);
+        WORD SignData(BYTE *pOriginalData,WORD OriginalDataLen,BYTE *pSrReqData);
+        BOOL SendFrameEBHead(WORD FrameType,BYTE AppType);
+        BOOL SendFrameEBAppData(BYTE AppDataBytes,BYTE *pAppData);
+        BOOL SendFrameEBEixampleData(BYTE EixampleDataBytes,BYTE *pEixampleData);
+        BOOL SendEncData(BYTE EncDataLen,BYTE *pEncData);
+        BOOL SendAppData(BYTE EixampleDataBytes,BYTE *pEixampleData);
+        BOOL SendFrameEBTail(void);
+        BOOL SendEncFrameAck(WORD Ack,WORD FrameType,BYTE AppType);
+        BOOL RecCipherTxt(BYTE *EncData,WORD EncDataLen,BYTE *pClearData);
+        BOOL SendGatewayVerify(void);
+        BOOL SendGatewayVerifyAck(void);
+        BOOL SendHostVerify(void);
+        BOOL SendHostVerifyAck(void);
+        BOOL SendEncChipID(BYTE type);
+        BOOL SendChipKeyVer(BYTE type);
+		void RecReadParaData(BYTE Style,BYTE VSQ);
+        BOOL SendUpdataKeyAck(void);
+        BOOL SendRecovKeyAck(void);
+        BOOL SendCerUpdataAck(void);  //远程证书更新
+        BOOL SendCerDownloadAck(void);  //证书下载
+        BOOL SendCer(BYTE Type);  //读取芯片证书
+        BOOL SendToolVerifyAck(void);
+        BOOL VerifyToolSign(void);
+        BOOL SendUnitID(void);
+        BOOL SendEncPubKey(void);
+        BOOL SendSignCerTxt(void);
+        BOOL SendLoadCerAck(void);
+        BOOL SendReWriteCerAck(void);
+        BOOL SendToolRecovKey(void);
+        BOOL RecClearTxt(void);
+        BOOL RecFrameEB(WORD ProcBytes);
+        WORD SearchEncFrame(void);
+        BOOL RcvEncData(void);
+
 		
 		void write_10linkaddr(int  data);
 		BOOL SendresetAck(void);
@@ -308,8 +366,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
 //Rec.cpp
 		void RecFIUpdata(BYTE Type);
 		//void RecReadData(void);
-		void RecWriteData(BYTE Style,BYTE mQos,BYTE VSQ);//BYTE cpypara,
-		void RecReadParaData(BYTE Style,BYTE VSQ);
+		void RecWriteData(BYTE Style,BYTE mQos,BYTE VSQ);//BYTE cpypara,		
 		BOOL Recfileprocessing(unsigned char *pRxBuf);
 		void lubo_directory_confirm(WORD InfoAddr,DWORD Directory_ID,BYTE call_sign,DWORD start_minute_time,DWORD start_date_time,DWORD end_minute_time,DWORD end_date_time);
 		void fixpt_directory_confirm(WORD InfoAddr,DWORD Directory_ID,BYTE call_sign,DWORD start_minute_time,DWORD start_date_time,DWORD end_minute_time,DWORD end_date_time);

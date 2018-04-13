@@ -14,7 +14,7 @@
 
 #undef BJ101_GZTEST
 
-#define GRP_YCNUM   72//128         //每组最多发送遥测个数
+#define GRP_YCNUM   50//128         //每组最多发送遥测个数，增加加密，72改为50
 #define GRP_YXNUM   127//128         //每组最多发送遥信字节
 
 #define FRM_YCNUM    72//64         //每帧报文最多发送遥测个数
@@ -32,7 +32,7 @@ CBJ101S::CBJ101S() : CPrtcSms()//
 {
   m_YkWaitCount=0;//遥控执行命令发给rf后等待的时间 单位s
   m_LuboRe10Flag= 0;
-
+  time_delay_set = 0;
 }
 
 
@@ -75,8 +75,8 @@ BOOL CBJ101S::Init(WORD uartId)
     m_zdflag=0;
     m_linkflag=0;
     m_testflag=0;
-    m_timeflag = 0;m_timeREQflag = 0;    
-
+    m_timeflag = 0;m_timeREQflag = 0;
+    m_time =0;
     m_resetflag = 0;
     m_groupflag=0;
     m_YxYcGrpFlag = 0;
@@ -92,6 +92,7 @@ BOOL CBJ101S::Init(WORD uartId)
     m_DCosHeadPtr = 0;
 //--------------------------------------------------------------------------	
     //m_SSoeHeadPtr = EEPADD_SOESTARTADR;
+    //Init_Rec();
     unsigned int untemp[4];
 	CAT_SpiReadWords(EEPADD_SOESEND_E2ROMADR, 4, untemp);  //保存到EEPROM中
 	if(pDbg != null)
@@ -294,7 +295,12 @@ void CBJ101S::SetBaseCfg(void)
           RecFrameAA(&pReceiveFrame->FrameAA);
           continue;
         }  //张弢 0404 短信接收
-        
+         if(pReceiveFrame->FrameEB.Start1 == 0xEB)   //加密报文解析
+        {
+            BYTE FrameLen = MAKEWORD(pReceiveFrame->FrameEB.LengthL,pReceiveFrame->FrameEB.LengthH);
+            RecFrameEB(FrameLen);//RecFrameEB();
+            continue;
+        }         
      }
   }
 
@@ -303,6 +309,7 @@ void CBJ101S::SetBaseCfg(void)
 BOOL CBJ101S::RecFrame10(void)
 {
 	g_NolinkReset = 0;
+	 //if(this == pDbg)  g_NolinkWifi= 0;
     switch(pReceiveFrame->Frame10.Control & BITS_CODE)
     {
           case 0x4A: //召唤一级用户数据
@@ -360,7 +367,7 @@ BOOL CBJ101S::RecFrame10(void)
             {
               m_ackflag =1;
             }			
-            if((pSendFrame->Frame68.Start1 == 0x68) && (m_WaitConfTpId > 0))//用以判断主站回的报文是不是对主动上报报文的确认
+            if(((pSendFrame->Frame68.Start1 == 0x68)||(pSendFrame->Frame68.Start1 == 0xEB)) && (m_WaitConfTpId > 0))//用以判断主站回的报文是不是对主动上报报文的确认
             {
                 #ifndef GETSOEFROMRAM
                   if(m_WaitConfTpId == M_SP_TB)
@@ -445,6 +452,11 @@ BOOL CBJ101S::RecFrame68(void)
     m_bReceiveControl = pReceiveFrame->Frame68.Control;
     m_acdflag=1;
     m_recfalg=1;
+    if(((m_bReceiveControl&0xf)!=4)&&(SwitchToAddress(m_dwasdu.LinkAddr))&&(m_linkflag))//增加链路初始化完成后再响应短帧确认
+    {    
+        SendAck();
+        delayms(200);
+    } 	
     switch(m_dwasdu.TypeID)
     {
         case 0x2D:
@@ -460,6 +472,11 @@ BOOL CBJ101S::RecFrame68(void)
             RecYKCommand();
             break;//遥控
         case 0x64:
+            if(g_bAppType)
+            {
+                SendEncFrameAck(0x0191, 0x0000, 0x1F);
+                return TRUE;
+            }			
             RecCallSomeGroup();
             break;//总召唤/召唤某一组数据
         case 0x65:
@@ -470,16 +487,25 @@ BOOL CBJ101S::RecFrame68(void)
             m_zdflag=0;
             break;//读数据处理
         case 0x67:	
-		if(m_dwasdu.COT==0x05)
-			 {RecReadClock();}
-		else
-            		{RecSetClock();}
-			
+           if(g_bAppType)
+           {
+               SendEncFrameAck(0x0191, 0x0000, 0x1F);
+               return TRUE;
+           }			
+            if(m_dwasdu.COT==0x05)			 
+			{RecReadClock();}		
+		else            		
+			{RecSetClock();}
             break;//时钟同步
         case 0x68:
             RecTestLink();
             break; //测试链路
         case 0x69:
+            if(g_bAppType)
+            {
+                SendEncFrameAck(0x0191, 0x0000, 0x1F);
+                return TRUE;
+            }  			
             RecResetRTU();
             break; //复位RTU
         case 0x6A:
@@ -491,6 +517,14 @@ BOOL CBJ101S::RecFrame68(void)
         case 0x6E:
             //RecSetPara();
             break;//设置参数
+        //case 0xD2:
+            //m_SendFixNum =0;   
+            //Recfileprocess();
+            //Recfileprocessing();
+            //break;
+        case 0xD3://远程升级
+            //FileRemoteupdata(&pReceiveFrame->Frame68.Start1);
+            break;           
         case 0x79:    
         case 0x7a://读文件
         case 0x7c:
@@ -511,7 +545,35 @@ BOOL CBJ101S::RecFrame68(void)
                 memcpy(gRecorder_flag.pRXBuff,&pReceiveFrame->Frame68.Start1,6+pReceiveFrame->Frame68.Length1);  
                 //Code_Lubo(&pReceiveFrame->Frame68.Start1,m_SendBuf.pBuf);
               }	
-		break;	
+		break;
+    case 0xD2:
+        /*g_Cmid = m_uartId;
+                m_fileprocessing = 0x55;
+        m_PaWaitflag_lubo = OFF;
+              m_TxNum_lubo = 0;
+                m_PaWaitCt_lubo = 0;
+                wSendLISTNum = 0;
+        //for(int i =0;i<64;i++)
+          //lubo_valid[i] = 0;
+                memcpy(gRecorder_flag.pRXBuff,&pReceiveFrame->Frame68.Start1,6+pReceiveFrame->Frame68.Length1); */ 
+        if(g_bAppType)
+        {
+            SendEncFrameAck(0x0191, 0x0000, 0x1F);
+            return TRUE;
+        }     
+		for(int i =0;i<64;i++)
+          lubo_valid[i] = 0;
+        
+        mRecorder_flag.LIST_flag = OFF;//收到短贞确认需要回数据时，置位改标志位
+                mRecorder_flag.xuchuanflag= OFF;
+                m_lubo_num =0; 
+        m_fixpt_num =0;
+        m_SendListNum =0;
+        m_SendFixNum =0;  
+        BK_FRecorder_Current_COUNT = g_FRecorder_Current_COUNT;
+           
+        Recfileprocessing(&pReceiveFrame->Frame68.Start1);
+        break;//?		
         case 0x88://136 云南录波协议  读目录
         case 0x89://137 云南录波协议  读文件	
         case 0x8a://138 云南录波协议  补包
@@ -606,11 +668,12 @@ BOOL CBJ101S::RecResetLink(void)
                 m_linkflag=1;
             if(m_guiyuepara.mode==1)
             {
-                m_initflag=7;
+                m_initflag=0x0f;
+				m_linkflag = 0;//涓荤珯鍙戝垵濮嬪寲鎸囦护鏃跺悓鏃舵柇寮€杩炴帴锛屼繚闅滃垵濮嬪寲杩囩▼涓嶈涓诲姩涓婃姤鎵撴柇
 		  if(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_SEND_FTYC])	
-		 	m_initflag=4;
+		 	m_initflag=0x0c;		  	
 #ifdef YN_101S
-		m_initflag=4;
+		m_initflag=0x0c;
 #endif		  
                 m_recfalg=1;
             }
@@ -632,6 +695,7 @@ BOOL CBJ101S::RecCallSomeGroup(void)
 {
 
   m_ztype=m_RecFrame.pBuf[5+m_dwasdu.Infooff+m_guiyuepara.infoaddlen];
+  m_ztype=20;
   if(m_ztype==20) m_callallflag=20|0x80;
   if((m_ztype>20)&&(m_ztype<32)) m_groupflag=m_ztype|0x80;
   if(m_ztype==34)
@@ -766,8 +830,8 @@ BOOL CBJ101S::RecCallAllStart(void)
         m_byRTUStatus = RTU_RECCALL;
     }
 	
-    SendBaseFrame(0,0);//张弢重庆 总召确认报文
-   delayms(100);
+    //SendBaseFrame(0,0);//张弢重庆 总召确认报文
+   //delayms(100);
     SendCallAllStartAck();
     if(m_ztype==20)
     {/*
@@ -833,9 +897,9 @@ BOOL CBJ101S::SendCallAllStartAck(void)
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_ztype;
 #ifdef SD_101S
     PRM = 0;//0x55;
-    SendFrameTail(PRM , dwCode, Num);
+    SendFrameTail(PRM , dwCode, Num,0);
 #else	
-    SendFrameTail(PRM, dwCode, Num);
+    SendFrameTail(PRM, dwCode, Num,0);
 #endif
     return TRUE;
 }
@@ -854,7 +918,7 @@ BOOL CBJ101S::SendAllStop(void)
     SendFrameHead(Style, Reason);
     write_infoadd(0);
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_ztype;
-    SendFrameTail(PRM, dwCode, Num);
+    SendFrameTail(PRM, dwCode, Num,0);
     return TRUE;
 }
 
@@ -921,7 +985,7 @@ BOOL CBJ101S::SendYXGroup(WORD GroupNo, BYTE Reason, BYTE bType)
     m_wSendYxNum+= i;
 
     //SendFrameTail(PRM, dwCode, ((i  )| VSQ));
-   SendFrameTail(PRM, dwCode, ((i)| VSQ));
+   SendFrameTail(PRM, dwCode, ((i)| VSQ),0);
     return TRUE;
 }
 //继续发送一组遥信 单点
@@ -981,7 +1045,7 @@ BOOL CBJ101S::SendDYXGroup(WORD GroupNo, BYTE Reason)
     }
     m_wSendDYxNum +=YXSendNum;
 
-    SendFrameTail(PRM, dwCode, YXSendNum | VSQ);
+    SendFrameTail(PRM, dwCode, YXSendNum | VSQ,0);
 
     return TRUE;
 }
@@ -1087,9 +1151,9 @@ BOOL CBJ101S::SendYCGroup(WORD GroupNo, BYTE Reason ,BYTE bType)
     m_wSendYcNum+= 9;YCSendNum=m_wSendYcNum;//重庆101 遥测9个备用
 #endif		
 #ifdef YN_101S	
-    SendFrameTail(PRM,dwCode, (YCSendNum - 1)| VSQ);//SET ACD//张弢云南 遥测没有0x4088 0x4089为投切次数
+    SendFrameTail(PRM,dwCode, (YCSendNum - 1)| VSQ,0);//SET ACD//张弢云南 遥测没有0x4088 0x4089为投切次数
 #else    
-   SendFrameTail(PRM,dwCode, (YCSendNum)| VSQ);//SET ACD//张弢 遥测点表
+   SendFrameTail(PRM,dwCode, (YCSendNum)| VSQ,0);//SET ACD//张弢 遥测点表
 #endif   
 
 //      if ((FRM_YCNUM < GRP_YCNUM) && (m_wSendYcNum != 0) && (YCNo < m_pEqpInfo[m_wEqpNo].wYCNum))
@@ -1144,7 +1208,7 @@ BOOL CBJ101S::SendZJGroup(WORD GroupNo, BYTE Reason ,BYTE bType)
           //if(bType == 35)//带长时标
             write_time();       
     }       
-    SendFrameTail(PRM,dwCode, (ZJSendNum)| VSQ);//SET ACD//张弢 遥测点
+    SendFrameTail(PRM,dwCode, (ZJSendNum)| VSQ,0);//SET ACD//张弢 遥测点
      return TRUE;
 }
 
@@ -1179,7 +1243,7 @@ BOOL CBJ101S::SendYCGroupContinue(WORD GroupNo, BYTE Reason)
        // m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;//QDS
     }
     m_wSendYcNum+= YCSendNum;
-    SendFrameTail(PRM,dwCode, YCSendNum | 0x80);
+    SendFrameTail(PRM,dwCode, YCSendNum | 0x80,0);
     return TRUE;
 }
 void CBJ101S::SendlbRetry(void)
@@ -1205,9 +1269,9 @@ void CBJ101S::DoCommSendIdle(void)
     if((m_uartId == 2) && (g_GPRSSendLink == ON)&&(m_linkflag == 0))
     {
         g_GPRSSendLink = 0;
-        m_initflag = 7;
+        m_initflag = 0x0f;
 	 if(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_SEND_FTYC])	
-		m_initflag=4;		
+		m_initflag=0x0c;		
         m_initfirstflag = 1;
         Initlink();
     }
@@ -1222,9 +1286,9 @@ void CBJ101S::DoCommSendIdle(void)
     {
         g_SendBeatFailureNum = 0;
         //delayms(3000);
-        m_initflag=7;
+        m_initflag=0x0f;
 	 if(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_SEND_FTYC])	
-		m_initflag=4;			
+		m_initflag=0x0c;			
         //m_recfalg=1;
         m_initfirstflag = 1;
         g_GPRSSendLink = 0;//张弢，开启1分钟一次的连接
@@ -1540,7 +1604,7 @@ void CBJ101S::DoCommSendIdle(void)
               Code_Lubo_YN(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);
 		gRes_rec.res_timeout = 0;	  
      }	 
-/*	 国网读录波文件规约
+//	 国网读录波文件规约
    if(((mRecorder_flag.LIST_flag == ON)||(mRecorder_flag.xuchuanflag== ON))&&(m_ackRecorder ==ON))//(( gRecorder_flag.CFG_flag ==ON )||(gRecorder_flag.DAT_flag ==ON )||)//正在读配置文件的数据
      {
          m_ackRecorder =OFF;
@@ -1555,7 +1619,7 @@ void CBJ101S::DoCommSendIdle(void)
         }              
         Recfileprocessing(mRecorder_RXBuff);//(mRecorder_flag.pRXBuff);
      }
-*/   
+   
     //只针对GPRS通道进行判断提前关GPRS
   /*  if((g_sTimer[TM_GPRSPWOERDOWN].m_TmCountBk != 60) && (g_gRunPara[RP_POWER_MODE]!= REALTIME) && g_GprsPowerSt && (m_uartId == g_CmIdGPRS))
     {
@@ -1719,7 +1783,7 @@ BOOL CBJ101S::SendtimeAck(void)
     write_infoadd(0);
     write_time();
     if(SwitchToAddress(m_dwasdu.LinkAddr))
-      SendFrameTail(PRM, dwCode, Num);
+      SendFrameTail(PRM, dwCode, Num,0);
 
     return TRUE;
 }
@@ -1733,7 +1797,7 @@ BOOL CBJ101S::SendtimeReq(void)
     write_infoadd(0);
     write_time();
     if(SwitchToAddress(m_dwasdu.LinkAddr))
-      SendFrameTail(PRM, dwCode, Num);
+      SendFrameTail(PRM, dwCode, Num,0);
 
     return TRUE;
 }
@@ -1750,7 +1814,7 @@ BOOL CBJ101S::SenddelayeAck(void)
       m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=(g_sRtcManager.m_gRealTimer[RTC_MICROSEC]+g_sRtcManager.m_gRealTimer[RTC_SEC]*1000)>>8;
       //write_time();
       if(SwitchToAddress(m_dwasdu.LinkAddr))
-        SendFrameTail(PRM, dwCode, Num);
+        SendFrameTail(PRM, dwCode, Num,0);
       return TRUE;
   }
 
@@ -1759,8 +1823,8 @@ BOOL CBJ101S::SenddelayeAck(void)
 //链路测试回复报文
 BOOL CBJ101S::SendTsetLinkAck(void)
 {
-    SendBaseFrame(0,0);//张弢重庆 总召确认报文
-delayms(100);
+    //SendBaseFrame(0,0);//张弢重庆 总召确认报文
+//delayms(100);
     BYTE Style = 0x68, Reason = COT_ACTCON;
     BYTE PRM = 0, dwCode =3, Num = 1;
 
@@ -1769,7 +1833,7 @@ delayms(100);
 
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0xAA;
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0x55;
-    SendFrameTail(PRM, dwCode, Num);
+    SendFrameTail(PRM, dwCode, Num,0);
 
     return TRUE;
 }
@@ -1788,7 +1852,7 @@ BOOL CBJ101S::SendresetAck(void)
     write_infoadd(0);
 #endif
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_QRP;
-    SendFrameTail(PRM, dwCode, Num);
+    SendFrameTail(PRM, dwCode, Num,0);
     if(m_QRP==1)
     {
       delayms(100);
@@ -1930,12 +1994,12 @@ BOOL CBJ101S::SendSoe(void)
         }
     }
 #ifdef  YN_101S	
-    SendFrameTail(PRM, 0xa3, SoeSendNum);
+    SendFrameTail(PRM, 0xa3, SoeSendNum,0);
 #else
   #ifdef  CQ_101S	
-    SendFrameTail(PRM, 0xa3, SoeSendNum);
+    SendFrameTail(PRM, 0xa3, SoeSendNum,0);
   #else
-    SendFrameTail(PRM, 0x03, SoeSendNum);
+    SendFrameTail(PRM, 0x03, SoeSendNum,0);
   #endif
 #endif
     //g_unSoeSendNum=RecSoeNum+1;
@@ -2121,9 +2185,9 @@ BOOL CBJ101S::SendChangeYC(void)
     SendFrameTail(PRM, 0xa3, n);
 #else
   #ifdef  CQ_101S	
-    SendFrameTail(PRM, 0xa3, n);
+    SendFrameTail(PRM, 0xa3, n,0);
   #else
-    SendFrameTail(PRM, 0x03, n);
+    SendFrameTail(PRM, 0x03, n,0);
   #endif
 #endif
     g_gChangeYCNum = 0;
@@ -2173,6 +2237,8 @@ BYTE CBJ101S::GetCtrCode(BYTE PRM,BYTE dwCode,BYTE fcv)
 BOOL CBJ101S::SendBaseFrame(BYTE PRM,BYTE dwCode)
 {
     WORD wLinkAddress;
+    BYTE SendData[256];
+    BYTE SendDataLen;
     m_SendBuf.wReadPtr = m_SendBuf.wWritePtr = 0;
 
     pSendFrame = (VIec101Frame *)m_SendBuf.pBuf;
@@ -2183,12 +2249,25 @@ BOOL CBJ101S::SendBaseFrame(BYTE PRM,BYTE dwCode)
     m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = (BYTE)ChkSum((BYTE *)&pSendFrame->Frame10.Control,m_guiyuepara.linkaddrlen+1);
     m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0x16;
     wLinkAddress = m_dwasdu.LinkAddr;
-   // if(pSendFrame->Frame10.Control &0x40)  //云南
-    //  m_recfalg=0;
-
+    if(pSendFrame->Frame10.Control &0x40)
+      m_recfalg=0;
+    if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT])
+    {
+        SendDataLen = m_SendBuf.wWritePtr;
+        memcpy(SendData,m_SendBuf.pBuf,SendDataLen);
+        SendFrameEBHead(0x0000,0x00);  
+        SendAppData(SendDataLen,SendData);
+        m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0;
+        m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0;
+        //SendFrameEBEixampleData(SendDataLen,SendData);
+        SendFrameEBTail();
+    }
+    else
+    {
     m_SendBuf.wReadPtr = 0;
     if(SwitchToAddress(m_dwasdu.LinkAddr))
     WriteToComm(wLinkAddress);
+    }  
 
     return TRUE;
 }
@@ -2196,6 +2275,8 @@ BOOL CBJ101S::SendBaseFrame(BYTE PRM,BYTE dwCode)
 BOOL CBJ101S::SendLinktesetFrame(BYTE PRM,BYTE dwCode)
 {
     WORD wLinkAddress;
+    BYTE SendData[256];
+    BYTE SendDataLen;
     m_SendBuf.wReadPtr = m_SendBuf.wWritePtr = 0;
 
     pSendFrame = (VIec101Frame *)m_SendBuf.pBuf;
@@ -2209,9 +2290,23 @@ BOOL CBJ101S::SendLinktesetFrame(BYTE PRM,BYTE dwCode)
         if(pSendFrame->Frame10.Control &0x40)
         m_recfalg=0;
 
+    if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT])
+    {
+        SendDataLen = m_SendBuf.wWritePtr;
+        memcpy(SendData,m_SendBuf.pBuf,SendDataLen);
+        SendFrameEBHead(0x0000,0x00);  
+        SendAppData(SendDataLen,SendData);
+        m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0;
+        m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0;
+        //SendFrameEBEixampleData(SendDataLen,SendData);
+        SendFrameEBTail();
+    }
+    else
+    {
     m_SendBuf.wReadPtr = 0;
     if(SwitchToAddress(m_dwasdu.LinkAddr))
     WriteToComm(wLinkAddress);
+    }  
 
     return TRUE;
 }
@@ -2367,7 +2462,7 @@ BOOL CBJ101S::SendLBML(void)
         else
           m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= gRecorder_filecfg.comtrade_time[RTC_YEAR];	
 
-    SendFrameTail(PRM, 0x03, 2);//可变结构限定词 2
+    SendFrameTail(PRM, 0x03, 2,0);//可变结构限定词 2
 
     return TRUE;
 }
@@ -2416,12 +2511,12 @@ BOOL CBJ101S::SendCos(void)
      return FALSE;
      
 #ifdef  YN_101S	
-    SendFrameTail(PRM, 0xa3, YXSendNum);
+    SendFrameTail(PRM, 0xa3, YXSendNum,0);
 #else
   #ifdef  CQ_101S	
-    SendFrameTail(PRM, 0xa3, YXSendNum);
+    SendFrameTail(PRM, 0xa3, YXSendNum,0);
   #else
-    SendFrameTail(PRM, 0x03, YXSendNum);
+    SendFrameTail(PRM, 0x03, YXSendNum,0);
   #endif
 #endif
     return TRUE;
@@ -2454,7 +2549,7 @@ BOOL CBJ101S::SendDCos(void)
     if(YXSendNum == 0)
      return FALSE;    
      
-    SendFrameTail(PRM, dwCode, YXSendNum);
+    SendFrameTail(PRM, dwCode, YXSendNum,0);
     return TRUE;    
 }
 
@@ -2463,7 +2558,16 @@ BOOL CBJ101S::SendFrameHead(BYTE Style, BYTE Reason)
 {
     m_SendBuf.wReadPtr = 0;
     m_SendBuf.wWritePtr=0;
-    pSendFrame = (VIec101Frame *)m_SendBuf.pBuf;
+     if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT]) //启动加密
+    {
+        m_SendBuf.wWritePtr += 2;  //加密预留2字节给应用数据类型和应用数据长度
+        pSendFrame = (VIec101Frame *)&m_SendBuf.pBuf[2];
+    }
+    else
+    {
+        pSendFrame = (VIec101Frame *)m_SendBuf.pBuf;
+    }
+    
     {
       //pSendFrame->Frame68.Start1  = pSendFrame->Frame68.Start2 = 0x68;
       m_SendBuf.pBuf[ m_SendBuf.wWritePtr]=0x68;
@@ -2481,12 +2585,20 @@ BOOL CBJ101S::SendFrameHead(BYTE Style, BYTE Reason)
 }
 
 //组织报文尾，并发送整帧报文
-BOOL CBJ101S::SendFrameTail(BYTE PRM, BYTE dwCode, BYTE Num)
+BOOL CBJ101S::SendFrameTail(BYTE PRM, BYTE dwCode, BYTE Num,BYTE EncType)
 {
     WORD wLinkAddress;
 //    BYTE temp;
-//    temp= dwCode;
-    pSendFrame->Frame68.Length1 = pSendFrame->Frame68.Length2 = m_SendBuf.wWritePtr - 4;
+    BYTE SendDataLen;
+    BYTE EncData[256];
+    if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT]) //启动加密
+    {
+        
+        pSendFrame->Frame68.Length1 = pSendFrame->Frame68.Length2 = m_SendBuf.wWritePtr - 6;
+    }
+        
+    else
+        pSendFrame->Frame68.Length1 = pSendFrame->Frame68.Length2 = m_SendBuf.wWritePtr - 4;
     if((m_guiyuepara.mode!=1)&&(3==(dwCode&0xf)))
     {
       dwCode&=0xf0;
@@ -2543,9 +2655,68 @@ BOOL CBJ101S::SendFrameTail(BYTE PRM, BYTE dwCode, BYTE Num)
 
     m_WaitConfTpId = pSendFrame->Frame68.Data[m_guiyuepara.linkaddrlen];
     if(SwitchToAddress(m_dwasdu.LinkAddr))
-       WriteToComm(wLinkAddress);//0X69开头的报文不判断链路地址
+    {
+        if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT]) //启动加密
+        {
+            m_SendBuf.pBuf[0] = EncType;  //应用数据 类型
+             //-2的原因是前面预留了1字节应用类型+1字节应用类型长度 ，SendFrameHead函数中
+            m_SendBuf.pBuf[1] = m_SendBuf.wWritePtr - 2; 
+            switch(EncType)
+            {
+            case 0x00:
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0;   //增加2字节信息扩展区长度
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0;
+                SendDataLen = m_SendBuf.wWritePtr ;//- 1;
+                //memcpy(SendData,m_SendBuf.pBuf,SendDataLen);
+                SendDataLen = EncryptData(m_SendBuf.pBuf,SendDataLen,EncData);
+                if(SendDataLen) 
+                {
+                    SendFrameEBHead(0x0008,201); //应用类型大于等于200，不写应用类型，已在加密数据区
+                    SendEncData(SendDataLen,EncData);
+                    SendFrameEBTail();
+                }            
+                break;
+            case 0x02:
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0x00;
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0x08;
+                GetChipRandom(m_bUnitRandom);
+                for(BYTE i = 0; i < 8; i++)
+                {
+                    m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = m_bUnitRandom[i];//zxx
+                }
+                /*m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_sRtcManager.m_gRealTimer[RTC_YEAR];
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_sRtcManager.m_gRealTimer[RTC_DATE];
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_sRtcManager.m_gRealTimer[RTC_HOUR];
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_sRtcManager.m_gRealTimer[RTC_MINUT];
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_sRtcManager.m_gRealTimer[RTC_SEC];*/
 
-    return TRUE;
+                SendDataLen = m_SendBuf.wWritePtr;
+                //memcpy(SendData,m_SendBuf.pBuf,SendDataLen);
+                SendDataLen = EncryptData(m_SendBuf.pBuf,SendDataLen,EncData);
+                //memcpy(SendData,m_SendBuf.pBuf,SendDataLen);
+                if(SendDataLen) 
+                {
+                    SendFrameEBHead(0x0018,201); 
+                    SendEncData(SendDataLen,EncData);
+                    SendFrameEBTail();
+                } 
+                break;
+            case 0x05:
+                break;
+            case 0x07:
+                break;
+            default:
+                break;
+            }
+        }
+        else
+        {
+            WriteToComm(wLinkAddress);//0X69开头的报文不判断链路地址
+        }
+        
+   }
+   return TRUE;
 }
 
 
@@ -2573,7 +2744,7 @@ BOOL CBJ101S::SenderrtypeAck(void)
 
     
     write_infoadd(m_dwasdu.Info);
-    SendFrameTail(0, 8, 1);
+    SendFrameTail(0, 8, 1,0);
     m_errflag=0;
     return TRUE;
 }
@@ -2597,7 +2768,7 @@ BYTE * pData = &pReceiveFrame->Frame68.Data[m_byInfoShift];
     memcpy(&m_SendBuf.pBuf[m_SendBuf.wWritePtr],pData,byInfoLen + 1);
     m_SendBuf.wWritePtr += (byInfoLen + 1); 
 
-    SendFrameTail(PRM, dwCode, Num);
+    SendFrameTail(PRM, dwCode, Num,2);
     return TRUE;
 }
 void CBJ101S::Initlink(void)
@@ -2612,26 +2783,30 @@ void CBJ101S::Initlink(void)
     if(m_initflag&2)  //复位远方链路
     {
         m_initflag&=~2;
-	delayms(1000);		
+	//delayms(1000);		
         SendResetLink(PRM_SLAVE);  //云南
         return;
     }
     if(m_initflag&4)
     {
-        m_initflag=0;
+        //m_initflag=0;
+        m_initflag&=~4;
         m_fcb=0x20;
         if(((m_initfirstflag==1))||(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_ISSENDINITFIN]))
         {//只第一次上传或一直上传初始化长帧时发送
-          m_initfirstflag=0;
-         // g_SendLink = OFF;
-#ifdef CQ_101S
-          delayms(5000);	
-#endif	
-		  delayms(100);	 		 
+          m_initfirstflag=0;		  	 		 
           return SendInitFinish();
         }
-       
+       else
+          m_initflag = 0;
     }
+    else if(m_initflag&8)
+    {
+       m_initflag&=~8;
+    } 
+    if(!m_initflag && (m_guiyuepara.mode == 1))  //平衡式
+       m_linkflag=1;      
+    return;
 }
 void CBJ101S::SendInitFinish(void)
 {
@@ -2648,20 +2823,18 @@ void CBJ101S::SendInitFinish(void)
 //  #else
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0; //初始化原因  云南
     //#endif
-#ifdef SD_101S
-    SendFrameTail(0, 0x03, 1);
-#else
-    SendFrameTail(PRM_MASTER, 0x03, 1);//funcode=0x0a?
-#endif    
+    SendFrameTail(PRM_MASTER, 0x03, 1,0);//funcode=0x0a?  
 }
-    if(m_guiyuepara.mode == 1)  //平衡式
-        m_linkflag=1;
+    //if(m_guiyuepara.mode == 1)  //平衡式
+    //    m_linkflag=1;
     return;
 }
 
 void CBJ101S::SendAck(void)
 {
     //SendBaseFrame(PRM_SLAVE, SFC_CONFIRM);
+    BYTE SendData[256];
+    BYTE SendDataLen;
     WORD wLinkAddress;
     m_SendBuf.wReadPtr = m_SendBuf.wWritePtr = 0;
 
@@ -2674,9 +2847,22 @@ void CBJ101S::SendAck(void)
     write_10linkaddr(GetAddress());
     m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = (BYTE)ChkSum((BYTE *)&pSendFrame->Frame10.Control,m_guiyuepara.linkaddrlen+1);
     m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0x16;
+    if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT])
+    {
+        SendDataLen = m_SendBuf.wWritePtr;
+        memcpy(SendData,m_SendBuf.pBuf,SendDataLen);
+        SendFrameEBHead(0x0000,0x00);  
+        SendAppData(SendDataLen,SendData);
+        m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0;
+        m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0;
+        SendFrameEBTail();
+    }
+    else
+    {
     wLinkAddress = m_dwasdu.LinkAddr;
     m_SendBuf.wReadPtr = 0;
     WriteToComm(wLinkAddress);
+    }  
 
 }
 /***************************************************************
@@ -2807,6 +2993,21 @@ DWORD CBJ101S::SearchOneFrame(BYTE *Buf, WORD Len)
 //          m_dwasdu.Address=wLinkAddress;
 //          #endif
            return FRAME_OK|FrameLen;
+      case 0xEB:
+            if (pReceiveFrame->FrameEB.Start2 != 0xEB)
+                return FRAME_ERR|1;
+            FrameLen=MAKEWORD(pReceiveFrame->FrameEB.LengthL,pReceiveFrame->FrameEB.LengthH) + 6;
+            if (FrameLen > Len)
+            {
+                return FRAME_LESS;
+            }
+            if (Buf[FrameLen-1] != 0xD7)
+                return FRAME_ERR|1;
+            if (Buf[FrameLen-2] != (BYTE)ChkSum((BYTE *)&pReceiveFrame->FrameEB.FrameType[0],FrameLen - 6))
+            {
+                return FRAME_ERR|1;
+            }            
+            return FRAME_OK|FrameLen;
         default:
             return FRAME_ERR|1;
     }
@@ -3244,7 +3445,7 @@ BOOL CBJ101S::SendYKSetAck(void)
        m_YKstop = 1;
     }
     if (pYKInfo->Head.byMsgID == MI_YKSELECT) m_YKSelectAck = 1;
-    SendFrameTail(PRM, dwCode, Num);
+    SendFrameTail(PRM, dwCode, Num,2);
     m_YKSelectAck = 0;
     /*R227: 平衡模式执行确认紧接遥控结束*/
     if (pYKInfo->Head.byMsgID == MI_YKOPRATE && m_guiyuepara.mode==1 && g_YkOrderFlag == TRUE)
@@ -3254,7 +3455,8 @@ BOOL CBJ101S::SendYKSetAck(void)
     g_YkOrderFlag = OFF;//清遥控标识
     return TRUE;
 }
-//#ifdef YN_101S
+
+#ifdef YN_101S
 void CBJ101S::RecReadData()
 {
   BYTE * pData = &pReceiveFrame->Frame68.Data[m_byInfoShift];
@@ -3407,10 +3609,11 @@ void CBJ101S::RecReadData()
       break;	  
   }
   }
-  SendFrameTail(0, 0xa5, bVSQ);
+  SendFrameTail(0, 0xa5, bVSQ,0);
   return;
 }
-//#endif
+#endif
+
 //解析时钟同步报文
 BOOL CBJ101S::RecSetClock(void)
 {
@@ -3440,16 +3643,14 @@ BOOL CBJ101S::RecSetClock(void)
     unHYM[6] = MSecond/1000;//SEC
     WriteRealTime(unHYM);  //修改时间
   //SendtimeAck();应先发短帧确认再发长针
-//#ifdef CQ_101S	
-    SendBaseFrame(0,0);//张弢重庆 总召要个确认报文
-//#endif     
+   
     m_timeflag=1;
     return true;
 }
 //解析读时钟报文
 BOOL CBJ101S::RecReadClock(void)
 {
-    SendBaseFrame(0,0);//张弢重庆 总召要个确认报文
+    //SendBaseFrame(0,0);//张弢重庆 总召要个确认报文
     m_timeREQflag =1;
     return true;
 }
@@ -3605,7 +3806,14 @@ void CBJ101S::getasdu(void)
 }
 void CBJ101S::write_linkaddr(int  data)
 {
+    if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT])
+    {
+        m_SendBuf.wWritePtr=7;
+    }
+    else
+    {
     m_SendBuf.wWritePtr=5;
+    }
     for(BYTE i=0;i<m_guiyuepara.linkaddrlen;i++)
     {
         m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=(data>>(i*8))&0xff;
@@ -3624,7 +3832,14 @@ void CBJ101S::write_10linkaddr(int  data)
 
 void CBJ101S::write_typeid(int  data)
 {
+    if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT])
+    {
+        m_SendBuf.wWritePtr=7+m_guiyuepara.linkaddrlen;
+    }
+    else
+    {
     m_SendBuf.wWritePtr=5+m_guiyuepara.linkaddrlen;
+    }
     for(BYTE i=0;i<m_guiyuepara.typeidlen;i++)
     {
        m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=(data>>(i*8))&0xff;
@@ -3641,7 +3856,14 @@ void CBJ101S::write_VSQ(int  data)
 }
 void CBJ101S::write_COT(int  data)
 {
+    if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT])
+    {
+        m_SendBuf.wWritePtr=7+m_guiyuepara.linkaddrlen+m_guiyuepara.typeidlen+m_guiyuepara.VSQlen;
+    }
+    else
+    {
     m_SendBuf.wWritePtr=5+m_guiyuepara.linkaddrlen+m_guiyuepara.typeidlen+m_guiyuepara.VSQlen;
+    }
     {
         m_SendBuf.pBuf[ m_SendBuf.wWritePtr+0 ]=(data)&0xff;
         m_SendBuf.pBuf[ m_SendBuf.wWritePtr+1] = 0;//m_sourfaaddr;
@@ -3652,7 +3874,14 @@ void CBJ101S::write_COT(int  data)
 }
 void CBJ101S::write_conaddr(int  data)
 {
+    if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT])
+    {
+        m_SendBuf.wWritePtr=7+m_guiyuepara.linkaddrlen+m_guiyuepara.typeidlen+m_guiyuepara.VSQlen+m_guiyuepara.COTlen;
+    }
+    else
+    {
     m_SendBuf.wWritePtr=5+m_guiyuepara.linkaddrlen+m_guiyuepara.typeidlen+m_guiyuepara.VSQlen+m_guiyuepara.COTlen;
+    }
     for(BYTE i=0;i<m_guiyuepara.conaddrlen;i++)
     {
        m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=(data>>(i*8))&0xff;
@@ -3783,6 +4012,7 @@ BOOL CBJ101S::SendRetry(void)
   return 0;  
 }
 
+#ifdef YN_101S
 BOOL CBJ101S::RecYSCommand(void)
 {
   BYTE i,k;
@@ -3976,7 +4206,7 @@ BOOL CBJ101S::RecYSCommand(void)
     {
       m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =pReceiveFrame->Frame68.Data[i];
     }
-    SendFrameTail(0, 0x85, bVSQ);
+    SendFrameTail(0, 0x85, bVSQ,0);
     delayms(5000);
     if(cip == 0x55)
     {
@@ -4001,7 +4231,7 @@ BOOL CBJ101S::RecYSCommand(void)
     g_gIPPort[0] = 6;    
     //m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = LOBYTE(wVal);
     //m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = HIBYTE(wVal);
-              SendFrameTail(0, 0x85, 1);
+              SendFrameTail(0, 0x85, 1,0);
               delayms(5000);
     g_gGprsSETip =0x55;	
     if(pGprs != null)((CPrtcSms *)pGprs)->SendWCmdToIHD(0,0,g_gIPPort,this);
@@ -4023,7 +4253,7 @@ BOOL CBJ101S::RecYSCommand(void)
     {
       m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =pReceiveFrame->Frame68.Data[i];
     }    
-    SendFrameTail(0, 0x85, 1);
+    SendFrameTail(0, 0x85, 1,0);
     if(wTemp != g_gRunPara[RP_COMM_ADDR])
     {
       g_gRunPara[RP_COMM_ADDR] = wTemp;
@@ -4055,7 +4285,7 @@ BOOL CBJ101S::RecYSCommand(void)
     {
       m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =pReceiveFrame->Frame68.Data[i];
     }
-    SendFrameTail(0, 0x85, 1);	
+    SendFrameTail(0, 0x85, 1,0);	
     delayms(5000);
   }
   if(wInfoAddr == 0x6011 && bTypeID == 0x3f)   //设置遥测上传周期
@@ -4077,7 +4307,7 @@ BOOL CBJ101S::RecYSCommand(void)
     {
       m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =pReceiveFrame->Frame68.Data[i];
     }
-    SendFrameTail(0, 0x85, 1);
+    SendFrameTail(0, 0x85, 1,0);
     delayms(5000);
   }
   if(wInfoAddr == 0x6014 && bTypeID == 0x44)   //设置自检上传周期
@@ -4099,7 +4329,7 @@ BOOL CBJ101S::RecYSCommand(void)
     {
       m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =pReceiveFrame->Frame68.Data[i];
     }
-    SendFrameTail(0, 0x85, 1);
+    SendFrameTail(0, 0x85, 1,0);
     delayms(5000);
   }
   pData+=2;
@@ -4266,7 +4496,7 @@ BOOL CBJ101S::RecYSCommand(void)
               for(i = 0; i<14; i++)
                 m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = pData[i];
              // m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = HIBYTE(wVal);
-              SendFrameTail(0, 0x86, 1);
+              SendFrameTail(0, 0x86, 1,0);
               
           }
         
@@ -4300,6 +4530,7 @@ BOOL CBJ101S::RecYSCommand(void)
   return TRUE;
 
 }
+#endif
 /*********************************************************
 函数名称:SendCallHistLoad
 输入参数：无
@@ -4364,7 +4595,7 @@ BOOL CBJ101S::SendHistSOE(void)
             else*/
                 m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = ByData[i];
         }
-        SendFrameTail(0,0x83,SendSoeNum);
+        SendFrameTail(0,0x83,SendSoeNum,0);
         return true;
     }
     else
@@ -4384,7 +4615,7 @@ BOOL CBJ101S::SendCallHistLoadStop(void)
     SendFrameHead(0x6B,0x0A);
     write_infoadd(0);
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = 0;
-    SendFrameTail(0,0x86,1);
+    SendFrameTail(0,0x86,1,0);
     return true;
 }
 
@@ -4477,7 +4708,7 @@ BOOL CBJ101S::SendHistLuBo1(void)
            m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0;//LOBYTE(g_sRecData.m_gRecAc[CHAN_I0][i]);
            m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0;//HIBYTE(g_sRecData.m_gRecAc[CHAN_I0][i]);
         }
-        SendFrameTail(0,0x83,1);
+        SendFrameTail(0,0x83,1,0);
         return true;
     }
    // else
@@ -4514,7 +4745,7 @@ BOOL CBJ101S::SendHistLuBo2(void)
            m_SendBuf.pBuf[m_SendBuf.wWritePtr++] =0;//张弢 录波I0U0 LOBYTE(g_sRecData.m_gRecAc[CHAN_I0][i + 48]);
            m_SendBuf.pBuf[m_SendBuf.wWritePtr++] =0;//张弢 录波I0U0 HIBYTE(g_sRecData.m_gRecAc[CHAN_I0][i + 48]);
         }
-        SendFrameTail(0,0x83,1);
+        SendFrameTail(0,0x83,1,0);
         return true;
     }
  //   else
@@ -4537,7 +4768,7 @@ BOOL CBJ101S::SendCallHistLuBoStop(void)
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = 0;
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = 0;
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = 2;
-    SendFrameTail(0,0x03,1);
+    SendFrameTail(0,0x03,1,0);
     return true;
 }
 /*****************************************************
@@ -4571,7 +4802,7 @@ BOOL CBJ101S::SendCallHistLuBoStartAck(void)
          m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
          m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = (g_sRtcManager.m_gRealTimer[RTC_YEAR]-2000);
      }
-     SendFrameTail(0,0x83,1);
+     SendFrameTail(0,0x83,1,0);
      return true;
 }
 /*****************************************************
@@ -4608,10 +4839,1457 @@ BOOL CBJ101S::SendCallHistLuBoCFGAck(void)
      m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = 0x80;
      m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = 0;
      
-     SendFrameTail(0,0x83,1);
+     SendFrameTail(0,0x83,1,0);
      return true;
 }
 
+WORD CBJ101S::GetDataFromeEncChip(BYTE *pRecData)
+{
+    int DataLen;
+    BYTE pData[16];
+    if(pRecData != NULL)
+    {
+        DataLen = RecBytesFromEsam(pRecData);
+       // if(DataLen)
+        //{
+        //    return TRUE;
+        //}
+    }
+    else
+    {
+        DataLen = RecBytesFromEsam(pData);
+    }
+    if(DataLen == 0)
+    {
+        //P6OUT |= BIT4;
+        P1OUT |= BIT6;
+        delayms(500);
+        P1OUT &= ~BIT6;
+        //P6OUT &= ~BIT4;
+        delayms(500);
+    }
+    return DataLen;
+}
+
+BOOL CBJ101S::GetChipID(BYTE *pChipID)
+{
+    SendCmdToEncChip(GET_CHIP_ID,NULL,0);
+    if(GetDataFromeEncChip(pChipID))
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+BOOL CBJ101S::GetChipKeyVer(BYTE *Key)
+{
+    SendCmdToEncChip(GET_RRI_KEY,NULL,0);
+    if(GetDataFromeEncChip(Key))
+    {
+        
+        return TRUE;
+    }
+    return FALSE;
+}
+BOOL CBJ101S::GetChipRandom(BYTE *pRandom)
+{
+    SendCmdToEncChip(GET_RANDOM,NULL,0);
+    if(GetDataFromeEncChip(pRandom))
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+BOOL CBJ101S::GetChipRandomSign(BYTE*pHostRandom,BYTE *pRecSign)
+{
+    SendCmdToEncChip(GET_RANDOM_SIGN,pHostRandom,8);
+    if(GetDataFromeEncChip(pRecSign))
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+BOOL CBJ101S::VerifySign(BYTE KeyIndex,BYTE*Sign)
+{
+    BYTE SendData[256] = {0};
+    memcpy(SendData,&KeyIndex,1);
+    SendData[2] = 0x40;   //数据长度 
+    memcpy(&SendData[3],Sign,0x40);
+    SendCmdToEncChip(VERIFY_SIGN,SendData,67);
+    if(GetDataFromeEncChip(NULL))
+    {
+        return TRUE;
+    }
+    return FALSE; 
+}
+//数据加密 
+WORD CBJ101S::EncryptData(BYTE *pClearData,WORD DataLen,BYTE *pEncData)
+{
+    WORD count = 0;
+    BYTE SendData[256] = {0};//zxx 内存开的是否小了，如果101的报文每帧长度都在250个字节
+    SendData[count++] = 0;  //预留字符长度
+    SendData[count++] = 0;  //预留字符长度
+    for(BYTE i = 0; i < 8; i++)
+    {
+        SendData[count++] = g_bHostRandom[i];//zxx 主站的随机数还未获取
+    }
+    for(BYTE i = 0; i < 8; i++)
+    {
+        SendData[count++] = ~g_bHostRandom[i];
+    }
+    for(BYTE i = 0; i < DataLen; i++)
+    {
+        SendData[count++] = pClearData[i];
+    }
+    SendData[0] = HIBYTE(count-2);
+    SendData[1] = LOBYTE(count-2);
+    SendCmdToEncChip(ENCRYPT_DATA,SendData,count);
+    return GetDataFromeEncChip(pEncData); 
+}
+//数据解密
+WORD CBJ101S::DecryptData(BYTE *EncData,WORD EncDataLen,BYTE *ClearData)
+{
+    WORD count = 0; 
+    BYTE SendData[1024] = {0};
+    count  += 2;  //预留2 字节长度
+    for(BYTE i = 0; i < 8; i++)
+    {
+        SendData[count++] = g_bHostRandom[i];
+    }
+    for(BYTE i = 0; i < 8; i++)
+    {
+        SendData[count++] = ~g_bHostRandom[i];
+    }
+    for(WORD i = 0; i < EncDataLen; i++)
+    {
+        SendData[count++] = EncData[i];
+    }
+    SendData[0] = HIBYTE(count - 2);
+    SendData[1] = LOBYTE(count - 2);
+    SendCmdToEncChip(DECRYPT_DATA,SendData,count);
+    return (GetDataFromeEncChip(ClearData));
+}
 
 
- #endif /*#ifdef INCLUDE_GB101_S*/
+BOOL CBJ101S::VerifyDataSign(BYTE asKey,BYTE* pData,WORD Datalen,BYTE* pSign,WORD SignLen)
+{
+    BYTE SendData[1024] = {0};  //zx 20170503修改
+    SendData[0] = asKey;
+    SendData[1] = HIBYTE(Datalen + SignLen);
+    SendData[2] = LOBYTE(Datalen + SignLen);
+    if(Datalen)
+    {
+        memcpy(&SendData[3],pData,Datalen);
+    }
+    memcpy(&SendData[3+Datalen],pSign,SignLen);
+    SendCmdToEncChip(VERIFY_DATA_SIGN,SendData,SignLen+Datalen+3);
+    if(GetDataFromeEncChip(NULL))
+    {
+        return TRUE;
+    } 
+    return FALSE;
+}
+
+BOOL CBJ101S::UpdataCer(BYTE CerID, BYTE* CerTxt, WORD CerTxtLen)
+{
+    if(CerID == 0x06)
+    {
+        CerTxt[0] = 0x00;
+    }
+    else
+    {
+        CerTxt[0] = CerID;
+    }
+    CerTxt[1] = 0x00;
+    CerTxt[2] = HIBYTE(CerTxtLen - 4);  //减去预留的长度
+    CerTxt[3] = LOBYTE(CerTxtLen - 4);
+    //memcpy(&SendData[2],CerTxt,CerTxtLen);
+    if(CerID == 0x06)
+    {
+        SendCmdToEncChip(TOOL_LOAD_CER,CerTxt,CerTxtLen);  
+    }
+    else
+    {
+        SendCmdToEncChip(UPDATA_CERTIFICATE,CerTxt,CerTxtLen);  
+    }
+    if(GetDataFromeEncChip(NULL))
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+BOOL CBJ101S::LoadCer(BYTE* CerTxt, WORD CerTxtLen)
+{
+    g_bEncCerTxt[0] = HIBYTE(CerTxtLen - 2);  //zx修改 20170503
+    g_bEncCerTxt[1] = LOBYTE(CerTxtLen - 2);
+    SendCmdToEncChip(LOAD_CERTIFICATE,CerTxt,CerTxtLen);
+    if(GetDataFromeEncChip(NULL))
+    {
+        return TRUE;
+    } 
+    return FALSE; 
+}
+BOOL CBJ101S::ReadCerLen(BYTE *CerLen)
+{
+    SendCmdToEncChip(READ_CERTIFICATE_LEN,NULL,0);
+    if(GetDataFromeEncChip(CerLen))
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+BOOL CBJ101S::ReadTestCer(BYTE *CerLen,BYTE *CerTxt)
+{
+    SendCmdToEncChip(READ_TEST_CERTIFICATE,CerLen,2);
+    if(GetDataFromeEncChip(CerTxt))
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+WORD CBJ101S::ReadRealCer(BYTE *CerTxt)
+{
+    //BYTE CerLen[2];
+    //if(ReadCerLen(CerLen) != TRUE)
+    //{
+    //    return false;
+    //} 
+    //SendCmdToEncChip(READ_REAL_CERTIFICATE,NULL,0);
+    //SendCmdToEncChip(READ_TEST_CERTIFICATE,CerLen,2);
+     //WORD CerLen;
+    SendCmdToEncChip(READ_REAL_CERTIFICATE,NULL,0);
+    //delayms(1000);
+    return(GetDataFromeEncChip(CerTxt));
+}
+BOOL CBJ101S::UpdataPrivateKey(BYTE asKID,BYTE NewKeyVer,BYTE* keySignData,WORD dataLen)
+{
+    BYTE SendData[512] = {0};
+    SendData[0] = asKID;
+    SendData[1] = HIBYTE(dataLen + 1);  //数据长度+ 1个字节的密钥版本
+    SendData[2] = LOBYTE(dataLen + 1);
+    SendData[3] = NewKeyVer;
+    memcpy(&SendData[4],keySignData,dataLen);
+    SendCmdToEncChip(UPDATA_PRIVATE_KEY,SendData,dataLen + 4);
+    if(GetDataFromeEncChip(NULL))
+    {
+        return TRUE;
+    } 
+    return FALSE;
+  
+}
+
+BOOL CBJ101S::RecovPrivateKey(BYTE asKID,BYTE* keySignData,WORD dataLen)
+{
+    BYTE SendData[512] = {0};
+    SendData[0] = asKID;
+    SendData[1] = HIBYTE(dataLen + 1);
+    SendData[2] = LOBYTE(dataLen + 1);
+    SendData[3] = 0;  //密钥恢复时，密钥版本固定为0
+    memcpy(&SendData[4],keySignData,dataLen);
+    SendCmdToEncChip(RECOV_PRIVATE_KEY,SendData,dataLen + 4);
+    if(GetDataFromeEncChip(NULL))
+    {
+        return TRUE;
+    } 
+    return FALSE;
+}
+BOOL CBJ101S::VerifyToolCer(BYTE *pCerTxt,WORD CerLen)
+{
+    pCerTxt[0] = HIBYTE(CerLen);
+    pCerTxt[1] = LOBYTE(CerLen);
+    SendCmdToEncChip(TOOL_VERIFY_CER,pCerTxt,CerLen + 2);//发送的数据+ 2字节的长度
+    if(GetDataFromeEncChip(NULL))
+    {
+        return TRUE;
+    } 
+    return FALSE;    
+}
+BOOL CBJ101S::VerifyToolSignData(BYTE *pSignTxt,BYTE SignLen)
+{
+    SendCmdToEncChip(TOOL_VERIFY_SIGN,pSignTxt,SignLen);
+    if(GetDataFromeEncChip(NULL))
+    {
+        return TRUE;
+    } 
+    return FALSE;      
+}
+BOOL CBJ101S::ReadPubKey(BYTE *pPubKey)
+{
+    SendCmdToEncChip(TOOL_READ_PUBK,NULL,0);
+    if(GetDataFromeEncChip(pPubKey))
+    {
+        return TRUE;
+    }
+    return FALSE; 
+}
+
+WORD CBJ101S::EncryptToolData(BYTE *pOriginalData, WORD  OriginalDataLen,BYTE *pEncData)
+{
+    WORD count = 0;
+    //+32是因为有8字节管理工具ID，8字节R1，16字节IVData
+    WORD DataLen = 32 + OriginalDataLen;  
+    pOriginalData[count++] = HIBYTE(DataLen);
+    pOriginalData[count++] = LOBYTE(DataLen);
+    for(BYTE i = 0; i < 8; i++)
+    {
+        pOriginalData[count++] = m_bCerToolID[i];
+    }
+    for(BYTE i = 0; i < 8; i++)
+    {
+        pOriginalData[count++] = m_bUnitRandom[i];
+    }
+    for(BYTE i = 0; i < 8; i++)   
+    {
+        pOriginalData[count++] = m_bUnitRandom[i];
+    }
+    for(BYTE i = 0; i < 8; i++)
+    {
+        pOriginalData[count++] = ~m_bUnitRandom[i];
+    } 
+    SendCmdToEncChip(TOOL_ENCRYPT_DATA,pOriginalData,DataLen+2);  //+2个字节数据长度
+    return (GetDataFromeEncChip(pEncData));
+}
+WORD CBJ101S::DecryptToolData(BYTE *pEncData, WORD  EncDataLen,BYTE *pClearData)
+{
+    //+32是因为有8字节管理工具ID，8字节R1，16字节IVData
+    BYTE SendData[1024] = {0};
+   //WORD DataLen = 32 + EncDataLen;
+    WORD count = 0;
+    count += 2;
+    //SendData[count++] = HIBYTE(DataLen);
+    //SendData[count++] = LOBYTE(DataLen);
+    for(BYTE i = 0; i < 8; i++)
+    {
+        SendData[count++] = m_bCerToolID[i];
+    }
+    for(BYTE i = 0; i < 8; i++)
+    {
+        SendData[count++] = m_bUnitRandom[i];
+    }
+    for(BYTE i = 0; i < 8; i++)   
+    {
+        SendData[count++] = m_bUnitRandom[i];
+    }
+    for(BYTE i = 0; i < 8; i++)
+    {
+        SendData[count++] = ~m_bUnitRandom[i];
+    }
+    for(WORD i = 0; i < EncDataLen; i++)
+    {
+        SendData[count++] = pEncData[i];
+    }
+    SendData[0] = HIBYTE(count - 2);
+    SendData[1] = LOBYTE(count - 2);
+    SendCmdToEncChip(TOOL_DECRYPT_DATA,SendData,count);
+    return (GetDataFromeEncChip(pClearData));
+}
+BOOL CBJ101S::RecovToolKey(BYTE *pKeyData, BYTE KeyDataLen)
+{
+    pKeyData[0] = 0;
+    pKeyData[1] = KeyDataLen;
+    SendCmdToEncChip(TOOL_RECOV_PRIVATE_KEY,pKeyData,KeyDataLen + 2);
+    if(GetDataFromeEncChip(null))
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+WORD CBJ101S::SignData(BYTE *pOriginalData,WORD OriginalDataLen,BYTE *pSrReqData)
+{
+    pOriginalData[0] = HIBYTE(OriginalDataLen - 2);
+    pOriginalData[1] = LOBYTE(OriginalDataLen - 2);  //减去2个字节长度
+    SendCmdToEncChip(TOOL_GET_SIGN,pOriginalData,OriginalDataLen);
+    return (GetDataFromeEncChip(pSrReqData));
+}
+
+BOOL CBJ101S::SendFrameEBHead(WORD FrameType,BYTE AppType)
+{
+    m_SendBuf.wReadPtr = 0;
+    m_SendBuf.wWritePtr=0;
+    pSendFrame = (VIec101Frame *)m_SendBuf.pBuf; 
+    
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr]   = 0xEB;
+    m_SendBuf.wWritePtr+=3;
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = 0xEB;   
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = HIBYTE(FrameType);
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = LOBYTE(FrameType);
+    if(AppType <= 200)
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = AppType;
+    return TRUE;
+}
+
+BOOL CBJ101S::SendFrameEBAppData(BYTE AppDataBytes,BYTE *pAppData)
+{
+    if(AppDataBytes && (pAppData != NULL))
+    {
+        m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = AppDataBytes;
+        for(BYTE i = 0; i < AppDataBytes; i++)
+        {
+            m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = pAppData[i];
+        } 
+    }
+    return TRUE;
+}
+
+BOOL CBJ101S::SendFrameEBEixampleData(BYTE EixampleDataBytes,BYTE *pEixampleData)
+{
+    if(EixampleDataBytes && (pEixampleData != NULL))
+    {
+        m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = 0;
+        m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = EixampleDataBytes;
+        for(BYTE i = 0; i < EixampleDataBytes; i++)
+        {
+            m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = pEixampleData[i];
+        } 
+    }
+    return TRUE;
+}
+BOOL CBJ101S::SendEncData(BYTE EncDataLen,BYTE *pEncData)
+{
+    for(BYTE i = 0; i < EncDataLen; i++)
+    {
+        m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = pEncData[i];
+    }
+    return TRUE;
+}
+
+BOOL CBJ101S::SendAppData(BYTE EixampleDataBytes,BYTE *pEixampleData)
+{
+    if(EixampleDataBytes && (pEixampleData != NULL))
+    {
+        //m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = 0;
+        m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = EixampleDataBytes;
+        for(BYTE i = 0; i < EixampleDataBytes; i++)
+        {
+            m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = pEixampleData[i];
+        } 
+    }
+    return TRUE;
+}
+BOOL CBJ101S::SendFrameEBTail(void)
+{
+    pSendFrame->FrameEB.LengthH = 0;
+    pSendFrame->FrameEB.LengthL= m_SendBuf.wWritePtr - 4;
+    m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = (BYTE)ChkSum((BYTE *)&pSendFrame->FrameEB.FrameType[0], pSendFrame->FrameEB.LengthL);
+    m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0xD7;
+    WriteToComm(0);
+    return TRUE;
+}
+
+BOOL CBJ101S::SendEncFrameAck(WORD Ack,WORD FrameType,BYTE AppType)
+{
+    SendFrameEBHead(FrameType,AppType);
+    SendFrameEBEixampleData(2,(BYTE*)&Ack);
+    SendFrameEBTail();
+    return TRUE;
+}
+BOOL CBJ101S::RecCipherTxt(BYTE *EncData,WORD EncDataLen,BYTE *pClearData)
+{
+    //BYTE RecData[MAX_FRAME_LEN];
+    if(DecryptData(EncData,EncDataLen, pClearData))
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+//认证网关与终端认证
+BOOL CBJ101S::SendGatewayVerify(void)
+{
+     BYTE RecData[128];
+    if(GetChipRandomSign(&pReceiveFrame->FrameEB.Data[2],RecData))
+    {
+        RecData[72] = 0x06;    //网关认证，签名标识固定为0x06
+        SendFrameEBHead(0x0080,0x21);
+        SendFrameEBEixampleData(0x49,RecData);
+        SendFrameEBTail();
+        return TRUE;
+    }
+    //SendEncFrameAck(0x9090, 0x0080,0x21);
+    return FALSE;
+}
+BOOL CBJ101S::SendGatewayVerifyAck(void)
+{
+    //66的原因是2字节数据长度+64字节签名
+    BYTE asKey = pReceiveFrame->FrameEB.Data[66];  //ZX 修改 20170503
+    if(VerifySign(asKey,&pReceiveFrame->FrameEB.Data[2]))
+    {
+        SendEncFrameAck(0x0090,0x0080,0x23);
+    }
+    else
+    {
+        SendEncFrameAck(0x9090,0x0080,0x23);
+    }
+    return TRUE;
+}
+BOOL CBJ101S::SendHostVerify(void)
+{
+    BYTE RecData[128];
+    memcpy(g_bHostRandom,&pReceiveFrame->FrameEB.Data[HOST_RANDOM],RANDOM_BYTES);
+    if(GetChipRandomSign(g_bHostRandom,RecData))
+    {
+        RecData[72] = 0x01;
+        SendFrameEBHead(0x0000,0x51);
+        SendFrameEBEixampleData(0x49,RecData);
+        SendFrameEBTail();
+        return TRUE;
+    }
+    SendEncFrameAck(0x9090, 0x0000,0x51);
+    return FALSE;     
+}
+
+BOOL CBJ101S::SendHostVerifyAck(void)
+{
+    //66的原因是2字节数据长度+64字节签名
+    BYTE asKey = pReceiveFrame->FrameEB.Data[66];  
+    if(VerifySign(asKey,&pReceiveFrame->FrameEB.Data[2]))
+    {
+        SendEncFrameAck(0x0090,0x0000,0x53);
+        m_bHostCertifyFlag = 0x55;
+    }
+    else
+    {
+        SendEncFrameAck(0x9090,0x0000,0x53);
+        m_bHostCertifyFlag = 0;
+    }
+    return TRUE;
+}
+
+
+BOOL CBJ101S::SendEncChipID(BYTE type)
+{
+    BYTE RecData[CHINP_ID_BYTES] = {0};
+    if(GetChipID(RecData))
+    {
+        if(type == 0)  //发送给主站
+            SendFrameEBHead(0x0000,0x55);
+        else   //发送给运维工具
+            SendFrameEBHead(0x0040,0x39);
+        SendFrameEBEixampleData(CHINP_ID_BYTES,RecData);
+        SendFrameEBTail();
+        return TRUE;
+    }
+//    if(type == 0)
+//    {
+//        SendEncFrameAck(0x0991, 0x0010,0x1f);
+//    }
+//  else
+//    {
+//        SendEncFrameAck(0x0991, 0x0040,0x1f);
+//    }
+    return FALSE;
+}
+BOOL CBJ101S::SendChipKeyVer(BYTE type)
+{
+    BYTE RecData[16] = {0};
+
+    if(!GetChipKeyVer(RecData))
+    {
+        //SendEncFrameAck(0x0991, 0x0010,0x1f);
+        return FALSE;
+    }
+    if(!GetChipRandom(&RecData[1]))
+    {
+        //SendEncFrameAck(0x0991, 0x0010,0x1f);
+        return FALSE;
+    }
+    //memcpy(&RecData[1],m_bUnitRandom,8);
+    if(type == 0)  //主站
+    {
+        if(m_bHostCertifyFlag != 0x55)
+        {
+            return TRUE;
+        }
+        SendFrameEBHead(0x0000,0x61);
+    }
+    else if(type == 1)  //运维工具
+    { 
+        if(m_bToolCertifyFlag != 0x55)
+        {
+             //SendEncFrameAck(0x0991,0x0040,0x35);
+             return TRUE;
+         } 
+         SendFrameEBHead(0x0040,0x35);
+    }
+        
+    SendFrameEBEixampleData(9,RecData);
+    SendFrameEBTail();
+    return TRUE;
+}
+BOOL CBJ101S::SendUpdataKeyAck(void)
+{
+    BYTE KeyVer;  //密钥版本
+    BYTE asKID;   //密钥索引
+    //密钥更新包+签名结果 共244个字节
+    BYTE *pDataSign = &pReceiveFrame->FrameEB.Data[UPDATA_KEY_DATA];
+  
+    KeyVer = pReceiveFrame->FrameEB.Data[NEW_KEY_VER];
+  
+    asKID = pReceiveFrame->FrameEB.Data[S_KEY_ID];
+    if((m_bHostCertifyFlag != 0x55) || (KeyVer <= 0))
+    {
+        SendEncFrameAck(0x9190,0x0000,0x63);
+    }
+    else if(UpdataPrivateKey(asKID,KeyVer,pDataSign,244) == TRUE)
+    {
+        SendEncFrameAck(0x0090,0x0000,0x63);
+    }
+    else
+    {
+        SendEncFrameAck(0x9190,0x0000,0x63);
+    }
+    return TRUE;
+}
+
+BOOL CBJ101S::SendRecovKeyAck(void)
+{
+    BYTE asKID;   //密钥索引
+    BYTE *pDataSign = &pReceiveFrame->FrameEB.Data[UPDATA_KEY_DATA];
+    asKID = pReceiveFrame->FrameEB.Data[S_KEY_ID];
+    if(m_bHostCertifyFlag != 0x55)
+    {
+        SendEncFrameAck(0x9290,0x0000,0x71);
+    }
+    else if(RecovPrivateKey(asKID,pDataSign,244) == TRUE)
+    {
+        SendEncFrameAck(0x0090,0x0000,0x71);
+    }
+    else
+    {
+        SendEncFrameAck(0x9290,0x0000,0x71);
+    }
+    return TRUE;
+}
+
+BOOL CBJ101S::SendCerUpdataAck(void)  //远程证书更新
+{
+    BYTE FrameNum =  pReceiveFrame->FrameEB.Data[3];
+    BYTE FrameNO  =  pReceiveFrame->FrameEB.Data[4];
+    BYTE *pData   = &pReceiveFrame->FrameEB.Data[5];
+    WORD DataLen  =  MAKEWORD(pReceiveFrame->FrameEB.Data[1], pReceiveFrame->FrameEB.Data[0]) - 3;  //ZX修改2017年5月3日
+    BYTE KeyID;   //密钥索引
+    BYTE CerID;
+    BYTE *pCerData;
+    BYTE *pSign;
+    WORD SignLen;
+    WORD CerTxtLen;
+    if(FrameNO == 1)  //第一帧 
+    {
+        g_wEncCerWPtr = 0;   
+    }
+//    if(FrameNO == 2) 
+//    {
+//        FrameNO = 2;
+//    }      
+//    if(FrameNO == 3) 
+//    {
+//        FrameNO = 3;
+//    }       
+    for(WORD i = 0; i < DataLen; i++)
+    {
+        g_bEncCerTxt[g_wEncCerWPtr++] = pData[i];
+    }
+    if(FrameNO >= FrameNum) //最后一帧
+    {
+        //解密出来的数据前面预留3字节,
+        g_wEncCerWPtr  = DecryptData(g_bEncCerTxt, g_wEncCerWPtr, &g_bEncCerTxt[3]);   //解密数据
+        if(!g_wEncCerWPtr)
+        {
+            SendEncFrameAck(0x9790,0x0000,0x71);
+            return TRUE;
+        }
+        CerID = g_bEncCerTxt[3];
+        pCerData = &g_bEncCerTxt[3];
+        CerTxtLen = g_wEncCerWPtr - 71;  //减去71为1字节密钥标识，64字节签名，6字节时间信息
+        pSign = &pCerData[CerTxtLen];
+        SignLen = 70;  //64字节签名+ 6字节时间信息
+        KeyID = pSign[SignLen];  //解密数据出来的最后一个字节是密钥标识
+        if(m_bHostCertifyFlag != 0x55)
+        {
+            SendEncFrameAck(0x9790,0x0000,0x71);
+            return TRUE;          
+        }
+        if(!VerifyDataSign(KeyID,pCerData,CerTxtLen,pSign,SignLen))  //验签失败,这里数据长度-1是因为把KeyID提取出来了
+        {
+            SendEncFrameAck(0x9790,0x0000,0x71);
+            return TRUE;
+        }
+        //解密出来的Cer正文从第5 字节开始，第4 字节为CerID, 前面还预留了3 个字节
+        if(UpdataCer(CerID,g_bEncCerTxt,CerTxtLen + 3) == FALSE)  
+        {
+            
+            SendEncFrameAck(0x9790,0x0000,0x71);//证书更新失败
+            return TRUE;
+        }
+        if(m_bEncObject == GATEWAY)
+        {
+            SendEncFrameAck(0x0090,0x0080,0x71);
+        }
+        else if(m_bEncObject == MASTER_STATION)
+        {
+            SendEncFrameAck(0x0090,0x0000,0x71);
+        }
+    }
+    return TRUE;
+}
+
+BOOL CBJ101S::SendCerDownloadAck(void)  //证书下载
+{
+    BYTE FrameNum = pReceiveFrame->FrameEB.Data[3];
+    BYTE FrameNO = pReceiveFrame->FrameEB.Data[4];
+    BYTE *pData = &pReceiveFrame->FrameEB.Data[5];
+    //WORD DataLen = MAKEDWORD(pReceiveFrame->FrameEB.Data[1], pReceiveFrame->FrameEB.Data[0]);
+    WORD DataLen = MAKEWORD(pReceiveFrame->FrameEB.Data[1], pReceiveFrame->FrameEB.Data[0]) - 3;
+  
+    if(FrameNO == 1)  //第一帧 
+    {
+        g_wEncCerWPtr = 2;   //预留2字节给长度
+    }
+    if(FrameNO == 2)
+    {
+        FrameNO = 2;
+    }
+    for(WORD i = 0; i < DataLen; i++)
+    {
+        g_bEncCerTxt[g_wEncCerWPtr++] = pData[i];
+    }
+    if(FrameNO >= FrameNum) //最后一帧
+    {
+        if(m_bHostCertifyFlag != 0x55)
+        {
+            SendEncFrameAck(0x9790,0x0000,0x73);  //未通过认证
+            return TRUE;
+        }
+        if(LoadCer(g_bEncCerTxt, g_wEncCerWPtr))   
+        {
+            SendEncFrameAck(0x0090,0x0000,0x73);  
+            return TRUE;
+        }
+        else
+        {
+            SendEncFrameAck(0x9390,0x0000,0x73);//证书导入失败
+            return TRUE;
+        }
+    }
+    return TRUE;
+}
+BOOL CBJ101S::SendCer(BYTE Type)  //读取芯片证书
+{
+    //BYTE RecData[1024] = {0};
+    BYTE FrameInfo[5];
+    WORD Cerlen;
+    WORD pWrite = 0;
+    BYTE FrameTotal;
+    BYTE FrameNum = 1;
+    const BYTE MaxSendByte = 240;
+    Cerlen = ReadRealCer(g_bEncCerTxt);
+    if(Cerlen)
+    {
+        FrameTotal = Cerlen/MaxSendByte;
+        if(Cerlen % MaxSendByte)
+        {
+            FrameTotal++;
+        }       
+        while(pWrite < Cerlen)
+        {
+            if(pWrite + MaxSendByte < Cerlen)
+            {
+                if(Type == 0)   //主站通信
+                {
+                    if(m_bHostCertifyFlag != 0x55)
+                    {
+                        SendEncFrameAck(0x9590,0x0000,0x75);//证书导出失败
+                        return TRUE;
+                    }                  
+                    SendFrameEBHead(0x0000,0x75);
+                }
+                else   //运维工具通信
+                {
+                    SendFrameEBHead(0x0040,0x43);
+                }
+                FrameInfo[0] = 0;
+                FrameInfo[1] = MaxSendByte + 3;
+                FrameInfo[2] = 0x06;
+                FrameInfo[3] = FrameTotal;
+                FrameInfo[4] = FrameNum++;
+                SendEncData(5,FrameInfo);
+                SendEncData(MaxSendByte,&g_bEncCerTxt[pWrite]);
+                SendFrameEBTail();
+                pWrite += MaxSendByte;
+                delayms(500);
+            }
+            else
+            {
+                if(Type == 0)   //主站通信
+                {                    
+                    SendFrameEBHead(0x0000,0x75);
+                }
+                else   //运维工具通信
+                {
+                    SendFrameEBHead(0x0040,0x43);
+                }
+                FrameInfo[0] = 0;
+                FrameInfo[1] = 3 + Cerlen - pWrite; 
+                FrameInfo[2] = 0x06;
+                FrameInfo[3] = FrameTotal;
+                FrameInfo[4] = FrameNum;;
+                SendEncData(5,FrameInfo);
+                SendEncData((Cerlen - pWrite),&g_bEncCerTxt[pWrite]);
+                SendFrameEBTail();
+                pWrite = Cerlen;
+                //delayms(5000);
+            }
+        }
+        return TRUE;
+    }
+  if(Type == 0)
+    {
+        SendEncFrameAck(0x9790, 0x0000,0x75);
+  }
+  else
+    {
+    SendEncFrameAck(0x9790, 0x0040,0x43);
+  }
+    
+    return FALSE;
+}
+
+
+BOOL CBJ101S::SendToolVerifyAck(void)
+{
+    BYTE FrameNum = pReceiveFrame->FrameEB.Data[3];
+    BYTE FrameNO = pReceiveFrame->FrameEB.Data[4];
+    BYTE *pData = &pReceiveFrame->FrameEB.Data[5];
+    //减去证书标识1字节，总帧数1字节，当前帧数1字节，证书管理工具ID8 字节
+    WORD DataLen = MAKEWORD(pReceiveFrame->FrameEB.Data[1], pReceiveFrame->FrameEB.Data[0]) - 11;  
+    if(FrameNO == 1)  //第一帧
+    {
+        g_wEncCerWPtr = 2;  //预留前2字节给长度
+    }
+    for(WORD i = 0; i < DataLen; i++)
+    {
+        g_bEncCerTxt[g_wEncCerWPtr++] = pData[i];
+    }
+    for(BYTE i = 0; i < 8; i++)   //证书管理工具保存
+    {
+        m_bCerToolID[i] = pData[DataLen + i];
+    }
+    if(FrameNO >= FrameNum) //最后一帧
+    {
+        //g_bEncCerTxt[0] = HIBYTE(g_wEncCerWPtr - 2);
+        //g_bEncCerTxt[1] = LOBYTE(g_wEncCerWPtr - 2);
+        if(!VerifyToolCer(g_bEncCerTxt, g_wEncCerWPtr-2)) 
+        {
+            m_bToolCertifyFlag = 0;
+            SendEncFrameAck(0x9090,0x0040,0x31);//管理证书验证失败
+            return TRUE;
+        }
+        if(GetChipRandom(m_bUnitRandom))
+        {
+            SendFrameEBHead(0x0040,0x31);
+            SendFrameEBEixampleData(8,m_bUnitRandom);
+            SendFrameEBTail();
+            m_bToolCertifyFlag = 0x55;
+            return TRUE;
+        }
+        else
+        {
+            m_bToolCertifyFlag = 0;
+            SendEncFrameAck(0x9090,0x0040,0x31);//随机数未获取
+            return TRUE;
+        }
+    }
+    SendEncFrameAck(0x0090,0x0040,0x45);
+    return TRUE;
+}
+BOOL CBJ101S::VerifyToolSign(void)
+{
+    BYTE *pSign;
+    //BYTE RecData[2];
+    pSign = &pReceiveFrame->FrameEB.Data[2];
+    if(VerifyToolSignData(pSign, 0x40)) 
+    {
+        SendEncFrameAck(0x0090,0x0040,0x33);
+//        SendFrameEBHead(0x0042,0x33);
+//        RecData[0] = 0x90;
+//        RecData[1] = 0x00;
+//        SendFrameEBEixampleData(0x02,RecData);
+//        SendFrameEBTail();  
+//        return TRUE;        
+    }
+    else
+    {
+        m_bToolCertifyFlag = 0;
+        SendEncFrameAck(0x9090,0x0040,0x33);
+    }
+    return TRUE;
+}
+BOOL CBJ101S::SendUnitID(void)
+{
+    //BYTE UnitID[24];
+//    for(BYTE i = 1; i <= 24; i++)
+//    {
+//        g_bUnitID[i] = i;
+//    }
+    SendFrameEBHead(0x0040,0x37);
+    SendFrameEBEixampleData(24,(BYTE*)&g_bUnitID[1]);
+    SendFrameEBTail();  
+    return TRUE;       
+}
+BOOL CBJ101S::SendEncPubKey(void)
+{
+    BYTE PubKey[256] = {0};
+    WORD EncDataLen = 0;
+    //预留34个字节，2字节长度，8字节管理工具ID，8字节R1，16字节IVDATA
+    //多预留3个字节 2字节扩展区长度，1字节报文类型
+    if(!ReadPubKey(&PubKey[37])) 
+    {
+        //SendEncFrameAck(0x0991,0x0040,0x3B);
+        return TRUE;
+        //获取公钥失败
+    }
+//    {
+//        SendFrameEBHead(0x0040,0x3B);   //AppType大于200
+//        SendEncData(64,&PubKey[37]);
+//        SendFrameEBTail();
+//    }
+    
+    PubKey[34] = 0x3B;  //应用类型
+    PubKey[35] = 0;
+    PubKey[36] = 0x40;   //数据长度
+    EncDataLen = EncryptToolData(PubKey,67,PubKey);
+    if(EncDataLen)
+    {
+        SendFrameEBHead(0x0048,201);   //AppType大于200
+        SendEncData(EncDataLen,PubKey);
+        SendFrameEBTail();
+    }
+    else
+    {
+        SendEncFrameAck(0x0991,0x0040,0x3B);
+    }
+    return TRUE;
+}
+BOOL CBJ101S::SendSignCerTxt(void)
+{
+    BYTE SrReqData[64];
+    BYTE FrameNum = pReceiveFrame->FrameEB.Data[2];
+    BYTE FrameNO = pReceiveFrame->FrameEB.Data[3];  
+    BYTE *pData = &pReceiveFrame->FrameEB.Data[4];
+    WORD DataLen = 0;
+    //WORD ClearDataLen;
+    if(FrameNO == 1)  //第一帧
+    {
+        g_wEncCerWPtr = 2;  //预留前2字节给长度
+    }
+    DataLen = MAKEWORD(pReceiveFrame->FrameEB.Data[1],pReceiveFrame->FrameEB.Data[0]) - 2;
+    for(WORD i = 0; i < DataLen; i++)
+    {
+        g_bEncCerTxt[g_wEncCerWPtr++] = pData[i];
+    }
+    if(FrameNO >= FrameNum) //最后一帧
+    {
+        if(SignData(g_bEncCerTxt,g_wEncCerWPtr,SrReqData))
+        {
+            SendFrameEBHead(0x0040,0x3D);
+            SendFrameEBEixampleData(64,SrReqData);
+            SendFrameEBTail();
+            return TRUE;
+        }
+        else
+        {
+            return TRUE;
+        }
+    }
+    SendEncFrameAck(0x0090,0x40,0x45);  //返回分帧接成功
+    return TRUE;
+}
+BOOL CBJ101S::SendLoadCerAck(void)
+{
+    BYTE CerID = pReceiveFrame->FrameEB.Data[2];
+    BYTE FrameNum = pReceiveFrame->FrameEB.Data[3];
+    BYTE FrameNO = pReceiveFrame->FrameEB.Data[4];
+    BYTE *pData = &pReceiveFrame->FrameEB.Data[5];
+    WORD DataLen;
+    if(FrameNO == 1)  //第一帧
+    {
+        g_wEncCerWPtr = 4;   //留2字节CerID，2字节长度
+    }
+    DataLen = MAKEWORD(pReceiveFrame->FrameEB.Data[1],pReceiveFrame->FrameEB.Data[0]) - 3;
+    for(WORD i = 0; i < DataLen; i++)
+    {
+        g_bEncCerTxt[g_wEncCerWPtr++] = pData[i];
+    }
+    if(FrameNO >= FrameNum)
+    {
+        if(UpdataCer(CerID, g_bEncCerTxt, g_wEncCerWPtr))
+        {
+            SendEncFrameAck(0x0090,0x0040,0x3F);
+        }
+        else
+        {
+            SendEncFrameAck(0x9790,0x0040,0x3F);
+        }
+        return TRUE;
+    }
+    SendEncFrameAck(0x0090,0x0040,0x45);  //分帧接收成功
+    return TRUE;
+}
+BOOL CBJ101S::SendReWriteCerAck(void)
+{
+    BYTE RecData[2];
+    WORD CerLen;
+    if(!ReadCerLen((BYTE *)RecData))
+    {
+        SendEncFrameAck(0x9390,0x0040,0x1f);
+        return TRUE;
+    }
+    CerLen = MAKEWORD(RecData[1],RecData[0]);
+    //从第二 个字节开始存是因问预留2字节长度
+    if(!ReadTestCer(RecData, &g_bEncCerTxt[2])) 
+    {
+        SendEncFrameAck(0x9390,0x0040,0x41);
+        return TRUE;
+    }
+    if(LoadCer(g_bEncCerTxt,CerLen + 2))  //装载原始证书成功
+    {
+        SendEncFrameAck(0x0090,0x0040,0x41);
+        return TRUE;        
+    }
+    SendEncFrameAck(0x9390,0x0040,0x41);
+    return TRUE;
+}
+
+
+BOOL CBJ101S::SendToolRecovKey(void)
+{
+    BYTE KeyData[256];
+    BYTE DataLen = pReceiveFrame->FrameEB.Data[1];  //该命令字节数不会超过256
+    memcpy(&KeyData[2], &pReceiveFrame->FrameEB.Data[2],DataLen);
+    if(m_bToolCertifyFlag != 0x55)
+    {
+        SendEncFrameAck(0x9290,0x0040,0x47);
+        return TRUE;
+    }
+    if(RecovToolKey(KeyData,DataLen))
+    {
+        SendEncFrameAck(0x0090,0x0040,0x47);
+    }
+    else
+    {
+        SendEncFrameAck(0x9290,0x0040,0x47);
+    }
+    return TRUE;
+}
+
+BOOL CBJ101S::RecClearTxt(void)
+{
+    //    if(pReceiveFrame == NULL)
+//    {
+//        return false;
+//    }
+    BYTE AppType = pReceiveFrame->FrameEB.AppType;
+    g_bAppType = AppType;
+    BYTE AppLen = 0;     //APP应用数据长度
+    BYTE *pAppData;
+    BYTE *pEiData;
+    WORD FrameLen = MAKEWORD(pReceiveFrame->FrameEB.LengthL,pReceiveFrame->FrameEB.LengthH);
+    WORD EiDataLen = 0;  //扩展区数据长度
+    BYTE asKey;
+    BYTE Random[8];
+    BYTE EncTime[6];
+    BYTE Consel_MD5[16] = {0};
+    //BYTE CheckTimeFlag = 0;
+    //BYTE CheckTimeCount = 0;
+    //DWORD TimeStamp;  //时间戳，用于对比时间
+    memcpy(Random,m_bUnitRandom,8);
+    EncTime[0] = (BYTE)((g_sRtcManager.m_gRealTimer[RTC_YEAR]-2000) & 0xFF);
+    EncTime[1] = (BYTE)(g_sRtcManager.m_gRealTimer[RTC_MONTH] & 0xFF);
+    EncTime[2] = (BYTE)(g_sRtcManager.m_gRealTimer[RTC_DATE] & 0x1F);
+    EncTime[3] = (BYTE)(g_sRtcManager.m_gRealTimer[RTC_HOUR] & 0xFF);
+    EncTime[4] = (BYTE)(g_sRtcManager.m_gRealTimer[RTC_MINUT] & 0xFF);
+    EncTime[5] = (BYTE)(g_sRtcManager.m_gRealTimer[RTC_SEC] & 0xFF);
+    //写入当前时间
+    //WORD DataSignlen = 0;
+    if(AppType <= 0x08)
+    {
+        //还未进行过主站认证就收到报文
+        if(m_bHostCertifyFlag != 0x55)
+        {
+            SendEncFrameAck(0x0791, 0x0000,0x1f);
+            return TRUE;
+        }
+        //收到未加密的68 帧
+        if((pReceiveFrame->FrameEB.Data[1] == 0x68) && (m_bEncDataFlag != 0x55))
+        {
+            SendEncFrameAck(0x0691, 0x0000,0x1f);
+            return TRUE;
+        }
+    }
+    m_bEncDataFlag = 0; //数据加密标志位清零
+    switch(AppType)
+    {
+    case 0x00:
+    case 0x02:
+    case 0x04:
+    case 0x06:    
+        if(pReceiveFrame->FrameEB.Data[1] == 0x68)
+        {
+            pReceiveFrame = (VIec101Frame*)&pReceiveFrame->FrameEB.Data[1];
+            RecFrame68();           
+        }
+        else if(pReceiveFrame->FrameEB.Data[1] == 0x10)
+        {
+            pReceiveFrame = (VIec101Frame*)&pReceiveFrame->FrameEB.Data[1];
+            RecFrame10();
+        }
+        
+        break;
+    //数据带签名，需要验签
+    case 0x01:
+    case 0x03:
+    case 0x05:
+    case 0x07:    //zx修改 20170503
+    case 0x08:
+        AppLen = pReceiveFrame->FrameEB.Data[0];
+        if(AppLen)  //AppType 为01 03 05 07
+        {
+            pAppData = &pReceiveFrame->FrameEB.Data[1];
+            EiDataLen = MAKEWORD(pAppData[AppLen + 1],pAppData[AppLen]);
+            pEiData  = &pAppData[AppLen + 2];
+        }
+        else if(AppType == 0x08)       //AppType 为08
+        {
+            pAppData = NULL;
+            EiDataLen = MAKEWORD(pReceiveFrame->FrameEB.Data[1],pReceiveFrame->FrameEB.Data[0]);
+            pEiData  = &pReceiveFrame->FrameEB.Data[2];
+        }
+        else
+        {
+            SendEncFrameAck(0x0191,0x0000,0x1f);
+            return TRUE;        
+        }
+        //memcpy(&pReceiveFrame->FrameEB.Data[AppLen + 1],&pReceiveFrame->FrameEB.Data[AppLen + 3],EiDataLen);
+        //校验数据长度是否正确
+        if((FrameLen < (AppLen + EiDataLen + 6))
+           ||(EiDataLen < 65) 
+           ||((AppType == 0x03) && (EiDataLen < 73))
+           ||((AppType == 0x05) && (EiDataLen < 71))
+           ||((AppType == 0x07) && (EiDataLen < 79)))
+           //||((AppType == 0x08) && (EiDataLen < 79)))
+          
+        {
+            SendEncFrameAck(0x0191,0x0000,0x1f);
+            return TRUE;
+        }
+        else if((AppType == 0x08) && (EiDataLen < 79))
+        {
+            m_wUpdataFaultFlag = 0x0191;
+            return true;
+        }
+        if(AppType == 0x03) 
+        {
+            memcpy(Random,pEiData,8);
+        } 
+        else if(AppType == 0x05)
+        {
+            memcpy(EncTime,pEiData,6);
+        }
+        else if(AppType == 0x07)
+        {
+            memcpy(EncTime,pEiData,6);
+            memcpy(Random,&pEiData[6],8);
+        }
+        else if(AppType == 0x08)
+        {
+            memcpy(EncTime,pEiData,6);
+            memcpy(Random,&pEiData[6],8);           
+        }
+//#ifdef DEBUGENC
+        for(BYTE i = 0; i < 8; i++)//验证随机数
+        {
+            if(Random[i] != m_bUnitRandom[i])
+            {
+                if(AppType == 0x08)
+                {
+                    m_wUpdataFaultFlag = 0x0491;
+                }
+                else
+                {
+                    SendEncFrameAck(0x0491,0x0000,0x1f);
+                }
+                return TRUE;
+            }
+        }
+        if(EncTime[0] != (BYTE)((g_sRtcManager.m_gRealTimer[RTC_YEAR]-2000) & 0xFF))  //检查年
+        {
+            if(AppType == 0x08)
+            {
+                m_wUpdataFaultFlag = 0x0591;
+            }
+            else
+            {
+                SendEncFrameAck(0x0591,0x0000,0x1f);
+            }
+            return TRUE;
+        }
+        if(EncTime[1] != (BYTE)(g_sRtcManager.m_gRealTimer[RTC_MONTH] & 0xFF))   //检查月
+        {
+            if(AppType == 0x08)
+            {
+                m_wUpdataFaultFlag = 0x0591;
+            }
+            else
+            {
+                SendEncFrameAck(0x0591,0x0000,0x1f);
+            }
+            
+            return TRUE;
+        }
+        if(EncTime[2] != (BYTE)(g_sRtcManager.m_gRealTimer[RTC_DATE] & 0x1F))  //检查日
+        {
+            if(AppType == 0x08)
+            {
+                m_wUpdataFaultFlag = 0x0591;
+            }
+            else
+            {
+                SendEncFrameAck(0x0591,0x0000,0x1f);  
+            }
+            
+            return TRUE;
+        }   
+        asKey = pEiData[EiDataLen - 1];
+        //DataSignlen = EiDataLen + (WORD)AppLen;
+        if(AppType == 0x08)
+        {
+            if(g_wEncCerWPtr)
+            {
+                MD5(g_bEncCerTxt,g_wEncCerWPtr,Consel_MD5);  
+                pAppData = Consel_MD5;
+                AppLen   = 16;
+            }
+        }
+        if(VerifyDataSign(asKey,pAppData,AppLen,pEiData,EiDataLen - 1)) //验签成功  ZX修改20170503
+        {
+            if(AppType == 0x08)
+            {
+                m_wUpdataFaultFlag = 0;
+                return true;
+            }
+            else if(pReceiveFrame->FrameEB.Data[1] == 0x68)
+            {
+                pReceiveFrame = (VIec101Frame*)&pReceiveFrame->FrameEB.Data[1];
+                RecFrame68(); 
+                return true;
+            }            
+        }
+        else
+        {
+            if(AppType == 0x08)
+            {
+                m_wUpdataFaultFlag = 0x0291;
+            }
+            else
+            {
+                SendEncFrameAck(0x0291,0x0000,0x1f);
+            }            
+        }
+        break;
+    case 0x20:   
+        SendGatewayVerify();
+        break;
+    case 0x22:
+        SendGatewayVerifyAck();
+        break;
+    case 0x50:
+        SendHostVerify();   
+        break;
+    case 0x52:
+        SendHostVerifyAck();
+        break;
+    case 0x54:    //主站获取终端芯片序列号
+        SendEncChipID(0);
+        break;
+    case 0x60:
+        SendChipKeyVer(0);
+        break;
+    case 0x62:
+        SendUpdataKeyAck();
+        break;
+    case 0x64:
+        SendRecovKeyAck();
+        break;
+    case 0x70:
+        SendCerUpdataAck();
+        break;
+    case 0x72:
+        SendCerDownloadAck();
+        break;
+    case 0x74:
+        SendCer(0);
+        break;
+    case 0x30:  //运维工具身份认证
+        SendToolVerifyAck();  
+        break;
+    case 0x32:
+        VerifyToolSign();
+        break;
+    case 0x34:
+        SendChipKeyVer(1);
+        break;
+    case 0x36:
+        SendUnitID();
+        break;
+    case 0x38:
+        SendEncChipID(1);
+        break;
+    case 0x3A:
+        SendEncPubKey();
+        break;
+    case 0x3C:
+        SendSignCerTxt();
+        break;
+    case 0x3E:
+        SendLoadCerAck();
+        break;
+    case 0x40:
+        SendReWriteCerAck();
+        break;
+     case 0x42:
+        SendCer(1);
+        break;
+    case 0x46:
+        SendToolRecovKey();
+    }
+    return TRUE;
+}
+BOOL CBJ101S::RecFrameEB(WORD ProcBytes)
+{
+     //BYTE data[1024] = {0};
+    WORD FrameLen = 0;
+    //for(WORD i = 0; i < ProcBytes; i++)
+    //{
+    //    data[i] = g_EncRxBuf.bBuf[(g_EncRxBuf.wCheckFrame + i) & 0x3FF];
+    //}
+    //pReceiveFrame = (VIec101Frame*)data;
+    m_bEncObject = pReceiveFrame->FrameEB.FrameType[1] & CONNECT_OBJECT_BIT;
+    m_bSymmetricKeyFlag = pReceiveFrame->FrameEB.FrameType[1] & m_bSymmetricKeyFlag;
+    FrameLen = MAKEWORD(pReceiveFrame->FrameEB.LengthL,pReceiveFrame->FrameEB.LengthH);
+//#ifdef DEBUGENC
+    //m_bHostCertifyFlag = 0x55;  //测试使用
+//#endif
+    if((pReceiveFrame->FrameEB.FrameType[1] & ENC_TURN_BIT) == ENC_ON)   //该帧报文加密
+    {
+//        for(BYTE i = 0; i < 4; i++)
+//        {
+//            m_bHostMac[i] = pReceiveFrame->FrameEB.Data[pReceiveFrame->FrameEB.Data[APPDATA_LEN] + 2 + i];
+//        }
+        //解密报文长度为报文长度- 2 个字节报文类型
+        if((pReceiveFrame->FrameEB.FrameType[1] & CONNECT_OBJECT_BIT) == SET_TOOL)  //运维工具 
+            DecryptToolData(&pReceiveFrame->FrameEB.AppType, FrameLen - 2, &pReceiveFrame->FrameEB.AppType);
+        else
+        {
+            m_bEncDataFlag = 0x55;
+ 
+            if(RecCipherTxt(&pReceiveFrame->FrameEB.AppType, FrameLen - 2, &pReceiveFrame->FrameEB.AppType) == FALSE)
+            {
+                SendEncFrameAck(0x0391,0x0000,0x1f);
+                return TRUE;
+            }
+      }
+        //RecCipherTxt();   //收到密文数据}
+    }
+    //else
+    {
+        RecClearTxt();   //收到到明文数据
+    }  
+    return TRUE;
+}
+
+WORD CBJ101S::SearchEncFrame(void)
+{
+    //DWORD Rc;
+    /*WORD FrameLen;
+    WORD MsgLen;
+    //BYTE* pCheckFrame;
+    //WORD  m_pCheckFrame;
+    //while (1)
+    {
+        if(g_EncRxBuf.wBufT >= g_EncRxBuf.wBufH)  //尾指针大于头指针
+        {
+            MsgLen = g_EncRxBuf.wBufT - g_EncRxBuf.wBufH;
+        }
+        else
+        {
+            MsgLen = g_EncRxBuf.wBufH - g_EncRxBuf.wBufT + 1024;
+        }
+    
+        if(MsgLen <= 10)
+        {
+            g_EncRxBuf.wBufH += MsgLen;
+            g_EncRxBuf.wBufH &= 0x3FF;
+            return 0;
+        }
+        //pCheckByte  = g_EncRxBuf.bBuf[g_EncRxBuf.wBufH];
+        g_EncRxBuf.wCheckFrame = g_EncRxBuf.wBufH;
+        while(MsgLen)
+        {
+            //switch(*pCheckFrame)
+            
+            if(g_EncRxBuf.bBuf[g_EncRxBuf.wCheckFrame] != 0xEB)
+            {
+                g_EncRxBuf.wCheckFrame++;
+                g_EncRxBuf.wCheckFrame &= 0x3FF;    
+                g_EncRxBuf.wBufH = g_EncRxBuf.wCheckFrame;
+                MsgLen--;
+                continue;
+            }
+            FrameLen = GET_ENC_FRAME_LEN(g_EncRxBuf.wCheckFrame,g_EncRxBuf.bBuf) + 6;
+            if(FrameLen > MsgLen)   //超时未接收全所有帧，整帧丢弃
+            {
+                g_EncRxBuf.wCheckFrame += MsgLen;
+                g_EncRxBuf.wCheckFrame &= 0x3FF;    //与上0x3FF都是为了防止指针越界
+                g_EncRxBuf.wBufH = g_EncRxBuf.wCheckFrame;      
+                MsgLen = 0;
+                continue;
+           }
+            if(GET_ENC_FRAME_TAIL(g_EncRxBuf.wCheckFrame,g_EncRxBuf.bBuf,FrameLen)!= 0xD7)
+            {
+                g_EncRxBuf.wCheckFrame++;
+                g_EncRxBuf.wCheckFrame &= 0x3FF;    
+                g_EncRxBuf.wBufH = g_EncRxBuf.wCheckFrame;
+                MsgLen--;
+                continue;                
+            }
+            g_EncRxBuf.wBufH += FrameLen;
+            g_EncRxBuf.wBufH &= 0x3FF;
+            return FrameLen;
+        }            
+    }*/
+    return 0;
+}
+
+BOOL CBJ101S::RcvEncData(void)
+{
+    /*WORD FrameLen = 0;
+    if(g_sRxBuff[m_uartId].m_iRcvCount == 0)
+    {
+        FrameLen = SearchEncFrame();
+    }
+    if(FrameLen <= 0)
+    {
+        return FALSE;
+    }
+    if(g_EncRxBuf.bBuf[g_EncRxBuf.wCheckFrame] == 0xEB)
+    {
+        RecFrameEB(FrameLen);
+    }*/
+    return TRUE;
+}
+
+
+#endif /*#ifdef INCLUDE_GB101_S*/

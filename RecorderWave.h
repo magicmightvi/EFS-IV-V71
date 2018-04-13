@@ -141,7 +141,7 @@ ASCII\n\
 #define  FILETRANS_COT  13 //文件传输
 
 #define  SEGMENT_LENGTH     234;// 发送段数据时的长度
-
+#define  SEGMENT_LENGTH_NEW     200;// 发送段数据时的长度
 #define  DAT_LENGTH     1200*16;// 发送数据文件的长度，每相电流1600个点，每个点2个字节，共A/B/C/0四相，电压数量相同
 
 #define  CRG_TIME_START 304; //CFG文件中第一个数据值的时间
@@ -250,7 +250,7 @@ RECORDER_WAVE_EXT struct RECORDER_CFG gRecorder_cfg[2/*FRECORDER_TOLNUM*/];
 RECORDER_WAVE_EXT struct RECORDER_CFG gRecorder_filecfg;
 RECORDER_WAVE_EXT struct RECORDER_CFG gRecorder_Readfilecfg;
 //RECORDER_WAVE_EXT int wave_total;//录波总条数
-RECORDER_WAVE_EXT void cfg_dat_length(int file_current_num);  //计算文件长度的函数
+RECORDER_WAVE_EXT void cfg_dat_length(RECORDER_CFG *pgRecorder_cfg,int file_current_num);  //计算文件长度的函数
 RECORDER_WAVE_EXT struct FLAG_RECORDER gRecorder_flag;  //用来标识是否在读录波数据
 RECORDER_WAVE_EXT struct RE_SEND_REC gRes_rec;  //用来标识是否在读录波数据
 //RECORDER_WAVE_EXT char ComtrderCfg[1000];

@@ -18,8 +18,8 @@ extern "C"
 //	#include "SMS\PrtcSms.h"
      
 // #pragma location=0x0FF00 
- const unsigned char VerNum[]="Ver71.00";
-const unsigned char VerNum_INLCD=71;
+ const unsigned char VerNum[]="Ver73.00";
+const unsigned char VerNum_INLCD=73;
  
  
 //================================== AD采集模块 ============================================
@@ -40,16 +40,16 @@ struct sSAMPLE_DATA
   extern struct sSAMPLE_DATA g_sSampleData;
 #endif
 //================================== 数据处理模块 ============================================
-  struct sRMT_BACK
+ struct sRMT_BACK
  {
-   unsigned long m_RmtInfoBackNew;//有遥信变化时
+ 	unsigned long m_RmtInfoBackNew;//有遥信变化时
    unsigned int m_Year;
    unsigned int m_Month;
    unsigned int m_Day;
    unsigned int m_Hour;
    unsigned int m_Minute;
-   unsigned int m_Milisecond; 
- };
+   unsigned int m_Milisecond;
+  };
  struct sSOE_DATA  //全部故障数据
   {
     unsigned char m_gSoeBuff[SOE_DATA_LEN_BYTE];//缓冲区中的数据，在RAM中保存1条
@@ -123,6 +123,7 @@ struct sSAMPLE_DATA
 
 #ifdef _DATA_PROCESS
     __no_init struct sREC_DATA g_sRecData;//录波数据
+    unsigned int g_gRmtLockLB;//录波标志位遥信闭锁时间计数
     unsigned char g_SendZJDingshi = 0; 
     unsigned char 	g_YXLBOKCounter;
     unsigned char g_TQBSCounter = 0; //投切、闭锁指示灯计数器  =0 是灭 =0x55 闭锁常亮  >=1投切闪烁	
@@ -151,6 +152,7 @@ struct sSAMPLE_DATA
     unsigned char g_SendBeat = 0;
     unsigned char g_SendBeatFailureNum = 0;
     unsigned int g_NolinkReset = 0;	
+    unsigned int g_NolinkWifi = 0;		
     unsigned char g_GPRSSendLink = 0;// 1分钟重练一次101
     unsigned char g_RenZLink = 0;	//重庆 认证标志	
     unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量 一个遥信信息占1个bit位
@@ -204,6 +206,7 @@ struct sSAMPLE_DATA
   	unsigned int g_gRmAcFilt[RMT_MEAS_NUM][RM_FILTER_NUM];//遥测量中的交流测量数据滤波 添加了3个线电压，但AD通道数不变，所以此处AC_AD_CHAN_NUM + 3
         unsigned int g_unFilterIndex = 0;   //交流测量数据滤波数据保存的位置
         volatile unsigned int g_unRmCaluFlag;    //遥测运算标志, 在中断中置ON，在大循环中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
+        volatile unsigned int g_unTESTFlag;  
   	unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量，为采样值的平方*16 最大值为(2048*2048/2*16)
         //unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量，包括内部遥信量
 
@@ -222,6 +225,7 @@ extern unsigned int g_test;
     extern unsigned int g_gSaveload;//每x秒存储1次负荷记录
     //extern unsigned char g_gFaF[256];//
     extern unsigned char g_YXLBOKCounter;
+    extern unsigned int g_gRmtLockLB;//录波标志位遥信闭锁时间计数	
     extern unsigned char g_SendZJDingshi; 
     extern unsigned char g_TQBSCounter; 
     extern unsigned char FlashReading;		
@@ -281,6 +285,7 @@ extern unsigned int g_test;
     extern unsigned char g_SendBeat;
     extern unsigned char g_SendBeatFailureNum;
     extern unsigned int g_NolinkReset;	    
+    extern unsigned int g_NolinkWifi;	
     //extern char g_AdChgSdYc;
    // extern char g_FltChgSdYc;
    // extern char g_PtLoseFlag;
@@ -296,6 +301,7 @@ extern unsigned int g_test;
 	extern unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量
        // extern unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量，包括内部遥信量   
        extern volatile unsigned int g_unRmCaluFlag;    //遥测运算标志, 在中断中置ON，在大循环中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
+       extern volatile unsigned int g_unTESTFlag;
 	extern unsigned int  g_SendLuboNum;
 	extern unsigned int  g_SendLuboPage;
     extern WORD wCfgTotalNum ;//总长度
@@ -534,6 +540,14 @@ extern unsigned int g_test;
     unsigned int g_unOffset;    //物理地址转换偏移量*/
     char  ComtrderCfg1[360];
     char  ComtrderCfg_adj[50];
+	
+	unsigned char g_EncComNo;		 //哪个串口在跑加密数据1==GPRS 2 ==DeBug， 其余无效
+	unsigned char g_bEncCerTxt[1];  //加密CER证书
+	unsigned char g_bHostRandom[8];  //主站随机数
+	unsigned char m_bUnitRandom[8];   //终端自身随机数，用于与运维工具通信
+	int g_wEncCerWPtr;				   //Cer证书记录位?
+	char g_bUnitID[25];//终端ID,24字节第一个字是节长度	 
+	unsigned char g_bAppType;//加密报文应用类型
 #else
     extern struct  sTX_BUFF g_sTxBuff[COMM_PORT_NUM];
     extern struct  sRX_BUFF g_sRxBuff[COMM_PORT_NUM];
@@ -611,13 +625,14 @@ extern unsigned int g_test;
     extern unsigned char g_uc101Flg;
     extern char  ComtrderCfg1[360];
     extern char  ComtrderCfg_adj[50];
-   /* extern unsigned char g_ucRELConfirm;   //通信用遥控确认标志
-    extern unsigned char g_ucRELUNM;       //通信用遥控继电器的顺序号
-    extern unsigned int g_unRELTimeFlg;    //通信用继电器选择时间标志
-    extern unsigned int g_unRELTimeFlg_101;
-    
-    extern unsigned int g_unOffset;    //物理地址转换偏移量 */
-  
+		
+	extern unsigned char g_EncComNo;//
+	extern unsigned char g_bEncCerTxt[1];
+ 	extern unsigned char g_bHostRandom[8];//主站随机数
+	extern unsigned char m_bUnitRandom[8];//
+	extern int g_wEncCerWPtr;//   
+	extern char g_bUnitID[25];//终端ID,24字节第一个字是节长度   
+	extern unsigned char g_bAppType;//加密报文应用类型 
 #endif
     
 //=======================DriverTimer.c--定时器驱动模块===============================================

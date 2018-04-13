@@ -5,36 +5,13 @@
   #include "Main.h"
 #endif
 
-/*extern char ComtrderCfg1[]=
-"The Recording File of Indicator 108,1999\n\
-8,8A,0D\n\
-1,Ia,A,,A,1,0,0,0,65535,1,1,S\n\
-2,Ib,B,,A,1,0,0,0,65535,1,1,S\n\
-3,Ic,C,,A,1,0,0,0,65535,1,1,S\n\
-4,I0,0,,A,1,0,0,0,65535,1,1,S\n\
-5,Ua,A,,V,1,0,0,0,65535,1,1,S\n\
-6,Ub,B,,V,1,0,0,0,65535,1,1,S\n\
-7,Uc,C,,V,1,0,0,0,65535,1,1,S\n\
-8,U0,0,,V,1,0,0,0,65535,1,1,S\n\
-50\n\
-1\n\
-4000,1200\n\
-10/03/15,12:20:27.672\n\
-10/03/15,12:20:27.772\n\
-ASCII\n\
-1";*/
-
-//static unsigned char ReadBack[256] = {0};//读取文件中的信息
 
 static unsigned int  wSendCFGNum = 0;////已经发送的配置文件的字节数，控制多帧传送用
 static unsigned int  wSendDATNum = 0;////已经发送的数据文件的字节数，控制多帧传送用
 //static unsigned int  wSendLISTNum = 0;////已经发送的目录的条数
 static unsigned int  wFileNum = 0;////已经发送的目录的条数
 static unsigned int  wSendDATNumOld = 0;
-static char *strtemp ; //CFG字符串的指针
- //wCfgTotalNum =1;//总长度static WORD 
- //section_current = 1;//当前节*/static WORD
-//gRecorder_flag.pRXBuff[256] = {0}; //将接收的68长帧保存下来，因为发送段信息的时候不发送长帧
+//static char *strtemp ; //CFG字符串的指针
 
 
 unsigned char ChkluboSum(BYTE *buf, unsigned int len)
@@ -55,161 +32,207 @@ unsigned char ChkluboSum(BYTE *buf, unsigned int len)
 //*功能：由于。CFG文件是定义的内容，需要对定义的.CFG文件修改其录波开始的时间和录波结束的时间
 //*描述: 并计算其.CFG的长度
 //***********************************************************************************
-void cfg_dat_length(int file_current_num)
+void cfg_dat_length(RECORDER_CFG *pgRecorder_cfg,int file_current_num)
 {
      char ch[100]; 
      unsigned int tt=0,xt;
-     unsigned int i;
-     for( i=0;(i< 360);i++)
-      {
-      ComtrderCfg1[i]=0;
-     	}
+     //unsigned int i;
+    // for( i=0;(i< 360);i++)
+    //  {
+      //ComtrderCfg1[i]=0;
+    // 	}
     {  //.CFG的长度
        //添加站名
-      memcpy(ComtrderCfg1,g_gLBName,g_gLBNameLen);
+      //memcpy(ComtrderCfg1,g_gLBName,g_gLBNameLen);
+      CAT_SpiWriteBytes(EEPADD_CFG, g_gLBNameLen, g_gLBName);
       tt += g_gLBNameLen;	
-      memcpy(&ComtrderCfg1[tt],",",1);//添加","
+      //memcpy(&ComtrderCfg1[tt],",",1);//添加","
+      sprintf(ch,",");
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ch), (unsigned char*) ch);
       tt +=1;	  
 	//添加站地址
-      sprintf((char *)ch,"%0d",g_gRunPara[RP_COMM_ADDR]);        
-      memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+      sprintf((char *)ch,"%5d",g_gRunPara[RP_COMM_ADDR]);        
+      //memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ch), (unsigned char*) ch);
       tt +=strlen(ch);	  
       //添加主体
-      //memcpy(&ComtrderCfg1[tt],ComtrderCfg,strlen(ComtrderCfg));//添加主体
-      //tt +=strlen(ComtrderCfg);
-      memcpy(&ComtrderCfg1[tt],ComtrderCfg_1,strlen(ComtrderCfg_1));//添加主体
+      memcpy(ch,ComtrderCfg_1,strlen(ComtrderCfg_1));//添加主体
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ComtrderCfg_1),(unsigned char*)ComtrderCfg_1);
       tt +=strlen(ComtrderCfg_1);
 
-      memcpy(&ComtrderCfg1[tt],ComtrderCfg_ua,strlen(ComtrderCfg_ua));//添加主体
+      //memcpy(&ComtrderCfg1[tt],ComtrderCfg_ua,strlen(ComtrderCfg_ua));//添加主体
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ComtrderCfg_ua),(unsigned char*)ComtrderCfg_ua);
       tt +=strlen(ComtrderCfg_ua);
-      for(i = 0; (i< 6); i++,tt++)
-	  	{ComtrderCfg1[tt]=ComtrderCfg_adj[i];}	  
-      memcpy(&ComtrderCfg1[tt],ComtrderCfg_2,strlen(ComtrderCfg_2));//添加主体
+	  
+      //for(i = 0; (i< 6); i++,tt++)
+	//  	{ComtrderCfg1[tt]=ComtrderCfg_adj[i];}
+	CAT_SpiWriteBytes(EEPADD_CFG+tt, 6,(unsigned char*)ComtrderCfg_adj);
+	tt += 6;  
+	  
+      //memcpy(&ComtrderCfg1[tt],ComtrderCfg_2,strlen(ComtrderCfg_2));//添加主体
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ComtrderCfg_2),(unsigned char*)ComtrderCfg_2);
       tt +=strlen(ComtrderCfg_2);
 
-      memcpy(&ComtrderCfg1[tt],ComtrderCfg_ub,strlen(ComtrderCfg_ub));//添加主体
+      //memcpy(&ComtrderCfg1[tt],ComtrderCfg_ub,strlen(ComtrderCfg_ub));//添加主体
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ComtrderCfg_ub),(unsigned char*)ComtrderCfg_ub);
       tt +=strlen(ComtrderCfg_ub);
-      for(i = 0; (i< 6); i++,tt++)
-	  	{ComtrderCfg1[tt]=ComtrderCfg_adj[i+6];}	  
-      memcpy(&ComtrderCfg1[tt],ComtrderCfg_2,strlen(ComtrderCfg_2));//添加主体
+	  
+      //for(i = 0; (i< 6); i++,tt++)
+	//  	{ComtrderCfg1[tt]=ComtrderCfg_adj[i+6];}	  
+	CAT_SpiWriteBytes(EEPADD_CFG+tt, 6,((unsigned char*)ComtrderCfg_adj)+6);
+	tt += 6;
+	
+      //memcpy(&ComtrderCfg1[tt],ComtrderCfg_2,strlen(ComtrderCfg_2));//添加主体
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ComtrderCfg_2),(unsigned char*)ComtrderCfg_2);
       tt +=strlen(ComtrderCfg_2);	  
 
-      memcpy(&ComtrderCfg1[tt],ComtrderCfg_uc,strlen(ComtrderCfg_uc));//添加主体
+      //memcpy(&ComtrderCfg1[tt],ComtrderCfg_uc,strlen(ComtrderCfg_uc));//添加主体
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ComtrderCfg_uc),(unsigned char*)ComtrderCfg_uc);
       tt +=strlen(ComtrderCfg_uc);
-      for(i = 0; (i< 6); i++,tt++)
-	  	{ComtrderCfg1[tt]=ComtrderCfg_adj[12+i];}	  
-      memcpy(&ComtrderCfg1[tt],ComtrderCfg_2,strlen(ComtrderCfg_2));//添加主体
+	  
+      //for(i = 0; (i< 6); i++,tt++)
+	//  	{ComtrderCfg1[tt]=ComtrderCfg_adj[12+i];}
+	CAT_SpiWriteBytes(EEPADD_CFG+tt, 6,((unsigned char*)ComtrderCfg_adj)+12);
+	tt += 6;
+	
+      //memcpy(&ComtrderCfg1[tt],ComtrderCfg_2,strlen(ComtrderCfg_2));//添加主体
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ComtrderCfg_2),(unsigned char*)ComtrderCfg_2);
       tt +=strlen(ComtrderCfg_2);
 
-      memcpy(&ComtrderCfg1[tt],ComtrderCfg_u0,strlen(ComtrderCfg_u0));//添加主体
+      //memcpy(&ComtrderCfg1[tt],ComtrderCfg_u0,strlen(ComtrderCfg_u0));//添加主体
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ComtrderCfg_u0),(unsigned char*)ComtrderCfg_u0);
       tt +=strlen(ComtrderCfg_u0);
-      for(i = 0; (i< 6); i++,tt++)
-	  	{ComtrderCfg1[tt]=ComtrderCfg_adj[i+18];}	  
-      memcpy(&ComtrderCfg1[tt],ComtrderCfg_2,strlen(ComtrderCfg_2));//添加主体
+	  
+      //for(i = 0; (i< 6); i++,tt++)
+	//  	{ComtrderCfg1[tt]=ComtrderCfg_adj[i+18];}
+	CAT_SpiWriteBytes(EEPADD_CFG+tt, 6,((unsigned char*)ComtrderCfg_adj)+18);
+	tt += 6;
+	
+      //memcpy(&ComtrderCfg1[tt],ComtrderCfg_2,strlen(ComtrderCfg_2));//添加主体
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ComtrderCfg_2),(unsigned char*)ComtrderCfg_2);
       tt +=strlen(ComtrderCfg_2);
 
-      memcpy(&ComtrderCfg1[tt],ComtrderCfg_i0,strlen(ComtrderCfg_i0));//添加主体
+      //memcpy(&ComtrderCfg1[tt],ComtrderCfg_i0,strlen(ComtrderCfg_i0));//添加主体
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ComtrderCfg_i0),(unsigned char*)ComtrderCfg_i0);
       tt +=strlen(ComtrderCfg_i0);
-      for(i = 0; (i< 6); i++,tt++)
-	  	{ComtrderCfg1[tt]=ComtrderCfg_adj[i+24];}  
-      memcpy(&ComtrderCfg1[tt],ComtrderCfg_2,strlen(ComtrderCfg_2));//添加主体
+	  
+      //for(i = 0; (i< 6); i++,tt++)
+	//  	{ComtrderCfg1[tt]=ComtrderCfg_adj[i+24];}  
+	CAT_SpiWriteBytes(EEPADD_CFG+tt, 6,((unsigned char*)ComtrderCfg_adj)+24);
+	tt += 6;
+	
+      //memcpy(&ComtrderCfg1[tt],ComtrderCfg_2,strlen(ComtrderCfg_2));//添加主体
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ComtrderCfg_2),(unsigned char*)ComtrderCfg_2);
       tt +=strlen(ComtrderCfg_2);
 	  
-      memcpy(&ComtrderCfg1[tt],ComtrderCfg_3,strlen(ComtrderCfg_3));//添加主体
+      //memcpy(&ComtrderCfg1[tt],ComtrderCfg_3,strlen(ComtrderCfg_3));//添加主体
+      CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ComtrderCfg_3),(unsigned char*)ComtrderCfg_3);
       tt +=strlen(ComtrderCfg_3);
 	//添加采样频率
-      if(gRecorder_Readfilecfg.CFG_Samp==4000)
+      if(pgRecorder_cfg->CFG_Samp==4000)
       	{	  
-      		memcpy(&ComtrderCfg1[tt],RECCfg,strlen(RECCfg));
+      		//memcpy(&ComtrderCfg1[tt],RECCfg,strlen(RECCfg));
+      		CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(RECCfg),(unsigned char*)RECCfg);
 		tt +=strlen(RECCfg);	
       	}
-	else if(gRecorder_Readfilecfg.CFG_Samp==2000)
+	else if(pgRecorder_cfg->CFG_Samp==2000)
 	  	{
-	  	memcpy(&ComtrderCfg1[tt],RECCfg,strlen(RECCfg));
+	  	//memcpy(&ComtrderCfg1[tt],RECCfg,strlen(RECCfg));
+	  	CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(RECCfg),(unsigned char*)RECCfg);
 		tt +=strlen(RECCfg);	
 	  	}
-	else //if(gRecorder_Readfilecfg.CFG_Samp==800)  
+	else //if(gRecorder_filecfg.CFG_Samp==800)  
       	{	//gRecorder_cfg[temp[1]].CFG_EndSamp  
-      		memcpy(&ComtrderCfg1[tt],ACTCfg,5);
+      		//memcpy(&ComtrderCfg1[tt],ACTCfg,5);
+      		CAT_SpiWriteBytes(EEPADD_CFG+tt, 5,(unsigned char*)ACTCfg);
 		tt +=5;
-		sprintf((char *)ch,"%u\n",gRecorder_Readfilecfg.CFG_EndSamp);
-		memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+		sprintf((char *)ch,"%u\n",pgRecorder_cfg->CFG_EndSamp);
+		//memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+		CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ch), (unsigned char*) ch);
               tt +=strlen(ch);
       	}	  
       //添加日期 
-      if(gRecorder_Readfilecfg.CFG_Samp==4000)
+      if(pgRecorder_cfg->CFG_Samp==4000)
       	{      
 #ifdef SD_101S
-      	   if(gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC]<320){xt=320;}
+      	   if(pgRecorder_cfg->comtrade_time[RTC_MICROSEC]<320){xt=320;}
 #else
-      	   if(gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC]<160){xt=160;}
+      	   if(pgRecorder_cfg->comtrade_time[RTC_MICROSEC]<160){xt=160;}
 #endif		   
-	  	else {xt=gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC];}
-      	   sprintf((char *)ch,"%4d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_YEAR],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
-                                                                gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
+	  	else {xt=pgRecorder_cfg->comtrade_time[RTC_MICROSEC];}
+      	   sprintf((char *)ch,"%4d/%02d/%02d,%02d:%02d:%02d.%03d\n",pgRecorder_cfg->comtrade_time[RTC_YEAR],pgRecorder_cfg->comtrade_time[RTC_MONTH],
+                                                                pgRecorder_cfg->comtrade_time[RTC_DATE],pgRecorder_cfg->comtrade_time[RTC_HOUR],
 #ifdef SD_101S
-                                                                gRecorder_Readfilecfg.comtrade_time[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time[RTC_SEC],(xt-320));
+                                                                pgRecorder_cfg->comtrade_time[RTC_MINUT],pgRecorder_cfg->comtrade_time[RTC_SEC],(xt-320));
 #else
-                                                                gRecorder_Readfilecfg.comtrade_time[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time[RTC_SEC],(xt-160));
+                                                                pgRecorder_cfg->comtrade_time[RTC_MINUT],pgRecorder_cfg->comtrade_time[RTC_SEC],(xt-160));
  #endif
-         memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+         //memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+         CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ch), (unsigned char*) ch);
          tt +=strlen(ch);
-         sprintf((char *)ch,"%4d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_YEAR],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
-                                                                gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
-                                                                gRecorder_Readfilecfg.comtrade_time[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time[RTC_SEC],(xt));
+         sprintf((char *)ch,"%4d/%02d/%02d,%02d:%02d:%02d.%03d\n",pgRecorder_cfg->comtrade_time[RTC_YEAR],pgRecorder_cfg->comtrade_time[RTC_MONTH],
+                                                                pgRecorder_cfg->comtrade_time[RTC_DATE],pgRecorder_cfg->comtrade_time[RTC_HOUR],
+                                                                pgRecorder_cfg->comtrade_time[RTC_MINUT],pgRecorder_cfg->comtrade_time[RTC_SEC],(xt));
 	  
-         memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+         //memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+         CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ch), (unsigned char*) ch);
          tt +=strlen(ch);	
       	}
-	if(gRecorder_Readfilecfg.CFG_Samp==2000)
+	if(pgRecorder_cfg->CFG_Samp==2000)
 		{//山东版  采样频率均为2000
 		if(file_current_num<(MAX_REC_NUM+1))
 			{
-			if(gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC]<320)
+			if(pgRecorder_cfg->comtrade_time[RTC_MICROSEC]<320)
 				{xt=320;}
 			else 
-				{xt=gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC];}
-			sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
-                                                                (gRecorder_Readfilecfg.comtrade_time[RTC_YEAR]-2000),gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
-                                                                gRecorder_Readfilecfg.comtrade_time[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time[RTC_SEC],(xt-320));
-         		memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+				{xt=pgRecorder_cfg->comtrade_time[RTC_MICROSEC];}
+			sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",pgRecorder_cfg->comtrade_time[RTC_DATE],pgRecorder_cfg->comtrade_time[RTC_MONTH],
+                                                                (pgRecorder_cfg->comtrade_time[RTC_YEAR]-2000),pgRecorder_cfg->comtrade_time[RTC_HOUR],
+                                                                pgRecorder_cfg->comtrade_time[RTC_MINUT],pgRecorder_cfg->comtrade_time[RTC_SEC],(xt-320));
+         		//memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+         		CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ch), (unsigned char*) ch);
          		tt +=strlen(ch);
-         		sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
-                                                                (gRecorder_Readfilecfg.comtrade_time[RTC_YEAR]-2000),gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
-                                                                gRecorder_Readfilecfg.comtrade_time[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time[RTC_SEC],(xt));
+         		sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",pgRecorder_cfg->comtrade_time[RTC_DATE],pgRecorder_cfg->comtrade_time[RTC_MONTH],
+                                                                (pgRecorder_cfg->comtrade_time[RTC_YEAR]-2000),pgRecorder_cfg->comtrade_time[RTC_HOUR],
+                                                                pgRecorder_cfg->comtrade_time[RTC_MINUT],pgRecorder_cfg->comtrade_time[RTC_SEC],(xt));
 	  
-         		memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+         		//memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+         		CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ch), (unsigned char*) ch);
          		tt +=strlen(ch);			
 			}
 		else
 			{
-			sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
-                                                                (gRecorder_Readfilecfg.comtrade_time[RTC_YEAR]-2000),gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
-                                                                gRecorder_Readfilecfg.comtrade_time[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time[RTC_SEC],gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC]);
+			sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",pgRecorder_cfg->comtrade_time[RTC_DATE],pgRecorder_cfg->comtrade_time[RTC_MONTH],
+                                                                (pgRecorder_cfg->comtrade_time[RTC_YEAR]-2000),pgRecorder_cfg->comtrade_time[RTC_HOUR],
+                                                                pgRecorder_cfg->comtrade_time[RTC_MINUT],pgRecorder_cfg->comtrade_time[RTC_SEC],pgRecorder_cfg->comtrade_time[RTC_MICROSEC]);
  
-            		memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+            		//memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+            		CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ch), (unsigned char*) ch);
             		tt +=strlen(ch);
-	      		sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time1[RTC_DATE],gRecorder_Readfilecfg.comtrade_time1[RTC_MONTH],
-                                                                (gRecorder_Readfilecfg.comtrade_time1[RTC_YEAR]-2000),gRecorder_Readfilecfg.comtrade_time1[RTC_HOUR],
-                                                                gRecorder_Readfilecfg.comtrade_time1[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time1[RTC_SEC],gRecorder_Readfilecfg.comtrade_time1[RTC_MICROSEC]);
+	      		sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",pgRecorder_cfg->comtrade_time1[RTC_DATE],pgRecorder_cfg->comtrade_time1[RTC_MONTH],
+                                                                (pgRecorder_cfg->comtrade_time1[RTC_YEAR]-2000),pgRecorder_cfg->comtrade_time1[RTC_HOUR],
+                                                                pgRecorder_cfg->comtrade_time1[RTC_MINUT],pgRecorder_cfg->comtrade_time1[RTC_SEC],pgRecorder_cfg->comtrade_time1[RTC_MICROSEC]);
  			
-	     		memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+	     		//memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+	     		CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ch), (unsigned char*) ch);
             		tt +=strlen(ch);
 			}
 		}
-	else if(gRecorder_Readfilecfg.CFG_Samp==800)
+	else if(pgRecorder_cfg->CFG_Samp==800)
 	{
-	      sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time[RTC_DATE],gRecorder_Readfilecfg.comtrade_time[RTC_MONTH],
-                                                                (gRecorder_Readfilecfg.comtrade_time[RTC_YEAR]-2000),gRecorder_Readfilecfg.comtrade_time[RTC_HOUR],
-                                                                gRecorder_Readfilecfg.comtrade_time[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time[RTC_SEC],gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC]);
+	      sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",pgRecorder_cfg->comtrade_time[RTC_DATE],pgRecorder_cfg->comtrade_time[RTC_MONTH],
+                                                                (pgRecorder_cfg->comtrade_time[RTC_YEAR]-2000),pgRecorder_cfg->comtrade_time[RTC_HOUR],
+                                                                pgRecorder_cfg->comtrade_time[RTC_MINUT],pgRecorder_cfg->comtrade_time[RTC_SEC],pgRecorder_cfg->comtrade_time[RTC_MICROSEC]);
  
-            memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+            //memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+            CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ch), (unsigned char*) ch);
             tt +=strlen(ch);
-	      sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",gRecorder_Readfilecfg.comtrade_time1[RTC_DATE],gRecorder_Readfilecfg.comtrade_time1[RTC_MONTH],
-                                                                (gRecorder_Readfilecfg.comtrade_time1[RTC_YEAR]-2000),gRecorder_Readfilecfg.comtrade_time1[RTC_HOUR],
-                                                                gRecorder_Readfilecfg.comtrade_time1[RTC_MINUT],gRecorder_Readfilecfg.comtrade_time1[RTC_SEC],gRecorder_Readfilecfg.comtrade_time1[RTC_MICROSEC]);
+	      sprintf((char *)ch,"%2d/%02d/%02d,%02d:%02d:%02d.%03d\n",pgRecorder_cfg->comtrade_time1[RTC_DATE],pgRecorder_cfg->comtrade_time1[RTC_MONTH],
+                                                                (pgRecorder_cfg->comtrade_time1[RTC_YEAR]-2000),pgRecorder_cfg->comtrade_time1[RTC_HOUR],
+                                                                pgRecorder_cfg->comtrade_time1[RTC_MINUT],pgRecorder_cfg->comtrade_time1[RTC_SEC],pgRecorder_cfg->comtrade_time1[RTC_MICROSEC]);
  			
-	     memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+	     //memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
+	     CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ch), (unsigned char*) ch);
             tt +=strlen(ch);		
 
 	 }
@@ -217,16 +240,19 @@ void cfg_dat_length(int file_current_num)
       //添加结尾
 	if(g_gRunPara[RP_CFG_KEY]&BIT[RP_COMTRADE_TYPE])
 		{
-      		memcpy(&ComtrderCfg1[tt],CfgEnd1,strlen(CfgEnd1));
+      		//memcpy(&ComtrderCfg1[tt],CfgEnd1,strlen(CfgEnd1));
+      		CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(CfgEnd1),(unsigned char*)CfgEnd1);
       		tt +=strlen(CfgEnd1);		
 		}
 	else
 		{
-      		memcpy(&ComtrderCfg1[tt],CfgEnd,strlen(CfgEnd));
+      		//memcpy(&ComtrderCfg1[tt],CfgEnd,strlen(CfgEnd));
+      		CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(CfgEnd),(unsigned char*)CfgEnd);
       		tt +=strlen(CfgEnd);
 		}
-      gRecorder_Readfilecfg.CFG_Leng=tt;//strlen(ComtrderCfg1);
-      strtemp = ComtrderCfg1;
+      pgRecorder_cfg->CFG_Leng=tt;
+      CAT_SpiWriteWord(EEPADD_CFG-2,tt);
+      //strtemp = ComtrderCfg1;
     
     }
           
@@ -1047,11 +1073,11 @@ unsigned char *  ApprovalFile(unsigned char *pTxBuf,unsigned char leng,RECORDER_
 unsigned char *  FileDataCfg(unsigned char *pTxBuf, unsigned char leng,RECORDER_CFG *pgRecorder_cfg,int segment_leng)//WORD wSecLenPtr,
 {
        //int segment_leng = SEGMENT_LENGTH;
-       unsigned int j;
+       unsigned int j,x;
        
        unsigned char *pTxPos;
        
-       wCfgTotalNum =strlen(ComtrderCfg1);//(pgRecorder_cfg->CFG_Leng);//张弢 
+       wCfgTotalNum =CAT_SpiReadWord(EEPADD_CFG-2);//strlen(ComtrderCfg1);//(pgRecorder_cfg->CFG_Leng);//张弢 
            
        gRecorder_flag.LIST_flag = OFF;
          
@@ -1063,7 +1089,15 @@ unsigned char *  FileDataCfg(unsigned char *pTxBuf, unsigned char leng,RECORDER_
           *pTxBuf++ = gRecorder_flag.pRXBuff[leng + 1];//
           *pTxBuf++ = gRecorder_flag.pRXBuff[leng + 2];//节名称
           *pTxBuf++ = 3;//pTxBuf[wSecLenPtr]LSQ=3 不带停止激活的节传输
-           GLubocfg_Sum = ChkluboSum((BYTE *)ComtrderCfg1, strlen(ComtrderCfg1));
+           //GLubocfg_Sum = ChkluboSum((BYTE *)ComtrderCfg1, strlen(ComtrderCfg1));
+           GLubocfg_Sum=0;
+	    unsigned char cfg_byte;
+	    x=CAT_SpiReadWord(EEPADD_CFG-2);
+	    for(unsigned int j =0;j< x;j++)
+          {            
+          	cfg_byte = CAT_SpiReadByte(EEPADD_CFG+j);//每个字节做校验和
+             GLubocfg_Sum = GLubocfg_Sum +cfg_byte;//ChkluboSum(&cfg_byte, 1);     
+          }	   
           *pTxBuf++ = GLubocfg_Sum;
           wSendCFGNum=0;
           //GLubocfg_Sum=0;    
@@ -1081,7 +1115,7 @@ unsigned char *  FileDataCfg(unsigned char *pTxBuf, unsigned char leng,RECORDER_
            
            for(j = 0;(j < segment_leng)&&(wSendCFGNum < wCfgTotalNum);wSendCFGNum++,j++)
            {
-               *pTxBuf++ = *strtemp++;
+               *pTxBuf++ =CAT_SpiReadByte(EEPADD_CFG+wSendCFGNum); //*strtemp++;
 	       //GLubocfg_Sum += *pTxBuf;	   
            }
           
@@ -1833,7 +1867,7 @@ unsigned char *  FileDataCfg_YN(unsigned char *pTxBuf, unsigned char leng,RECORD
 	unsigned char temp;
       ptoBuf = pTxBuf;
        
-       wCfgTotalNum =strlen(ComtrderCfg1);//(pgRecorder_cfg->CFG_Leng);//张弢            
+       wCfgTotalNum =CAT_SpiReadWord(EEPADD_CFG-2);//strlen(ComtrderCfg1);//(pgRecorder_cfg->CFG_Leng);//张弢            
        gRecorder_flag.LIST_flag_YN= OFF;
         {
            pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= CALL_FILE_YN;//类型标示 137 0x89
@@ -1873,7 +1907,7 @@ unsigned char *  FileDataCfg_YN(unsigned char *pTxBuf, unsigned char leng,RECORD
            
            for(j = 0;(j < segment_leng)&&(wSendCFGNum < wCfgTotalNum);wSendCFGNum++,j++)
            {
-               *pTxBuf++ = *strtemp++;
+               *pTxBuf++ = CAT_SpiReadByte(EEPADD_CFG+wSendCFGNum);//*strtemp++;
            }
           
            *pTxPos = pTxBuf - pTxPos-1;//LL
@@ -2098,7 +2132,7 @@ unsigned char * RecCallFile_YN(unsigned char *pTxBuf, unsigned char leng,unsigne
           	}
 	   else
 	   	{
-	   	cfg_dat_length(filename);
+	   	cfg_dat_length(&gRecorder_Readfilecfg,filename);
           	*pTxBuf++ = gRecorder_Readfilecfg.CFG_Leng;
           	*pTxBuf++ = (gRecorder_Readfilecfg.CFG_Leng)>>8;
           	*pTxBuf++ = (gRecorder_Readfilecfg.CFG_Leng)>>16; 		
@@ -2143,7 +2177,7 @@ unsigned char *  FileCfgOneFrame_YN(unsigned char *pTxBuf, unsigned char leng,RE
 	unsigned char temp;
       ptoBuf = pTxBuf;
        
-       wCfgTotalNum =strlen(ComtrderCfg1);//(pgRecorder_cfg->CFG_Leng);//张弢            
+       wCfgTotalNum =CAT_SpiReadWord(EEPADD_CFG-2);//strlen(ComtrderCfg1);//(pgRecorder_cfg->CFG_Leng);//张弢            
        gRecorder_flag.LIST_flag_YN= OFF;
 
            pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= CALL_ONEFRAME_YN;//类型标示 137 0x89
@@ -2170,10 +2204,11 @@ unsigned char *  FileCfgOneFrame_YN(unsigned char *pTxBuf, unsigned char leng,RE
 	if(framenum>=2)
 		{return pTxBuf; }
 	else if(framenum==1)
-		{strtemp+=200;wSendCFGNum+=200;}           
+		{//strtemp+=200;
+                  wSendCFGNum+=200;}           
            for(j = 0;(j < 200)&&(wSendCFGNum < wCfgTotalNum);wSendCFGNum++,j++)
            {
-               *pTxBuf++ = *strtemp++;
+               *pTxBuf++ = CAT_SpiReadByte(EEPADD_CFG+wSendCFGNum);//*strtemp++;
            }
           
            *pTxPos = pTxBuf - pTxPos-1;//LL
@@ -2548,7 +2583,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
          if( gRecorder_flag.pRXBuff[leng + 2]==1)//节名称为1 则是配置文件的数据信息
          {
           if(wSendCFGNum ==0)
-                cfg_dat_length(FileName);//(&mRecorder_cfg,FileName);
+                cfg_dat_length(&gRecorder_Readfilecfg,FileName);//(&mRecorder_cfg,FileName);
            pTxBuf = FileDataCfg(pTxBuf,leng,&gRecorder_Readfilecfg,segment_leng);//wSecLenPtr,
               
          }
@@ -2733,7 +2768,7 @@ void Code_Lubo_YN(unsigned char *pRxBuf,unsigned char *pTXBuff)
 		temp= gRecorder_flag.pRXBuff[leng+7];//文件名8个字节 7字节时间+1字节编号
     		FileName = temp>>1;
 		if(wSendCFGNum ==0)
-              	cfg_dat_length(FileName);
+              	cfg_dat_length(&gRecorder_Readfilecfg,FileName);
            	pTxBuf = FileDataCfg_YN(pTxBuf,leng,&gRecorder_Readfilecfg,200);//wSecLenPtr,
            	//section_current = 0;
 		}
@@ -2757,7 +2792,7 @@ void Code_Lubo_YN(unsigned char *pRxBuf,unsigned char *pTXBuff)
 		}
 	else
 		{
-		cfg_dat_length(FileName);
+		cfg_dat_length(&gRecorder_Readfilecfg,FileName);
            	pTxBuf = FileCfgOneFrame_YN(pTxBuf,leng,&gRecorder_Readfilecfg,framenum);//wSecLenPtr,
 		}    				
     	}
