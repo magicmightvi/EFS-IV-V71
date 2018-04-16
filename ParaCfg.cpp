@@ -1054,6 +1054,7 @@ void CheckRECPara(void)
     CAT_SpiWriteBytes(EEPADD_SOE_NUM , 2, unTemp);
     g_sSoeData.m_ucSoeNum = unTemp[0];
     g_sSoeData.m_ucSoePos = unTemp[1];
+	CAT_SpiReadBytes(EEPADD_SOE_DATA + g_sSoeData.m_ucSoePos * 12 , 12, g_sSoeData.m_gSoeBuff);
 
 	unsigned int untemp[4];		
 	CAT_SpiReadWords(EEPADD_SOE_E2ROMADR, 4, untemp);  //±£´æµ½EEPROMÖÐ
