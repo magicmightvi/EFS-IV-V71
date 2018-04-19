@@ -334,6 +334,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
     	//g_gRunPara[RP_CFG_KEY]=g_gRunPara[RP_CFG_KEY]&(~BIT[RPCFG_DEL_LUBO]);
     	u_dellubo  = 0;
 		DelALLSOE();
+		DelALLLOG();
     		temp[0]=0;temp[1]=0;temp[2]=0;temp[3]=0;temp[4]=0;temp[5]=0;    	
        	CAT_SpiWriteWords(EEPADD_LUBONUM, 6, temp); 
         	g_sRecData.m_gRecANum=temp[0];//录波总条数1~32
@@ -395,7 +396,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
 	 	g_gRunPara[RP_RHSEND_TIME1]=100;
 	 if(g_gRunPara[RP_CT_TRANS]==0)g_gRunPara[RP_CT_TRANS]=20;
          CalcProtCnt();
-
+	SaveLOG(LOG_PAR_CHAG,1);
     }
     
     //IEC101参数设置
@@ -406,29 +407,12 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         CAT_SpiWriteBytes(EEPADD_IECPARA , IEC_PARA_NUM, g_ucPara101);     //保存到EEPROM中
         CAT_SpiWriteBytes(EEPADDBK_IECPARA, IEC_PARA_NUM, g_ucPara101);    //保存到EEPROM的备份区中
         //InitSCI();
+        SaveLOG(LOG_PAR_CHAG,1);
     }
     //遥信地址点表
     if((g_ucParaChang & BIT2) == BIT2)
     {
         g_ucParaChang &= NBIT2;
-        /*g_ucYXAddr[IEC_YX_NUM] = AddChar(g_ucYXAddr, IEC_YX_NUM);      //计算CS
-        #define RDYXMUN_MAX 100 //单次读取e2最大个数
-        for(int i = 0;i<50;i++)
-        {
-          if((IEC_YX_NUM+1 - i*RDYXMUN_MAX) <= RDYXMUN_MAX)
-          {
-            CAT_SpiWriteWords(EEPADD_IECYXADDR+RDYXMUN_MAX*i*2, IEC_YX_NUM+1 - i*RDYXMUN_MAX, &g_ucYXAddr[RDYXMUN_MAX*i]);
-            break;
-          }
-          else
-          {
-            CAT_SpiWriteWords(EEPADD_IECYXADDR+RDYXMUN_MAX*i*2, RDYXMUN_MAX, &g_ucYXAddr[RDYXMUN_MAX*i]);
-          }
-          WatchDog();
-        }*/
-        
-        //CAT_SpiWriteBytes(EEPADD_IECYXADDR , IEC_YX_NUM*2 + 1, (unsigned char *)g_ucYXAddr);     //保存到EEPROM中
-        //CAT_SpiWriteBytes(EEPADDBK_IECYXADDR, IEC_YX_NUM*2 + 1, (unsigned char *)g_ucYXAddr);    //保存到EEPROM的备份区中
         if(g_ucYXAddr[0] == 0)
         {
             RstIEC101YxAddr();  //遥信点表初始化
@@ -446,6 +430,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
                 break;
         }
         g_ucYxTransNum = i;
+		SaveLOG(LOG_PAR_CHAG,1);
        /* g_gRMTBitBackCount = 0; //如果遥信点表重新配置，则清空未上传的长时标遥信
         g_gRMTBitBackCount_Aut = 0;
         g_EquInfo[COMM_INDEX_GPRS]  &= NBIT1;//清标识
@@ -459,7 +444,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         g_ucYCAddr[IEC_YC_NUM] = AddChar(g_ucYCAddr, IEC_YC_NUM);      //计算CS
         CAT_SpiWriteBytes(EEPADD_IECYCADDR , IEC_YC_NUM + 1, g_ucYCAddr);     //保存到EEPROM中
         CAT_SpiWriteBytes(EEPADDBK_IECYCADDR, IEC_YC_NUM + 1, g_ucYCAddr);    //保存到EEPROM的备份区中
-      
+        SaveLOG(LOG_PAR_CHAG,1);      
     }
     //遥控地址点表
  /*   if((g_ucParaChang & BIT4) == BIT4)
@@ -477,6 +462,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         CAT_SpiWriteBytes(EEPADD_PHONE , PHONE_PA_NUM, g_gSmsPhone);     //保存到EEPROM中
         CAT_SpiWriteBytes(EEPADDBK_PHONE, PHONE_PA_NUM, g_gSmsPhone);    //保存到EEPROM的备份区中
         CheckTELNUMPara();//张弢 0328 将g_gSmsPhone转成TEL_NUM g_ucphone_perm 
+        SaveLOG(LOG_PAR_CHAG,1);
     }
  
    	//张弢 读汉字站名
@@ -489,6 +475,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         g_gLBName[LBName_NUM] = AddChar(g_gLBName, LBName_NUM);      //计算CS
         CAT_SpiWriteBytes(EEPADD_LBNAME   , LBName_NUM+1, g_gLBName);     //保存到EEPROM中
         CAT_SpiWriteBytes(EEPADD_LBNAMELEN, 1, &g_gLBNameLen);    //保存到EEPROM的备份区中
+        SaveLOG(LOG_PAR_CHAG,1);
     }	
     if((g_ucParaChang & BIT7) == BIT7)
     {

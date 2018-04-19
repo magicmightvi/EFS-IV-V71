@@ -20,8 +20,15 @@ extern "C"
 // #pragma location=0x0FF00 
  const unsigned char VerNum[]="Ver73.00";
 const unsigned char VerNum_INLCD=73;
- 
- 
+//================================== LOG日志模块 ============================================ 
+struct sLOG_DATA//1条LOG日志的内容
+{
+	char m_gLogType;
+	char m_gLogValu;
+	char m_gLogTimer[RTC_NUM+1];//年 月 日 时 分 秒 毫秒 毫秒
+	unsigned int m_gRmtMeas[8];//U0 UA UB UC I0 UPT CSQ UCAP  或者8个电流  
+};
+
 //================================== AD采集模块 ============================================
 struct sSAMPLE_DATA
   {
@@ -123,6 +130,7 @@ struct sSAMPLE_DATA
 
 #ifdef _DATA_PROCESS
     __no_init struct sREC_DATA g_sRecData;//录波数据
+    __no_init struct sLOG_DATA g_sLogData[MAX_LOG_NUM];//LOG数据
     unsigned int g_gRmtLockLB;//录波标志位遥信闭锁时间计数
     unsigned char g_SendZJDingshi = 0; 
     unsigned char 	g_YXLBOKCounter;
@@ -295,7 +303,8 @@ extern unsigned int g_test;
    // extern unsigned int  g_ZsqCmdRBit;
   //  extern unsigned int  g_ZsqCmdWBit;
    // extern unsigned int  g_JdgPwMode;
-    extern struct sSOE_DATA g_sSoeData;      
+    extern struct sSOE_DATA g_sSoeData;    
+	extern struct sLOG_DATA g_sLogData[MAX_LOG_NUM];//LOG数据
   	//extern unsigned int g_gRmtMeas[RMT_MEAS_NUM];//遥测量，保存需要上传到后台的遥测数据
         extern unsigned int g_gRmAcFilt[RMT_MEAS_NUM][RM_FILTER_NUM];//遥测量中的交流测量数据滤波 添加了3个线电压，但AD通道数不变，所以此处AC_AD_CHAN_NUM + 3
 	extern unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量

@@ -266,73 +266,41 @@ unsigned char* LogDirectory(unsigned char *pTxBuf, unsigned char leng)
   unsigned long FLogAddr;
   BYTE byLogDa[128] = {0};      
         
-      pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]] = CATALOG_TYPE;
-      CAT_SpiReadWords(EEPADD_LOGNUM, FLOGINFONUM, FLogInfo);
-      if(FLogInfo[FLOG_CS] != (FLogInfo[FLOG_TOTALNUM] + FLogInfo[FLOG_NEW] + FLogInfo[FLOG_OLD]))//+FLoadInfo[FLOAD_DAY]) || FLoadInfo[FLOAD_TOTALNUM] > FLASH_LOAD_MAXNUM || FLoadInfo[FLOAD_NEW] > FLASH_LOAD_MAXNUM)//如果FLASH地址不在负荷记录保存区域内
-          FLogInfo[FLOG_TOTALNUM] = 0; //清空负荷记录总条数
-            wavelog_total = FLogInfo[FLOG_TOTALNUM];
-    //if(wavelog_total > 0)
-      pTxBuf[6+g_ucPara101[IECP_LINKADDR_NUM]] = 1| VSQ;
-      
-      //pTxBuf[6+g_ucPara101[IECP_LINKADDR_NUM]] = (soe_num)| VSQ;
-      pTxBuf += leng;
-      gRecorder_flag.LIST_flag = OFF;
-     if(wavelog_total==0)//最后一段=(wSendLISTNum > wave_total) ||
-      {     
-  
+	pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]] = CATALOG_TYPE;
+	CAT_SpiReadWords(EEPADD_LOGP, FLOGINFONUM, FLogInfo);
+	if(FLogInfo[FLOG_CS] != (FLogInfo[FLOG_TOTALNUM] + FLogInfo[FLOG_NEW] + FLogInfo[FLOG_OLD]))//+FLoadInfo[FLOAD_DAY]) || FLoadInfo[FLOAD_TOTALNUM] > FLASH_LOAD_MAXNUM || FLoadInfo[FLOAD_NEW] > FLASH_LOAD_MAXNUM)//如果FLASH地址不在负荷记录保存区域内
+		FLogInfo[FLOG_TOTALNUM] = 0; //清空负荷记录总条数
+	wavelog_total = FLogInfo[FLOG_TOTALNUM];
+    
+	pTxBuf[6+g_ucPara101[IECP_LINKADDR_NUM]] = 1| VSQ;
+	pTxBuf += leng;
+	gRecorder_flag.LIST_flag = OFF;
+	if(wavelog_total==0)//最后一段=(wSendLISTNum > wave_total) ||
+ 		{   
         for(int i=0;i<13;i++)
-        {
+        	{
           *pTxBuf++=0;
-        }
-        
-      }
-      else
-      {
-      //if(wSendLISTNum == wave_total) wSendLISTNum=0;
+        	}        
+ 		}
+	else
+      	{      
         *pTxBuf++ = 1;
-              *pTxBuf++ = 0;
-        //sprintf((char *)ch,"LOG");
-        //*pTxBuf++ = strlen(ch);
-        //for(BYTE j = 0; j < strlen(ch); j++)
-       //*pTxBuf++  = ch[j];
-        
+        *pTxBuf++ = 0;
         Log_TOTAL_Leng = 9+wavelog_total * FLASH_PLOAD_LEN;//报文头9个字节
         *pTxBuf++ = Log_TOTAL_Leng;
         *pTxBuf++ = Log_TOTAL_Leng>>8;
-        *pTxBuf++ = Log_TOTAL_Leng>>16;   
-        /* if(((m_Recorder_cfg.lubo_total_num + 1)== g_FRecorder_Current_COUNT)||((m_Recorder_cfg.lubo_total_num+1 == FRECORDER_TOLNUM )&&(g_FRecorder_Current_COUNT==0)))
-        m_Recorder_cfg.CFG_SOF = 0x20;  <0>:=后面还有目录文件；<1>:=最后目录文件 
-        else
-        m_Recorder_cfg.CFG_SOF = 0;
-        if(wSendLISTNum >= wave_total-1)//SOF状态
-        {
-        //m_Recorder_cfg.CFG_SOF = 0x20;  <0>:=后面还有目录文件；<1>:=最后目录文件  
-        gRecorder_flag.LIST_flag = OFF;
-        
-        }    
-       else
-        {
-        //m_Recorder_cfg.CFG_SOF = 0;
-        gRecorder_flag.LIST_flag = TRUE;//ON;新修改
-        }*/
+        *pTxBuf++ = Log_TOTAL_Leng>>16;  
         FLogAddr = FADDR_LOG_START;// + ((unsigned long)wSendLISTNum * FLASH_DAYLOAD_LEN);
-       Sst26vf064b_Read(FLogAddr,byLogDa, FLASH_PLOAD_LEN);
-      *pTxBuf++ = 0x20;//m_Recorder_cfg.CFG_SOF;
-      *pTxBuf++= 0;
+       	Sst26vf064b_Read(FLogAddr,byLogDa, FLASH_PLOAD_LEN);
+      	*pTxBuf++ = 0x20;//m_Recorder_cfg.CFG_SOF;
+      	*pTxBuf++= 0;
         *pTxBuf++= byLogDa[10];
-      *pTxBuf++= byLogDa[9];
-      *pTxBuf++= byLogDa[8];
-      *pTxBuf++= byLogDa[7];
-      *pTxBuf++= byLogDa[6];
-      
+      	*pTxBuf++= byLogDa[9];
+      	*pTxBuf++= byLogDa[8];
+      	*pTxBuf++= byLogDa[7];
+      	*pTxBuf++= byLogDa[6];      
         *pTxBuf++= byLogDa[5];
-      //else
-        /*pTxBuf++= m_Recorder_cfg.comtrade_time[RTC_YEAR];
-      if(gRecorder_flag.LIST_flag == OFF)
-      {
-      wSendLISTNum = 0;
-      }*/
-     }
+     	}
      return pTxBuf;
 }
 unsigned char* FixDirectory(unsigned char *pTxBuf, unsigned char leng)
@@ -1132,38 +1100,19 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
 {
         
       char *pdat_name;
-      //BYTE byCurSoeNum = 0;
-      //unsigned int object_addr_length =2;
-      //BYTE YC_Type =9;//归一化值
-      //WORD second;
-      //WORD Millisecond,i;
       char ch[30]={0};
-      char ch_1[5]={0};
-      //char ch_1[10];
-      BYTE byLoadDa[128] = {0};
-      //unsigned char type = M_SP_TB;
-      pdat_name="AU";
+      //char ch_1[5]={0};
+      BYTE byLoadDa[32] = {0};
+      pdat_name="EFS";
       unsigned char *pTxPos;
-      WORD n,i;
-      WORD log_leng =0;
-      //BYTE max_num;
-      //BYTE Loadday;
-      //BYTE YcIndex = 0;
-      //BYTE infoaddrl,infoaddrh;
-      //WORD wLoadMeas[60] = {0};
-      //int offset =0;
-      //BYTE g_YC_NUM =0;
+      //WORD n,i;
+      //WORD log_leng =0;
       gRecorder_flag.LIST_flag = OFF;
-      //WORD FileName;
-        //char ch[250];
-      //WORD FileName;
-      BYTE Current_Section;
-                        BYTE length =0;
-      //unsigned long FLoadAddrh;
-      //FileName = MAKEWORD(gRecorder_flag.pRXBuff[leng],gRecorder_flag.pRXBuff[leng + 1]);//-1;
+      BYTE Current_Section,n;
+      //BYTE length =0;
       Current_Section = gRecorder_flag.pRXBuff[leng + 2];
       unsigned long FLoadAddr = FADDR_LOG_START + ((unsigned long)(Current_Section-1) *FLASH_PLOG_LEN);
-      //CAT_SpiReadBytes(EEPADD_DAYNUM + FileName ,1,&Loadday);
+      if(FLoadAddr>=FADDR_LOG_END)FLoadAddr = FLoadAddr-0x9000;
       if((log_recorded.log_Ptr >= log_recorded.log_Curren_count ) &&(log_recorded.log_count_flag == ON))//最后一段Sample_num
       {
          pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= LASTSECTION_TYPE;//发送的最后段信息
@@ -1183,14 +1132,12 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
       {
           pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= SEGMENT_TYPE;//发送的段信息
           pTxBuf += leng;
-         *pTxBuf++ = gRecorder_flag.pRXBuff[leng ];//文件序号两个字节
+      	*pTxBuf++ = gRecorder_flag.pRXBuff[leng ];//文件序号两个字节
         *pTxBuf++ = gRecorder_flag.pRXBuff[leng + 1];//
         *pTxBuf++ = gRecorder_flag.pRXBuff[leng + 2];//节名称
           
         pTxPos = pTxBuf;
         *pTxBuf++  = 0;//SEGMENT_LENGTH;
-          
-          //for(int i=0;(wSendDATNum < (DAT_NUM - offset_time_Max));wSendDATNum++)//每一行的值Sample_num
         if(log_recorded.log_count_flag  == OFF)//(!soe_recorded.Soe_Area )&&(!soe_recorded.soe_count)&&(!soe_recorded.Soe_Ptr)
         {
           
@@ -1199,69 +1146,33 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
           {
             *pTxBuf++ = ch[n];
             log_sum_section += ch[n];
-          }
-          //CAT_SpiReadBytes(EEPADD_DAYNUM+FileName,1,&(fixpt_recorded.fixpt_count));
+          }          
           if(wavelog_total >0)
-            log_recorded.log_Curren_count =1;//若有节数据数据，则对应的段至少为1，下面发送时再计算具体的段数
+          	log_recorded.log_Curren_count =1;//若有节数据数据，则对应的段至少为1，下面发送时再计算具体的段数
           log_recorded.log_Ptr =0;
           log_recorded.log_count_flag = ON;
-          //fix_YC_NUM =0;
         }//下面未改
         else if(log_recorded.log_count_flag == ON)
         {
           
-          Sst26vf064b_Read(FLoadAddr,byLoadDa,FLASH_PLOAD_LEN);
-            //memcpy(wLoadMeas,&byLoadDa[8],FLASH_PLOAD_LEN-8);
-          
+          Sst26vf064b_Read(FLoadAddr,byLoadDa,FLASH_PLOAD_LEN);          
           if(log_recorded.log_Ptr < log_recorded.log_Curren_count)
-          {
-            
-              
-              sprintf((char *)ch,"%02x%02x,%02d%02d%02d_%02d%02d%02d,",byLoadDa[4],byLoadDa[3],byLoadDa[5],byLoadDa[6],byLoadDa[7],byLoadDa[8],byLoadDa[9],byLoadDa[10]);
-              for(n = 0; n < strlen(ch); n++)
-              {
-            
+          {              
+              //sprintf((char *)ch,"%02d,%01d,%02d%02d%02d_%02d%02d%02d,",byLoadDa[0],byLoadDa[1],byLoadDa[5],byLoadDa[6],byLoadDa[7],byLoadDa[8],byLoadDa[9],byLoadDa[10]);
+			  sprintf((char *)ch,"%02d,%01d,",byLoadDa[0],byLoadDa[1]);//log类型和值	
+			  for(n = 0; n < strlen(ch); n++)
+              	{            
+                *pTxBuf++ = ch[n];
+                log_sum_section+= ch[n];
+                } 
+			  sprintf((char *)ch,"%04d-%02d-%02d %02d:%02d:%02d\r\n",byLoadDa[2]+2000,byLoadDa[3]
+			  				,byLoadDa[4],byLoadDa[5],byLoadDa[6],byLoadDa[7]);//年月日时分秒	
+			  for(n = 0; n < strlen(ch); n++)
+              	{            
                 *pTxBuf++ = ch[n];
                 log_sum_section+= ch[n];
                 }
-              //memcpy(pTxBuf,&byLoadDa[10],byLoadDa[1] -8);//leng
-              //pTxBuf += (byLoadDa[1] -8);
-                                                        if(byLoadDa[1] >=9)
-                                                          length = byLoadDa[1]-9;
-                                                        else
-                                                          length = 0;
-              for(n = 0; n < length; n++)
-              {
-            
-                *pTxBuf++ =byLoadDa[11+n];
-                log_sum_section+= byLoadDa[11+n];
-                }
-              log_leng = strlen(ch) + (byLoadDa[1] -9);
-              sprintf((char *)ch_1,",%02d",byLoadDa[2]);
-              for(n = 0; n < strlen(ch_1); n++)
-              {
-            
-                *pTxBuf++ = ch_1[n];
-                log_sum_section+= ch_1[n];
-                }
-              log_leng = strlen(ch) + (byLoadDa[1] -9)+ strlen(ch_1);
-              if(log_leng <126)
-              {
-                for(i=log_leng; i< 126; i++)//n < strlen(ch),
-                {
-            
-                *pTxBuf++ = 0x20;
-                log_sum_section+= 0x20;
-                
-                }
-              }
-              sprintf((char *)ch_1,"\r\n");
-              for(n = 0; n < strlen(ch_1); n++)
-              {
-            
-                *pTxBuf++ = ch_1[n];
-                log_sum_section+= ch_1[n];
-                }
+              
             log_recorded.log_Ptr++;
           }
           
@@ -1271,8 +1182,7 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
         }
         if(pTxBuf != NULL)
         {
-        *pTxPos = pTxBuf - pTxPos-1;//LL
-            
+        *pTxPos = pTxBuf - pTxPos-1;//LL            
         }
         gRecorder_flag.LIST_flag = TRUE;//ON; 
     }

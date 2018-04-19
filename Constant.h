@@ -144,6 +144,8 @@ typedef double         FP64;            //双精度浮点数
 #define FADDR_LOAD_START           0x750000//750000-790000
 #define FLASH_PLOAD_LEN              32//每条负荷记录32字节
 
+
+
 //============================  SMS-电话号码        =======================================
 
 #define PHONE_CHARNUM         16//15     //每个电话号码占的字节数/字符数 最大字符数//张弢 0328 ( 1字节电话号码长度 +15字节电话)
@@ -347,8 +349,27 @@ typedef double         FP64;            //双精度浮点数
 #define PM_UBC                  5
 #define PM_UCA                  6
 #define PM_I0                   7       //零序电流
+//============================  LOG日志        =======================================
 
+#define LOG_INFO_NUM            64//42
 
+#define LOG_RESET               1  //功能投退
+#define LOG_101_LINK        	2  //手动投切
+#define LOG_101_ERR        		3 //最终投切成功
+#define LOG_SELF_CHEK          	4  //接地告警
+#define LOG_SOFT_ERR           	5  //PT断线告警
+#define LOG_POW_ONF            	6  //控制器失电
+#define LOG_UCAP              	7 //零序过压报警
+#define LOG_PAR_CHAG          	8 //线电压过压报警
+#define LOG_UPT_ERR           	9  //相电压过压告警
+#define LOG_EARTH        		10 //最终投切成功
+#define LOG_EARTH_TDELAY        11  //接地告警
+#define LOG_8FULS_STA           12  //PT断线告警
+#define LOG_8FULS_END           13  //控制器失电
+#define LOG_LATCH               14 //零序过压报警
+#define LOG_I0_ERR             	15 //线电压过压报警
+#define LOG_KM_ERR              16  //相电压过压告警
+#define LOG_BREAK              	17  //相电压过压告警
 
 //============================  校正参数        =======================================
 #define ADJ_PARA_NUM                            7//13   //校正参数包括每个通道的基准源校正和目标值校正，将来有功率计算的话还有相位校正
@@ -692,7 +713,11 @@ typedef double         FP64;            //双精度浮点数
 #define EEPADDBK_RP                      0x06c0
 
 #define EEPADD_LOADNUM               0x0720   
-#define EEPADDBK_LOADNUM           0x0730 
+#define EEPADDBK_LOADNUM           0x0730
+
+#define EEPADD_LOGP               0x0740   
+#define EEPADDBK_LOGP           0x0750
+
 
 //EEPROM中断线、掉电、异常（保护开关跳开）时间记录  分配1K字节的空间
 #define EEPADD_TIME_BK_NUM        0x0800          //断线时间总条数  1
@@ -880,6 +905,10 @@ const unsigned char ucVerNum[]="Ver02.02";
 #define FADDR_RECORDER_DATA      0x4000   //故障录波数据0x4000
 #define FADDR_RECORDER_ACTDATA      0x70000   //动作录波数据0x70000
 #define FADDR_RECORDER_XHDATA      0x6C0000   //熄弧录波数据0x6C0000
+#define FADDR_LOG_START      0x720000   //LOG数据0x720000-7290000
+#define FADDR_LOG_END      0x729000  
+#define MAX_LOG_NUM       4//内存中LOG的数量
+
 /*
 程序升级7AF000
 负荷记录//750000-790000   每条32字节 共8192条

@@ -218,7 +218,13 @@ struct LOG_RECORDER
 	unsigned char log_count;//文件内容的偏移指针值。
 	unsigned char log_Curren_count;
 	unsigned char log_count_flag;
-	//unsigned char check_sum;	  
+	//unsigned char check_sum;
+	char log_MemPtr;//内存中LOG数据头地址
+	char log_MemNewPtr;//内存中LOG数据尾地址，由此存入FLASH	
+	char log_Mem_Flag;//内存中LOG数据存入FLASH	标志
+	unsigned long log_FlashPtr;//Flash中LOG数据头地址
+	unsigned long log_FlashNewPtr;//Flash中LOG数据存储地址
+	unsigned int log_Flash_count;//Flash中LOG数据数量		
 };
 
 //=====================录波数据===========================================
@@ -306,7 +312,7 @@ RECORDER_WAVE_EXT  BYTE lubonum_valid[64];
 //RECORDER_WAVE_EXT  BYTE bySoeDa[512];
 RECORDER_WAVE_EXT unsigned char *  ApprovalSoeFile(unsigned char *pTxBuf,unsigned char leng,WORD wSecLenPtr);
 RECORDER_WAVE_EXT unsigned char wavefix_total;
-RECORDER_WAVE_EXT unsigned char wavelog_total;
+RECORDER_WAVE_EXT unsigned int wavelog_total;
 RECORDER_WAVE_EXT void LuBoNum(unsigned int wave_total);
 RECORDER_WAVE_EXT unsigned char *  ApprovalFixFile(unsigned char *pTxBuf,unsigned char leng,WORD wSecLenPtr);
 RECORDER_WAVE_EXT  unsigned char log_sum_section;
@@ -490,14 +496,14 @@ typedef struct
 }ComtrderCfg;*/
 
 
-#define  FADDR_LOG_START 				2
+//#define  FADDR_LOG_START 				2
 #define  FLASH_DAYLOAD_LEN 				2
 
 #define  RM_1A_LUBO 				2
 #define  RTC_WEEK 				2
 #define  FSOE_LEN 2
 #define  FSOE_TOLNUM 2
-#define  FLASH_PLOG_LEN 2
+#define  FLASH_PLOG_LEN 32
 
 
 //=====================日志记录ulog===========================================
@@ -506,6 +512,7 @@ typedef struct
 #define FLOG_OLD       2//最老一条记录存储位置
 #define FLOG_CS        3//以上三个数据加和校验
 #define FLOGINFONUM  4
+#define FLASH_LOG_MAXNUM 1152
 
 #endif
 

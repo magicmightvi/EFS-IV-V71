@@ -1481,7 +1481,7 @@ void CBJ101S::Send_ReadFile_Confirm(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,un
   else if(File_TYPE == 5)
   {
     unsigned int FLogInfo[FLOGINFONUM]; 
-    CAT_SpiReadWords(EEPADD_LOGNUM, FLOGINFONUM, FLogInfo);
+    CAT_SpiReadWords(EEPADD_LOGP, FLOGINFONUM, FLogInfo);
     if(FLogInfo[FLOG_CS] != (FLogInfo[FLOG_TOTALNUM] + FLogInfo[FLOG_NEW] + FLogInfo[FLOG_OLD]))//+FLoadInfo[FLOAD_DAY]) || FLoadInfo[FLOAD_TOTALNUM] > FLASH_LOAD_MAXNUM || FLoadInfo[FLOAD_NEW] > FLASH_LOAD_MAXNUM)//如果FLASH地址不在负荷记录保存区域内
           FLogInfo[FLOG_TOTALNUM] = 0; //清空负荷记录总条数
       mwavelog_total = FLogInfo[FLOG_TOTALNUM];
@@ -1555,8 +1555,7 @@ void CBJ101S::ulog_directory_confirm(WORD InfoAddr,DWORD Directory_ID)
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= byLogDa[9];
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= byLogDa[8];
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= byLogDa[7];
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= byLogDa[6];
-      
+  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= byLogDa[6];      
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= byLogDa[5];
   SendFrameTail(PRM, dwCode, 0x01,0);
   

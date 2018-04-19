@@ -27,7 +27,7 @@ void app(void)@"APPLICATION"
     
     g_RstartNum++;
     CAT_SpiWriteWords(EEPADD_RSTARTNUM, 1, &g_RstartNum);*/
-	
+	SaveLOG(LOG_RESET,1);
     while(1)
     {
         /*WatchDog();
@@ -144,6 +144,7 @@ void app(void)@"APPLICATION"
         	g_gSaveload=0;
 		SaveLoad();	
         	}
+		SaveFlashLOG();
         if(g_sRecData.m_EraseBlock == ON)
         	{
         	g_sRecData.m_EraseBlock = OFF;

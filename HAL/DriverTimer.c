@@ -237,7 +237,7 @@ void CHECK8PLUS(void)
     {
       g_FinishACTFlag = 0x55;   
     }
-	
+	SaveLOG(LOG_8FULS_STA,0);
     g_MaichongNum = 0;
     
     if(pulse_phase_flag ==1)
@@ -1106,6 +1106,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
                     g_sRecData.m_gFaultRecSOE[REC_DAY] = g_sRtcManager.m_gRealTimer[RTC_DATE];
                     g_sRecData.m_gFaultRecSOE[REC_MONTH] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
                     g_sRecData.m_gFaultRecSOE[REC_YEAR] = (g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000);
+					SaveLOG(LOG_8FULS_STA,1);
 		      	}		
                     if(eight_delay_counter==0)
                         eight_delay_flag=0x55;
