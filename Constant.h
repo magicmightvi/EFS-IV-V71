@@ -360,16 +360,16 @@ typedef double         FP64;            //双精度浮点数
 #define LOG_SOFT_ERR           	5  //PT断线告警
 #define LOG_POW_ONF            	6  //控制器失电
 #define LOG_UCAP              	7 //零序过压报警
-#define LOG_PAR_CHAG          	8 //线电压过压报警
+#define LOG_PAR_CHAG          	8 //
 #define LOG_UPT_ERR           	9  //相电压过压告警
 #define LOG_EARTH        		10 //最终投切成功
 #define LOG_EARTH_TDELAY        11  //接地告警
 #define LOG_8FULS_STA           12  //PT断线告警
-#define LOG_8FULS_END           13  //控制器失电
+#define LOG_I0_ERR           13  //控制器失电
 #define LOG_LATCH               14 //零序过压报警
-#define LOG_I0_ERR             	15 //线电压过压报警
-#define LOG_KM_ERR              16  //相电压过压告警
-#define LOG_BREAK              	17  //相电压过压告警
+#define LOG_I0T_ERR             	16 //线电压过压报警
+#define LOG_KM_ERR              17  //相电压过压告警
+#define LOG_BREAK              	18  //相电压过压告警
 
 //============================  校正参数        =======================================
 #define ADJ_PARA_NUM                            7//13   //校正参数包括每个通道的基准源校正和目标值校正，将来有功率计算的话还有相位校正

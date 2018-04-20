@@ -1507,7 +1507,7 @@ void CBJ101S::ulog_directory_confirm(WORD InfoAddr,DWORD Directory_ID)
   BYTE byLogDa[128] = {0};  
   unsigned char *pTxPos,*pTxPos1;
   char ch[5]={0};
-  CAT_SpiReadWords(EEPADD_LOGNUM, FLOGINFONUM, FLogInfo);
+  CAT_SpiReadWords(EEPADD_LOGP, FLOGINFONUM, FLogInfo);
   if(FLogInfo[FLOG_CS] != (FLogInfo[FLOG_TOTALNUM] + FLogInfo[FLOG_NEW] + FLogInfo[FLOG_OLD]))//+FLoadInfo[FLOAD_DAY]) || FLoadInfo[FLOAD_TOTALNUM] > FLASH_LOAD_MAXNUM || FLoadInfo[FLOAD_NEW] > FLASH_LOAD_MAXNUM)//如果FLASH地址不在负荷记录保存区域内
           FLogInfo[FLOG_TOTALNUM] = 0; //清空负荷记录总条数
     mwavelog_total = FLogInfo[FLOG_TOTALNUM];
@@ -1845,7 +1845,7 @@ void CBJ101S::fixpt_directory_confirm(WORD InfoAddr,DWORD Directory_ID,BYTE call
 
 unsigned char CBJ101S::Get_time_read(WORD wave_total,DWORD start_minute,DWORD start_date,DWORD end_minute,DWORD end_date)
 {
-  long FADDR_RECORDER;
+  unsigned long FADDR_RECORDER;
   DWORD date_time =0;
   DWORD minute_time=0;
   RECORDER_CFG m_Recorder_cfg;
@@ -1854,7 +1854,7 @@ unsigned char CBJ101S::Get_time_read(WORD wave_total,DWORD start_minute,DWORD st
   {
     for(int n=0;n<3;n++)
         {
-            FADDR_RECORDER =FADDR_RECORDER_INFO+ (long)m*(long)FLINEADDR +(long)n*(long)FPHASEADDR; 
+            FADDR_RECORDER =FADDR_RECORDER_INFO+ (unsigned long)m*(unsigned long)FLINEADDR +(long)n*(unsigned long)FPHASEADDR; 
             Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&m_Recorder_cfg,sizeof(m_Recorder_cfg)); //(unsigned char *)不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来 
               //flag_lb++;
             if(m_Recorder_cfg.lubo_flag ==0x55)
@@ -1954,7 +1954,7 @@ void CBJ101S::lubo_directory_confirm(WORD InfoAddr,DWORD Directory_ID,BYTE call_
 					&&((bR_FileNum<g_sRecData.m_gRecANum)
 					      ||((bR_FileNum==g_sRecData.m_gRecANum)&&(bR_FileNum==MAX_REC_NUM))))
           			{
-          			 long FADDR_RECORDER =FADDR_RECORDER_DATA-256+ (unsigned long)(bR_FileNum+1)*0x2000;
+          			 unsigned long FADDR_RECORDER =FADDR_RECORDER_DATA-256+ (unsigned long)(bR_FileNum+1)*0x2000;
           			 Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&m_Recorder_cfg,sizeof(m_Recorder_cfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来 
 					break;
 					}
@@ -1965,7 +1965,7 @@ void CBJ101S::lubo_directory_confirm(WORD InfoAddr,DWORD Directory_ID,BYTE call_
 					&&(((bR_FileNum-51)<g_sRecData.m_gACTRecANum)
 					      ||(((bR_FileNum-51)==g_sRecData.m_gACTRecANum)&&((bR_FileNum-51)==MAX_ACTREC_NUM))))
           			{
-          			 long FADDR_RECORDER =FADDR_RECORDER_ACTDATA-256+ (unsigned long)(bR_FileNum-51+1)*0x90000;
+          			 unsigned long FADDR_RECORDER =FADDR_RECORDER_ACTDATA-256+ (unsigned long)(bR_FileNum-51+1)*0x90000;
           			 Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&m_Recorder_cfg,sizeof(m_Recorder_cfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来       			
 					break;
 					}
@@ -1976,7 +1976,7 @@ void CBJ101S::lubo_directory_confirm(WORD InfoAddr,DWORD Directory_ID,BYTE call_
 					&&(((bR_FileNum-62)<g_sRecData.m_gXHRecANum)
 					      ||(((bR_FileNum-62)==g_sRecData.m_gXHRecANum)&&((bR_FileNum-62)==MAX_XHREC_NUM))))
           			{
-          			 long FADDR_RECORDER =FADDR_RECORDER_XHDATA-256+(unsigned long)(bR_FileNum-62+1)*0x8000;
+          			 unsigned long FADDR_RECORDER =FADDR_RECORDER_XHDATA-256+(unsigned long)(bR_FileNum-62+1)*0x8000;
           			 Sst26vf064b_Read(FADDR_RECORDER,(unsigned char *)&m_Recorder_cfg,sizeof(m_Recorder_cfg)); //不在这里保存gRecorder_cfg的值是因为三相的录波不一定都能传上来       			
 					break;
 					}	   		

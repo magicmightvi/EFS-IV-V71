@@ -225,6 +225,8 @@ struct LOG_RECORDER
 	unsigned long log_FlashPtr;//Flash中LOG数据头地址
 	unsigned long log_FlashNewPtr;//Flash中LOG数据存储地址
 	unsigned int log_Flash_count;//Flash中LOG数据数量		
+	unsigned long log_status;
+	unsigned long log_status_bk;
 };
 
 //=====================录波数据===========================================
@@ -513,6 +515,9 @@ typedef struct
 #define FLOG_CS        3//以上三个数据加和校验
 #define FLOGINFONUM  4
 #define FLASH_LOG_MAXNUM 1152
+
+
+
 
 #endif
 

@@ -150,7 +150,8 @@ void ProtStart(void)
      	 	fault_begin=0;
            	fault_end=0x55;
               g_gRmtInfo[YX_EARTH_FAULT] = 0;
-		g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;
+			g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;
+			SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
      	    }
      	} 
         else if((g_gProcCnt[PC_JAG_Z]==0)&&(g_gProcCnt[PC_JAG_P]==0x55))      //////////////////相故障判据  
@@ -160,7 +161,8 @@ void ProtStart(void)
                 fault_begin=0;
                 fault_end=0x55;
                 g_gRmtInfo[YX_EARTH_FAULT] = 0;
-		  g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;				
+		  		g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;	
+		  		SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
                 //g_gRmtInfo[0] &= ~(YX_PHASEA_FAULT + YX_PHASEB_FAULT + YX_PHASEC_FAULT);
             }     
        	}    
@@ -171,7 +173,8 @@ void ProtStart(void)
                 fault_begin=0;
                 fault_end=0x55;
                 g_gRmtInfo[YX_EARTH_FAULT] = 0;
-		 g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;				
+		 		g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;
+		 		SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
                 //g_gRmtInfo[0] &= ~(YX_PHASEA_FAULT + YX_PHASEB_FAULT + YX_PHASEC_FAULT);
             }     
        	 }  
@@ -184,7 +187,8 @@ void ProtStart(void)
             if(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])      //////检测到零序高电压，报故障
             {
            	 fault_begin=0x55;
-           	 fault_end=0;		 
+           	 fault_end=0;	
+			 SaveLOG(LOG_EARTH,1);
             }              	 		
         }	
     }
@@ -195,21 +199,24 @@ void ProtStart(void)
             if((g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))) /////////A相电压   单相接地判据
        	    { 	
                 fault_begin=0x55;
-		  fault_pluse =RM_UA;
-           	fault_end=0;
+		  		fault_pluse =RM_UA;
+           		fault_end=0;
+				SaveLOG(LOG_EARTH,1);
             }     
             else if((g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))) ////////B相电压   单相接地判据
        	    { 	
-    	 	fault_begin=0x55;
-		fault_pluse =RM_UB;	
-    	 	fault_end=0;
+    	 		fault_begin=0x55;
+				fault_pluse =RM_UB;	
+    	 		fault_end=0;
+				SaveLOG(LOG_EARTH,1);
     	    }    
-	    else if((g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P]))) /////////C相电压   单相接地判据
-	    { 	
-    	 	fault_begin=0x55;
-		fault_pluse =RM_UC;	
-    	 	fault_end=0;
-    	    }     
+	    	else if((g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P]))) /////////C相电压   单相接地判据
+	    		{ 	
+    	 		fault_begin=0x55;
+				fault_pluse =RM_UC;	
+    	 		fault_end=0;
+				SaveLOG(LOG_EARTH,1);
+    	  		}     
         }         
     }       	
     else if((g_gProcCnt[PC_JAG_Z]==0x55)&&(g_gProcCnt[PC_JAG_P]==0x55))     /////////相和零序同时做判据	 
@@ -217,23 +224,26 @@ void ProtStart(void)
         if((fault_save==0)&&(fault_time<g_gProcCntJug[PC_T_DELAY]))
         {	         	 	
             if((g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])) /////////A相电压   单相接地判据
-       	    { 	
-           	 fault_begin=0x55;
-		fault_pluse =RM_UA;	 
-           	 fault_end=0;
-            }       
+       	    	{ 	
+           	 	fault_begin=0x55;
+			 	SaveLOG(LOG_EARTH,1);
+				fault_pluse =RM_UA;	 
+           	 	fault_end=0;
+            	}       
             else if((g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])) /////////A相电压   单相接地判据
-       	    { 	
-           	 fault_begin=0x55;
-		fault_pluse =RM_UB;	 
-           	 fault_end=0;
-            }      
+       	    	{ 	
+           	 	fault_begin=0x55;
+				fault_pluse =RM_UB;	 
+           	 	fault_end=0;
+				SaveLOG(LOG_EARTH,1);
+            	}      
             else if((g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P]))&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])) /////////A相电压   单相接地判据
-       	    { 	
-           	 fault_begin=0x55;
-		fault_pluse =RM_UC;	 
-           	 fault_end=0;
-            }          	     	     
+       	    	{ 	
+           	 	fault_begin=0x55;
+				fault_pluse =RM_UC;	 
+           	 	fault_end=0;
+				SaveLOG(LOG_EARTH,1);
+            	}          	     	     
        	 }     
       } 
      if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)) //////故障已经开始
@@ -260,6 +270,7 @@ void PulseReady(void)
 {
     if(efslatch_flag==0)       /////////判断闭锁已经结束
     {
+    //SaveLOG(LOG_8FULS_STA,1);
     	if(chongfa==0)  ///////自己发生的八脉冲
 	{ 
 	    eight_select=0x8f;                    ////////////置首次发生8脉冲的标志	
@@ -686,7 +697,8 @@ void ProtLogic(void)
        	 	  {fault_sms_type=3;}
        	 }   
        else
-           fault_sms_type=4;          
+           fault_sms_type=4; 
+	   SaveLOG(LOG_EARTH_TDELAY,1);
        CreatNewSMS(FAULT_OCCUR);                      //产生故障短信//张弢  
     }
 

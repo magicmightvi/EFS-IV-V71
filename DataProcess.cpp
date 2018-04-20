@@ -531,7 +531,7 @@ void CalcuRmtMeas(void)
     unsigned int TempRm = 0;
 
     unsigned long tDft,a,b,c;
-    unsigned int unTemp[3];
+    //unsigned int unTemp[3];
     if(g_unRmCaluFlag == OFF)   //如果遥测运算标志仍然为OFF，则说明1.25ms的AD中断没有进去过，g_gProcMeas没有更新，不需要运算
     {
         return;
@@ -540,7 +540,7 @@ void CalcuRmtMeas(void)
     {
         g_unRmCaluFlag = OFF;
     }
-    ProtLogic();
+    //ProtLogic();
     //ProtStart();	
 	
     for(i = 0; i < 6/*RMT_MEAS_NUM -1*/ ; i++)//添加了UAB,UBC,UCA三线电压，i的上限=PM_UCA
@@ -601,19 +601,38 @@ void CalcuRmtMeas(void)
     {
         g_unFilterIndex = 0;
     }
+}
+
+	//==============================================================================
+	//	函数名称   : ScanPT
+	//	功能描述   : 扫描PT断线遥信
+	//	输入参数   : <无>
+	//	输出参数   : <无>
+	//	返回值	  : <无>
+	//	其他说明   : 100ms执行一次，500ms确认
+	//	作者		 : 张弢
+	//==============================================================================
+void ScanPT(void)
+{ 
+  unsigned int unTemp[3];
+  
     if(g_gRmtMeas[RM_U0] >= g_gProcCntJug[PC_HIGH_Z])  //零序过压
         {
         g_gVErrTimer[0]++;
 	if(g_gVErrTimer[0]>5)
 		{
         	g_gRmtInfo[YX_U0_HIGH]=1;
+			SaveLOG(LOG_UPT_ERR,1);
 		 g_gVErrTimer[0]=5;
 		}
     	  }
     else
     	{    	
 	if(g_gVErrTimer[0]==0)
-      		g_gRmtInfo[YX_U0_HIGH]=0; 
+      		{
+      		g_gRmtInfo[YX_U0_HIGH]=0;
+			SaveLOG(LOG_UPT_ERR,0);
+			}
 	else
 		g_gVErrTimer[0]--;
     	}
@@ -631,13 +650,17 @@ void CalcuRmtMeas(void)
 	if(g_gVErrTimer[2]>5)
 		{
         	g_gRmtInfo[YX_U_HIGH]=1;
+			SaveLOG(LOG_UPT_ERR,1);
 		g_gVErrTimer[2]=5;
 		}
     	}
     else
     	{
     	if(g_gVErrTimer[2]==0)
+        	{
         	g_gRmtInfo[YX_U_HIGH]=0;
+			SaveLOG(LOG_UPT_ERR,0);
+    		}
 	else
 		g_gVErrTimer[2]--;
 	}
@@ -649,13 +672,17 @@ void CalcuRmtMeas(void)
     	if(g_gVErrTimer[3]>5)
     		{
        	 g_gRmtInfo[YX_U_LOW] =1 ;
+		 SaveLOG(LOG_UPT_ERR,1);
 		 g_gVErrTimer[3]=5;
     		}
     	}
     else
     	{
     	if(g_gVErrTimer[3]==0)
+        	{
         	g_gRmtInfo[YX_U_LOW] =0 ;
+			SaveLOG(LOG_UPT_ERR,0);
+    		}
 	else
 		g_gVErrTimer[3]--;
         }
@@ -1181,6 +1208,7 @@ void SaveSoeDataRepeat(void)
     
     if((fault_save==0x55)&&(flash_write==0))  /////////延时完成，开始存储故障
     {
+    	
        fault_save=0x33;     	   
        for(i=0;i<6;i++)
        {
@@ -1760,6 +1788,8 @@ void DelALLLOG(void)
 		temp[FLOG_NEW]=0;
 		temp[FLOG_OLD]=0;
 		temp[FLOG_CS]=0;
+		log_recorded.log_MemNewPtr=0;
+		log_recorded.log_MemPtr=0;
 		log_recorded.log_Flash_count=temp[FLOG_TOTALNUM];
 		log_recorded.log_FlashNewPtr=temp[FLOG_NEW]+FADDR_LOG_START;
 		log_recorded.log_FlashPtr=temp[FLOG_OLD]+FADDR_LOG_START;		
@@ -2512,7 +2542,49 @@ void SaveLoad(void)
 //==============================================================================
 void SaveLOG(char   logtype,char logvalue )
 {
-    char i;
+	unsigned long temp;
+	if(logtype>31)
+		return;
+	temp=0;
+	temp = (unsigned long)(1<<logtype);
+	if(temp>0xffff)
+		{
+		temp = 0;
+		}
+	if(logvalue==1)
+		log_recorded.log_status |= temp;
+	else if(logvalue==0)
+		log_recorded.log_status &=(~temp);
+
+	if(log_recorded.log_status>0xffff)
+		{
+		temp = 0;
+		}
+	return;
+}
+void ScanLOG()
+{
+	char i,olds,news;
+	unsigned long temp;
+	if(log_recorded.log_Mem_Flag != 0)
+		return;
+	
+	for(i=0;i<32;i++)
+		{
+		olds = (log_recorded.log_status_bk>>i)&0x01;
+		news = (log_recorded.log_status>>i)&0x01;
+		if(olds!=news)
+			SaveMEMLOG(i,news);
+		}
+	temp = (long)(1<<LOG_RESET)|(1<<LOG_101_LINK)|(1<<LOG_PAR_CHAG);
+	temp = ~temp;
+	log_recorded.log_status &= temp;
+	log_recorded.log_status_bk=log_recorded.log_status;
+}
+
+void SaveMEMLOG(char   logtype,char logvalue )
+{
+    char i;	
 	
 	g_sLogData[log_recorded.log_MemNewPtr].m_gLogType=logtype;
 	g_sLogData[log_recorded.log_MemNewPtr].m_gLogValu=logvalue;
@@ -2521,7 +2593,7 @@ void SaveLOG(char   logtype,char logvalue )
    	g_sLogData[log_recorded.log_MemNewPtr].m_gLogTimer[0] = g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000;
 	g_sLogData[log_recorded.log_MemNewPtr].m_gLogTimer[6] = LOBYTE(g_sRtcManager.m_gRealTimer[RTC_MICROSEC]);
 	g_sLogData[log_recorded.log_MemNewPtr].m_gLogTimer[7] = HIBYTE(g_sRtcManager.m_gRealTimer[RTC_MICROSEC]);
-	if((logtype==LOG_8FULS_END)||(logtype==LOG_BREAK))
+	if(((logtype==LOG_8FULS_STA)&&(logvalue==0))||(logtype==LOG_BREAK))
 		{
 		for(i=0;i<8;i++)
 			g_sLogData[log_recorded.log_MemNewPtr].m_gRmtMeas[i]=yc[i];
@@ -2559,10 +2631,13 @@ void SaveFlashLOG(void)
     //unsigned char LoadDataPtr=0;
     //unsigned long FLoadAddr;
     unsigned int FLogInfo[FLOGINFONUM];      //从EEPROM中读取出来的FLASH中保存负荷记录的相关信息，总条数+即将存储记录的位置+最老一条记录的位置+校验
-
+	
 	if(log_recorded.log_MemNewPtr==log_recorded.log_MemPtr)
+		{
+		log_recorded.log_Mem_Flag=0;
 		return;
-
+		}
+	log_recorded.log_Mem_Flag=0x55;
 	do
 	{	
 	fLoadAddr = log_recorded.log_FlashNewPtr;	
@@ -2583,7 +2658,7 @@ void SaveFlashLOG(void)
 		log_recorded.log_FlashNewPtr =FADDR_LOG_START;
 	
 	log_recorded.log_MemPtr++;
-	if(log_recorded.log_MemPtr>MAX_LOG_NUM)	
+	if(log_recorded.log_MemPtr>=MAX_LOG_NUM)	
 		log_recorded.log_MemPtr=0;
 	log_recorded.log_Flash_count++;
 	if(log_recorded.log_Flash_count>=1152)
@@ -2601,6 +2676,7 @@ void SaveFlashLOG(void)
     	CAT_SpiWriteWords(EEPADD_LOGP , FLOGINFONUM, FLogInfo);		
 		CAT_SpiWriteWords(EEPADDBK_LOGP, FLOGINFONUM,FLogInfo);
 		}
+	log_recorded.log_Mem_Flag=0;
 	return;
 }
 

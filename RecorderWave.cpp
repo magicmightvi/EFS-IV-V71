@@ -286,20 +286,20 @@ unsigned char* LogDirectory(unsigned char *pTxBuf, unsigned char leng)
       	{      
         *pTxBuf++ = 1;
         *pTxBuf++ = 0;
-        Log_TOTAL_Leng = 9+wavelog_total * FLASH_PLOAD_LEN;//报文头9个字节
+        Log_TOTAL_Leng = wavelog_total;//报文头9个字节
         *pTxBuf++ = Log_TOTAL_Leng;
         *pTxBuf++ = Log_TOTAL_Leng>>8;
         *pTxBuf++ = Log_TOTAL_Leng>>16;  
         FLogAddr = FADDR_LOG_START;// + ((unsigned long)wSendLISTNum * FLASH_DAYLOAD_LEN);
        	Sst26vf064b_Read(FLogAddr,byLogDa, FLASH_PLOAD_LEN);
       	*pTxBuf++ = 0x20;//m_Recorder_cfg.CFG_SOF;
-      	*pTxBuf++= 0;
-        *pTxBuf++= byLogDa[10];
-      	*pTxBuf++= byLogDa[9];
-      	*pTxBuf++= byLogDa[8];
-      	*pTxBuf++= byLogDa[7];
-      	*pTxBuf++= byLogDa[6];      
-        *pTxBuf++= byLogDa[5];
+		*pTxBuf++= g_sRtcManager.m_gRealTimer[RTC_MICROSEC];//录波触点时间
+        *pTxBuf++= g_sRtcManager.m_gRealTimer[RTC_SEC];
+        *pTxBuf++= g_sRtcManager.m_gRealTimer[RTC_MINUT];
+        *pTxBuf++= g_sRtcManager.m_gRealTimer[RTC_HOUR];
+        *pTxBuf++= g_sRtcManager.m_gRealTimer[RTC_DATE]|(g_sRtcManager.m_gRealTimer[RTC_WEEK]<<5);
+        *pTxBuf++= g_sRtcManager.m_gRealTimer[RTC_MONTH];
+		*pTxBuf++=g_sRtcManager.m_gRealTimer[RTC_YEAR]-2000;
      	}
      return pTxBuf;
 }
@@ -1100,7 +1100,7 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
 {
         
       char *pdat_name;
-      char ch[30]={0};
+      char ch[128]={0};
       //char ch_1[5]={0};
       BYTE byLoadDa[32] = {0};
       pdat_name="EFS";
@@ -1141,7 +1141,8 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
         if(log_recorded.log_count_flag  == OFF)//(!soe_recorded.Soe_Area )&&(!soe_recorded.soe_count)&&(!soe_recorded.Soe_Ptr)
         {
           
-          sprintf((char *)ch,"%.*s,%02x%02x\r\n",sizeof(pdat_name),pdat_name,wavelog_total,(wavelog_total >>8));
+          //sprintf((char *)ch,"%.*s,%02x%02x\r\n",sizeof(pdat_name),pdat_name,wavelog_total,(wavelog_total >>8));
+          sprintf((char *)ch,"%.*s,%d,%d\r\n",sizeof(pdat_name),pdat_name,wavelog_total,g_gRunPara[RP_COMM_ADDR]);
           for(n = 0; n < strlen(ch); n++)
           {
             *pTxBuf++ = ch[n];
@@ -1157,23 +1158,43 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
           
           Sst26vf064b_Read(FLoadAddr,byLoadDa,FLASH_PLOAD_LEN);          
           if(log_recorded.log_Ptr < log_recorded.log_Curren_count)
-          {              
-              //sprintf((char *)ch,"%02d,%01d,%02d%02d%02d_%02d%02d%02d,",byLoadDa[0],byLoadDa[1],byLoadDa[5],byLoadDa[6],byLoadDa[7],byLoadDa[8],byLoadDa[9],byLoadDa[10]);
+          {          	  
 			  sprintf((char *)ch,"%02d,%01d,",byLoadDa[0],byLoadDa[1]);//log类型和值	
 			  for(n = 0; n < strlen(ch); n++)
               	{            
                 *pTxBuf++ = ch[n];
                 log_sum_section+= ch[n];
                 } 
-			  sprintf((char *)ch,"%04d-%02d-%02d %02d:%02d:%02d\r\n",byLoadDa[2]+2000,byLoadDa[3]
-			  				,byLoadDa[4],byLoadDa[5],byLoadDa[6],byLoadDa[7]);//年月日时分秒	
+			  sprintf((char *)ch,"%04d-%02d-%02d %02d:%02d:%02d.%03d ",byLoadDa[2]+2000,byLoadDa[3]
+			  				,byLoadDa[4],byLoadDa[5],byLoadDa[6],byLoadDa[7], MAKEWORD(byLoadDa[8], byLoadDa[9]));//年月日时分秒	
 			  for(n = 0; n < strlen(ch); n++)
               	{            
                 *pTxBuf++ = ch[n];
                 log_sum_section+= ch[n];
                 }
-              
-            log_recorded.log_Ptr++;
+			  
+              //if((byLoadDa[0]==13)||(byLoadDa[0]==17))//8脉冲结束或者断线，显示8个电流值
+              if(((byLoadDa[0]==LOG_8FULS_STA)&&(byLoadDa[1]==1))||(byLoadDa[0]==LOG_BREAK))//8脉冲结束或者断线，显示8个电流值
+              	{
+              	sprintf((char *)ch," I1=%d I2=%d I3=%d I4=%d I5=%d I6=%d I7=%d I8=%d\r\n",
+					   MAKEWORD(byLoadDa[10], byLoadDa[11]), MAKEWORD(byLoadDa[12], byLoadDa[13]),MAKEWORD(byLoadDa[14], byLoadDa[15]),
+					   MAKEWORD(byLoadDa[16], byLoadDa[17]), MAKEWORD(byLoadDa[18], byLoadDa[19]),MAKEWORD(byLoadDa[20], byLoadDa[21]),
+			  			MAKEWORD(byLoadDa[22], byLoadDa[23]),MAKEWORD(byLoadDa[24], byLoadDa[25]));
+              	}
+			  else
+			  	{
+			  	sprintf((char *)ch," U0=%d UA=%d UB=%d UC=%d Upt=%d UCap=%d CSQ=%d\r\n",
+					   MAKEWORD(byLoadDa[10], byLoadDa[11]), MAKEWORD(byLoadDa[12], byLoadDa[13]),MAKEWORD(byLoadDa[14], byLoadDa[15]),
+					   MAKEWORD(byLoadDa[16], byLoadDa[17]), MAKEWORD(byLoadDa[18], byLoadDa[19]),MAKEWORD(byLoadDa[20], byLoadDa[21]),
+			  			MAKEWORD(byLoadDa[22], byLoadDa[23]));							
+			  	}
+			  for(n = 0; n < strlen(ch); n++)
+              	{            
+                *pTxBuf++ = ch[n];
+                log_sum_section+= ch[n];
+                }
+			  
+              log_recorded.log_Ptr++;
           }
           
            

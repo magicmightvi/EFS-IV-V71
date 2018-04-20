@@ -406,6 +406,7 @@ void JAGACT1(void)//动作2次 超前相动作，滞后相动作
     latch_upload_flag=0x55;
     uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
     g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位    
+    SaveLOG(LOG_LATCH, 1);
     g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0
     chongfa=0;  moniguzhang=0;	
     g_gRmtMeas[RM_ACT_NUM] = 2;
@@ -562,6 +563,7 @@ void JAGACT2(void)//动作3次 超前相动作，滞后相动作，故障相动作
     	}    	
     uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
     g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位  
+    SaveLOG(LOG_LATCH, 1);
     g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0    
     chongfa=0;moniguzhang=0;	
    g_gRmtMeas[RM_ACT_NUM] = 3;
@@ -695,6 +697,7 @@ void JAGACT3(void)//动作2次 只有AC相有接触器，超前相动作，另一相动作
     	}    	
     uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
     g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位  
+    SaveLOG(LOG_LATCH, 1);
     g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0    
     chongfa=0;	moniguzhang=0;
     g_gRmtMeas[RM_ACT_NUM] = 2;
@@ -824,6 +827,7 @@ void JAGACT4(void)//动作1次 只有AC相有接触器，超前相动作
     		}             	  
              uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
              g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位 
+             SaveLOG(LOG_LATCH, 1);
              g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0             
 	      chongfa=0;moniguzhang=0;
              g_gRmtMeas[RM_ACT_NUM] = 1;
@@ -903,41 +907,38 @@ __interrupt void TIMER0_A0_ISR(void)
     ADC12CTL0 |= ADC12SC;     
 #ifdef SD_101S
     if(M05SecCount&0x01)
-    	{
-		//RecActData();
+    	{		
 		RecData();
     	}
      M05SecCount++; 	
 #endif
 
-    if(M125SecCount>4)//每4次采样4*156.25uS=625us 则计算存储数据// 张弢测试中断嵌套
+    if(M125SecCount>4)//每5次采样5*250uS=1.25ms 则计算存储数据// 张弢测试中断嵌套
     	{// 张弢测试中断嵌套
-
         GetAcSamData();//把交流数据经过软件滤波后，存放到g_sSampleData中 
         M125SecCount = 0;
         //CalcuProtMeas();//张弢取消此程序//利用均方根算法计算，把计算结果保存到保护电量中  
         ProtStart();//启动元件判断
-        //ProtLogic();//张弢 程序放入CalcuRmtMeas(void) 5ms执行1次
-//#ifndef SD_101S        
+        //ProtLogic();//张弢 程序放入CalcuRmtMeas(void) 5ms执行1次       
         RecActData();
-	McSecCount++;	
-//#endif
+		McSecCount++;	
+		if(McSecCount>=16)//每32 采样32*56.25uS=625us 则计算存储数据// 张弢测试中断嵌套
+    		{	
+		 	g_unRmCaluFlag = ON; 
+		 	McSecCount = 0;
+    		}		
     	}
 #ifndef SD_101S	
     RecData();
 #endif	
-    if((McSecCount&0x1f)==0)//每32 采样32*56.25uS=625us 则计算存储数据// 张弢测试中断嵌套
-    	{	
-	 g_unRmCaluFlag = ON; 
-    	}
+
     if((M05SecCount&0x7f)==0)//每32 采样32*56.25uS=625us 则计算存储数据// 张弢测试中断嵌套
-    	{	
-	 //g_unTESTFlag = ON; 
-	 			g_gRmtMeasPJ[0][pjno]=g_gRmtMeas[1];
-	 			g_gRmtMeasPJ[1][pjno]=g_gRmtMeas[2];
-				g_gRmtMeasPJ[2][pjno]=g_gRmtMeas[3];
-                        pjno++;
-			if(pjno>31)pjno=0;;	
+    	{	 
+	 	g_gRmtMeasPJ[0][pjno]=g_gRmtMeas[1];
+	 	g_gRmtMeasPJ[1][pjno]=g_gRmtMeas[2];
+		g_gRmtMeasPJ[2][pjno]=g_gRmtMeas[3];
+       	pjno++;
+		if(pjno>31)pjno=0;;	
     	}
 
         //扫描开关量输入
@@ -996,6 +997,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
     }
             g_sRtcManager.m_gRealTimer[RTC_MICROSEC]++;  //系统实时时钟g_sRtcManager.m_gRealTimer的毫秒累加
             ScanDinYX();
+			ScanLOG();
             MicSecCount++;
 	     Mic50SecCount++;		
             SecCount = g_sRtcManager.m_gRealTimer[RTC_MICROSEC];
@@ -1064,13 +1066,13 @@ _EINT();//开总中断// 张弢测试中断嵌套
 //LED_RUN_OFF;
             if(MicSecCount >= 10)  //10毫秒计时
             {           
-                MicSecCount = 0;
+             	MicSecCount = 0;
                 if(eight_pulse_counter>0)
                     eight_pulse_counter--;
                 if(g_ucDuanxianFlg <= 50)
                     g_ucDuanxianFlg++;
                 
-		ScanSoftLacth();		
+				ScanSoftLacth();		
 				
                 if((P5IN&BIT5)== 0)     /////////检测到掉电，报警(新电路板)
        	         {
@@ -1089,94 +1091,88 @@ _EINT();//开总中断// 张弢测试中断嵌套
                       }
        	         }
                  if(eight_delay_counter>0)
-                {
+                	{
                     eight_delay_counter--;
-		      if((eight_delay_counter==80)&&(g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF))	
-		      	{//动作录波要在继电器动作前最少0.5秒开始，现在设定提前0.8s
-			unsigned long ulAddr =FADDR_RECORDER_ACTDATA+ (unsigned long)(g_sRecData.m_gACTRecCNum)*0x90000;//flash地址  
-  			g_sRecData.m_gActRecAdr = ulAddr;//更新flash地址 	
-  			g_sRecData.m_unRecAcTail =0; 
-	    	 	g_sRecData.m_ucActRecStart = ON;//张弢录波 动作录波开始	
-	    	 	g_sRecData.m_LuboType = LuboType_ACT;
-	    		g_test=0;           		
-                    g_sRecData.m_gFaultRecSOE[REC_MSL] =g_sRtcManager.m_gRealTimer[RTC_MICROSEC];
-                    g_sRecData.m_gFaultRecSOE[REC_MSH] = g_sRtcManager.m_gRealTimer[RTC_SEC];
-                    g_sRecData.m_gFaultRecSOE[REC_MINU] = g_sRtcManager.m_gRealTimer[RTC_MINUT];
-                    g_sRecData.m_gFaultRecSOE[REC_HOUR] = g_sRtcManager.m_gRealTimer[RTC_HOUR];
-                    g_sRecData.m_gFaultRecSOE[REC_DAY] = g_sRtcManager.m_gRealTimer[RTC_DATE];
-                    g_sRecData.m_gFaultRecSOE[REC_MONTH] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
-                    g_sRecData.m_gFaultRecSOE[REC_YEAR] = (g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000);
-					SaveLOG(LOG_8FULS_STA,1);
-		      	}		
+		      		if((eight_delay_counter==80)&&(g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF))	
+		      			{//动作录波要在继电器动作前最少0.5秒开始，现在设定提前0.8s
+						unsigned long ulAddr =FADDR_RECORDER_ACTDATA+ (unsigned long)(g_sRecData.m_gACTRecCNum)*0x90000;//flash地址  
+  						g_sRecData.m_gActRecAdr = ulAddr;//更新flash地址 	
+  						g_sRecData.m_unRecAcTail =0; 
+	    	 			g_sRecData.m_ucActRecStart = ON;//张弢录波 动作录波开始	
+	    	 			g_sRecData.m_LuboType = LuboType_ACT;
+	    				g_test=0;           		
+                    	g_sRecData.m_gFaultRecSOE[REC_MSL] =g_sRtcManager.m_gRealTimer[RTC_MICROSEC];
+                    	g_sRecData.m_gFaultRecSOE[REC_MSH] = g_sRtcManager.m_gRealTimer[RTC_SEC];
+                    	g_sRecData.m_gFaultRecSOE[REC_MINU] = g_sRtcManager.m_gRealTimer[RTC_MINUT];
+                    	g_sRecData.m_gFaultRecSOE[REC_HOUR] = g_sRtcManager.m_gRealTimer[RTC_HOUR];
+                    	g_sRecData.m_gFaultRecSOE[REC_DAY] = g_sRtcManager.m_gRealTimer[RTC_DATE];
+                    	g_sRecData.m_gFaultRecSOE[REC_MONTH] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
+                    	g_sRecData.m_gFaultRecSOE[REC_YEAR] = (g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000);
+						SaveLOG(LOG_8FULS_STA,1);
+		      			}		
                     if(eight_delay_counter==0)
                         eight_delay_flag=0x55;
-                } 
-                ContronlRelay();       //投切接触器
-                
-                //if(g_sRecData.m_ucRecStart == ON)  //张弢开关已经闭合
-                //if((g_gKON>0)&&(g_gKON<4))//张弢开关已经闭合
-	unsigned char ka,kb,kc;
-	if(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_CON_NC])
-		{//0=nc
-		ka=0x08;kb=0x10;kc=0x20;
-		}
-	else
-		{//0=no
-		ka=0;kb=0;kc=0;
-		}	
+                	} 
+                ContronlRelay();       //投切接触器                
+
+			unsigned char ka,kb,kc;
+			if(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_CON_NC])
+				{//0=nc
+				ka=0x08;kb=0x10;kc=0x20;
+				}
+			else
+				{//0=no
+				ka=0;kb=0;kc=0;
+				}	
 #ifdef CONDIN_3
-                if(g_gRmtMeas[RM_I0] >= g_gProcCntJug[PC_PULSE_VALID])
-                    {
-                     g_I0RmtZeroNum=0;
+             if(g_gRmtMeas[RM_I0] >= g_gProcCntJug[PC_PULSE_VALID])
+            	{
+             	g_I0RmtZeroNum=0;
 			//g_gRmtInfo[YX_BREAK]=0;
-                	}
+             	}
 	  	  if((KJa1==ka)||(KJb1==kb)||(KJc1==kc)||(g_gKON==1)||(g_gKON==2)||(g_gKON==3))
 #else	                
-                if(KJb1==kb)
+          if(KJb1==kb)
 #endif					
-                {
-                    NumKON++;
-		      if(NumKON==5)
-			{//8脉冲继电器闭合50ms后，记录电流值
+          	{
+         	NumKON++;
+		   	if(NumKON==5)
+				{//8脉冲继电器闭合50ms后，记录电流值
 				if(Numyc<8)
 					{
 			  		yc[Numyc]=g_gRmtMeas[RM_I0]; 
-                                	Numyc++;
-					}
-								
-				//yc1[Numyc]=g_gRmtMeas[RM_I0]; 
-		      	}
-                    //g_sRecData.m_I0RmtMeas[g_sRecData.m_I0RmtNum] = g_gRmtMeas[4];
-                    if(g_gRmtMeas[RM_I0] >= g_gProcCntJug[PC_PULSE_VALID])
-                    {
-                        g_I0RmtZeroNum=0;
-			   g_gRmtInfo[YX_BREAK]=0; 			
-                        if(g_I0RmtNum < 19)
-                            g_I0RmtNum++;
-                    }
-		      else
+                   	Numyc++;
+					} 
+		      	}                    
+            if(g_gRmtMeas[RM_I0] >= g_gProcCntJug[PC_PULSE_VALID])
+            	{
+             	g_I0RmtZeroNum=0;
+			   	g_gRmtInfo[YX_BREAK]=0; 			
+            	if(g_I0RmtNum < 19)
+                	g_I0RmtNum++;
+            	}
+			else
 		      	{
 		      	g_I0RmtZeroNum++;
 		      	}
-                }
-		else //if(g_gKON==OFF)//开关未闭合
-		{
-		  NumKON=0;
-		  //Numyc++;
-		  if(Numyc>=8)Numyc=0;
-		  if(g_I0RmtNum >= 3) //((g_gProcCnt[PC_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK])/2))     //检测到有效电流
-                  {
+            }
+			else //if(g_gKON==OFF)//开关未闭合
+				{
+		  		NumKON=0;		  		
+		  		if(Numyc>=8)Numyc=0;
+		  		if(g_I0RmtNum >= 3) //((g_gProcCnt[PC_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK])/2))     //检测到有效电流
+                  	{
                     g_I0RmtNum = 0;
                     if(g_MaichongNum < 8)
-                        g_MaichongNum++;
-              
-                  }
+                        g_MaichongNum++;             
+                  	}
                     g_I0RmtNum = 0;
-		}
+				}
 		if( g_gRmtInfo[YX_EARTH_FAULT] == 0)g_I0RmtZeroNum = 0; 
 		if(g_I0RmtZeroNum>=2*(g_gRunPara[RP_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK]))
 			{
 			g_gRmtInfo[YX_BREAK]=1; newsms_abn= ON;
+			SaveLOG(LOG_BREAK, 1);
 			g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0
                         g_I0RmtZeroNum = 0;
 			if(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_BREAK_STOP8PUL])
@@ -1189,6 +1185,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
     				latch_upload_flag=0x55;      	
     				uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
     				g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位 
+    				SaveLOG(LOG_LATCH, 1);
     				chongfa=0;	moniguzhang=0;
     				g_gRmtMeas[RM_ACT_NUM] = 0;
   				 g_sRecData.m_gACTDelay = 200;//g_sRecData.m_ucActRecStart = OFF;//张弢录波 动作录波结束	
@@ -1359,7 +1356,8 @@ _EINT();//开总中断// 张弢测试中断嵌套
                g_gYCYueXian=0x55;//张弢 遥测越限	
                Mic50SecCount =0;
 		 //if((g_sRecData.m_ucActRecStart != OFF))	   
-		 SaveActRecData();		   
+		 SaveActRecData();	
+		 ScanPT();
              }
 	     		 
             if(SecCount >= 1000)   //秒计时
@@ -1432,6 +1430,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
 				   g_gRmtInfo[YX_PHASEB_ACT] = 0;
 				   g_gRmtInfo[YX_PHASEC_ACT] = 0;
                                 g_gRmtInfo[YX_EFS_LATCH] = 0;   //置解锁遥信位 
+                                SaveLOG(LOG_LATCH, 0);
                                 g_gRmtInfo[YX_RH_FAIL] = 0;   //燃弧失败遥信复归
                                 g_gRmtInfo[YX_MANUAL_ACTION] = 0;   //置手动投切结束
                                // g_gRmtInfo[0] &= ~YX_EIGHT_PULSE;   //有效8脉冲清除 
@@ -1583,8 +1582,8 @@ _EINT();//开总中断// 张弢测试中断嵌套
 	             }
 
      //g_gRmtMeas[RM_UCAP] = g_unAdcData[6];
-    if(g_gRmtMeas[RM_UCAP]>2800)g_gRmtInfo[YX_SBP_OFF]=0;//5.87
-    if(g_gRmtMeas[RM_UCAP]<2600)g_gRmtInfo[YX_SBP_OFF]=1;//5.4v	               
+    if(g_gRmtMeas[RM_UCAP]>2800){g_gRmtInfo[YX_SBP_OFF]=0;SaveLOG(LOG_UCAP, 0);}//5.87
+    if(g_gRmtMeas[RM_UCAP]<2600){g_gRmtInfo[YX_SBP_OFF]=1;SaveLOG(LOG_UCAP, 1);}//5.4v	               
             }    
             
                        
