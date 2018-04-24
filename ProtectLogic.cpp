@@ -813,7 +813,7 @@ void Sign_Repeat(unsigned char repeat_flag,unsigned char rev_flag)
   		g_sRecData.m_gActRecAdr = ulAddr;//更新flash地址 	
   		g_sRecData.m_ucActRecStart = ON;//张弢录波 动作录波开始	
   		g_sRecData.m_LuboType = LuboType_ACT;
-		SaveLOG(LOG_8FULS_STA,1);
+		SaveLOG(LOG_8FULS_STA,0);
 	     	}
 	}   
     }

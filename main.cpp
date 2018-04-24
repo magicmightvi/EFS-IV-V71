@@ -15,7 +15,7 @@ void app(void)@"APPLICATION"
 {
     WDTCTL = WDTPW + WDTHOLD;//禁止芯片自带的看门狗，采用外部看门狗
     InitSys();
-    strcpy(ComtrderCfg1,ComtrderCfg);
+    //strcpy(ComtrderCfg1,ComtrderCfg);
       if(pGprs!= null) ((CPrtcSms*)pGprs)->SendRCmdToIHD(0,11,null);
 	WDG_CLR;delayms(3000);   WDG_CLR;     
       if(pGprs!= null) ((CPrtcSms*)pGprs)->SendRCmdToIHD(5,11,null);

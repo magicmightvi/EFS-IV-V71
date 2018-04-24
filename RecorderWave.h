@@ -53,7 +53,7 @@ const char ComtrderCfg[]=
 
 const char ComtrderCfg_1[]=
 ",1999\n\
-8,5A,3D\n\
+9,5A,4D\n\
 ";
 const char ComtrderCfg_ua[]=
 "1,Ua,A,,V,";
@@ -72,6 +72,7 @@ const char ComtrderCfg_3[]=
 "1,a,0,0,0\n\
 2,b,0,0,0\n\
 3,c,0,0,0\n\
+4,km,0,0,0\n\
 50\n\
 1\n\
 ";

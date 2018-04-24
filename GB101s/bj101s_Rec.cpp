@@ -406,21 +406,21 @@ BOOL CBJ101S:: RecYSCommand(void)
 
 void CBJ101S:: ReadFileDataUlog(WORD FileName,BYTE section_current,BYTE flag)
 {
-  unsigned char *pTxPos;
+   unsigned char *pTxPos;
   char *pdat_name;
-  pdat_name="AU";
-  //unsigned int object_addr_length =2;
-  char ch[30]={0};
+  pdat_name="ulog.msg,v1.0";//"AU";
+  char ch[60]={0};
   char ch_1[5]={0};
-  BYTE byLoadDa[128] = {0};
-  
-  //BYTE houxu_flag = OFF;
-  BYTE logsum = 0;
-  //unsigned char type = M_SP_TB;
+  BYTE byLoadDa[32] = {0};
+  BYTE logsum = 0;  
   WORD log_leng =0;
   m_loghouxu_flag = OFF;
   BYTE n,i;
   unsigned long FLoadAddr; //= FADDR_LOG_START + ((unsigned long)(section_current-1) *FLASH_PLOG_LEN);
+  char chDevId[30]={0};
+  //memcpy(chDevId,g_pDevId,24);
+  char *pDevID = chDevId;
+ 
   pTxPos = &m_SendBuf.pBuf[m_SendBuf.wWritePtr];
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0;  //数据段号
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
@@ -428,53 +428,76 @@ void CBJ101S:: ReadFileDataUlog(WORD FileName,BYTE section_current,BYTE flag)
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; 
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0; //后续标志
   if(mlog_recorded.log_count_flag  == OFF)//(!soe_recorded.Soe_Area )&&(!soe_recorded.soe_count)&&(!soe_recorded.Soe_Ptr)
-  {
-    sprintf((char *)ch,"%.*s,%02x%02x\r\n",sizeof(pdat_name),pdat_name,mwavelog_total,(mwavelog_total >>8));
+  {    
+	sprintf((char *)ch,"%s\r\n%s,%04d\r\n",pdat_name,pDevID,mwavelog_total);
+	
     for(  n = 0; n < strlen(ch); n++)
     {
       m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch[n];
       logsum += ch[n];
     }
-          //CAT_SpiReadBytes(EEPADD_DAYNUM+FileName,1,&(fixpt_recorded.fixpt_count));
+          
     if(mwavelog_total >0)
-      mlog_recorded.log_Curren_count =1;//若有节数据数据，则对应的段至少为1，下面发送时再计算具体的段数
+    	mlog_recorded.log_Curren_count =1;//若有节数据数据，则对应的段至少为1，下面发送时再计算具体的段数
     mlog_recorded.log_Ptr =0;
     mlog_recorded.log_count_flag = ON;
   }
   else if(mlog_recorded.log_count_flag == ON)
   {
-       FLoadAddr = FADDR_LOG_START + ((unsigned long)(section_current-1) *FLASH_PLOG_LEN);
+      FLoadAddr = FADDR_LOG_START + ((unsigned long)(section_current-1) *FLASH_PLOG_LEN);
+      if(FLoadAddr>=FADDR_LOG_END)FLoadAddr = FLoadAddr-0x9000;
       Sst26vf064b_Read(FLoadAddr,byLoadDa,FLASH_PLOAD_LEN);
-            //memcpy(wLoadMeas,&byLoadDa[8],FLASH_PLOAD_LEN-8);
+           
           
       if(mlog_recorded.log_Ptr < mlog_recorded.log_Curren_count)
       {
-            
-              
-        sprintf((char *)ch,"%02x%02x,%02d%02d%02d_%02d%02d%02d,",byLoadDa[4],byLoadDa[3],byLoadDa[5],byLoadDa[6],byLoadDa[7],byLoadDa[8],byLoadDa[9],byLoadDa[10]);
+		sprintf((char *)ch,"%02d,%04d-%02d-%02d %02d:%02d:%02d.%03d,",
+			byLoadDa[0],byLoadDa[2]+2000,byLoadDa[3],byLoadDa[4],byLoadDa[5],byLoadDa[6],byLoadDa[7],
+			MAKEWORD(byLoadDa[8], byLoadDa[9]));//log 类型 年月日时分秒	
         for(n = 0; n < strlen(ch); n++)
         {
             
           m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch[n];
           logsum+= ch[n];
-        }
-              //memcpy(pTxBuf,&byLoadDa[10],byLoadDa[1] -8);//leng
-              //pTxBuf += (byLoadDa[1] -8);
+        }  
+		//文字说明
         for(n = 0; n < byLoadDa[1] -9; n++)
-        {
-            
+        {            
           m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =byLoadDa[11+n];
           logsum+= byLoadDa[11+n];
         }
         log_leng = strlen(ch) + (byLoadDa[1] -9);
-        sprintf((char *)ch_1,",%02d",byLoadDa[2]);
+
+		if(((byLoadDa[0]==LOG_8FULS_STA)&&(byLoadDa[1]==1))||(byLoadDa[0]==LOG_BREAK))//8脉冲结束或者断线，显示8个电流值
+        	{
+          	sprintf((char *)ch,";I1=%d I2=%d I3=%d I4=%d I5=%d I6=%d I7=%d I8=%d,",
+					   MAKEWORD(byLoadDa[10], byLoadDa[11]), MAKEWORD(byLoadDa[12], byLoadDa[13]),MAKEWORD(byLoadDa[14], byLoadDa[15]),
+					   MAKEWORD(byLoadDa[16], byLoadDa[17]), MAKEWORD(byLoadDa[18], byLoadDa[19]),MAKEWORD(byLoadDa[20], byLoadDa[21]),
+			  			MAKEWORD(byLoadDa[22], byLoadDa[23]),MAKEWORD(byLoadDa[24], byLoadDa[25]));
+           	}
+		else
+			{
+			sprintf((char *)ch,";U0=%d UA=%d UB=%d UC=%d Upt=%d UCap=%d CSQ=%d,",
+					   MAKEWORD(byLoadDa[10], byLoadDa[11]), MAKEWORD(byLoadDa[12], byLoadDa[13]),MAKEWORD(byLoadDa[14], byLoadDa[15]),
+					   MAKEWORD(byLoadDa[16], byLoadDa[17]), MAKEWORD(byLoadDa[18], byLoadDa[19]),MAKEWORD(byLoadDa[20], byLoadDa[21]),
+			  			MAKEWORD(byLoadDa[22], byLoadDa[23]));							
+			}
+		for(n = 0; n < strlen(ch); n++)
+       		{            
+       		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch[n];
+          	logsum += ch[n];
+          	}
+		log_leng += strlen(ch);
+		
+        sprintf((char *)ch_1,",%02d",byLoadDa[1]);//log 值
         for(n = 0; n < strlen(ch_1); n++)
         {
             
           m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch_1[n];
           logsum+= ch_1[n];
         }
-        log_leng = strlen(ch) + (byLoadDa[1] -9)+ strlen(ch_1);
+		
+        log_leng += strlen(ch_1);//补空格
         if(log_leng <126)
         {
           for(i=log_leng; i< 126; i++)//n < strlen(ch),
@@ -513,8 +536,7 @@ void CBJ101S:: ReadFileDataUlog(WORD FileName,BYTE section_current,BYTE flag)
     *(pTxPos +4)= 0;//有后续
     mRecorder_flag.xuchuanflag= OFF;
    }
-   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = logsum;      
-  
+   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = logsum; 
 }
 
 void CBJ101S::ReadFileDataSoe_Flash(WORD FileName)
@@ -1485,7 +1507,7 @@ void CBJ101S::Send_ReadFile_Confirm(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,un
     if(FLogInfo[FLOG_CS] != (FLogInfo[FLOG_TOTALNUM] + FLogInfo[FLOG_NEW] + FLogInfo[FLOG_OLD]))//+FLoadInfo[FLOAD_DAY]) || FLoadInfo[FLOAD_TOTALNUM] > FLASH_LOAD_MAXNUM || FLoadInfo[FLOAD_NEW] > FLASH_LOAD_MAXNUM)//如果FLASH地址不在负荷记录保存区域内
           FLogInfo[FLOG_TOTALNUM] = 0; //清空负荷记录总条数
       mwavelog_total = FLogInfo[FLOG_TOTALNUM];
-    mLog_TOTAL_Leng = 9+mwavelog_total * FLASH_PLOAD_LEN;//报文头9个字节
+    mLog_TOTAL_Leng = 15 + 31+ mwavelog_total * 128;//每条报文补空格到128字节
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = mLog_TOTAL_Leng;
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = mLog_TOTAL_Leng>>8;
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = mLog_TOTAL_Leng>>16;
@@ -1503,8 +1525,8 @@ void CBJ101S::ulog_directory_confirm(WORD InfoAddr,DWORD Directory_ID)
   BYTE PRM = 0;
   BYTE dwCode = 8;
   unsigned int FLogInfo[FLOGINFONUM];    //从EEPROM中读取出来的FLASH中保存负荷记录的相关信息，总条数+即将存储记录的位置+最老一条记录的位置+校验
-  unsigned long FLogAddr;
-  BYTE byLogDa[128] = {0};  
+  //unsigned long FLogAddr;
+  //BYTE byLogDa[128] = {0};  
   unsigned char *pTxPos,*pTxPos1;
   char ch[5]={0};
   CAT_SpiReadWords(EEPADD_LOGP, FLOGINFONUM, FLogInfo);
@@ -1537,26 +1559,25 @@ void CBJ101S::ulog_directory_confirm(WORD InfoAddr,DWORD Directory_ID)
 	  SendFrameTail(PRM, dwCode, 0x01,0);
 	  return;
   }
-  sprintf((char *)ch,"ulog");
+  sprintf((char *)ch,"ulog.msg");
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = strlen(ch);
-    for(BYTE j = 0; j < strlen(ch); j++)
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch[j];
+  for(BYTE j = 0; j < strlen(ch); j++)
+  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch[j];
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0;
-  mLog_TOTAL_Leng = 9+mwavelog_total * FLASH_PLOAD_LEN;//报文头9个字节
+  mLog_TOTAL_Leng = 15+31+mwavelog_total * 128;//每条报文补空格到128字节
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = mLog_TOTAL_Leng;
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = mLog_TOTAL_Leng>>8;
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = mLog_TOTAL_Leng>>16;
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = mLog_TOTAL_Leng>>24;
-  FLogAddr = FADDR_LOG_START;// + ((unsigned long)wSendLISTNum * FLASH_DAYLOAD_LEN);
-  Sst26vf064b_Read(FLogAddr,byLogDa, FLASH_PLOAD_LEN);
+  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]  = mLog_TOTAL_Leng>>24;  
   //m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =0;//= 0x20;//m_Recorder_cfg.CFG_SOF;
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= (byLogDa[10]*1000)>>8;   
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= (byLogDa[10]*1000);
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= byLogDa[9];
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= byLogDa[8];
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= byLogDa[7];
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= byLogDa[6];      
-  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= byLogDa[5];
+  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= (g_sRtcManager.m_gRealTimer[RTC_SEC]*1000+g_sRtcManager.m_gRealTimer[RTC_MICROSEC])>>8;   
+  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= (g_sRtcManager.m_gRealTimer[RTC_SEC]*1000+g_sRtcManager.m_gRealTimer[RTC_MICROSEC]);
+  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= g_sRtcManager.m_gRealTimer[RTC_MINUT];
+  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= g_sRtcManager.m_gRealTimer[RTC_HOUR];
+  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= g_sRtcManager.m_gRealTimer[RTC_DATE]|(g_sRtcManager.m_gRealTimer[RTC_WEEK]<<5);
+  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= g_sRtcManager.m_gRealTimer[RTC_MONTH];      
+  m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= g_sRtcManager.m_gRealTimer[RTC_YEAR]-2000;
+
   SendFrameTail(PRM, dwCode, 0x01,0);
   
   
@@ -1930,7 +1951,7 @@ void CBJ101S::lubo_directory_confirm(WORD InfoAddr,DWORD Directory_ID,BYTE call_
   	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = Directory_ID >>24;
   	pTxPos1 = &m_SendBuf.pBuf[m_SendBuf.wWritePtr];//后续标志
   	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =1; //1=有后续标志
-  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =(m_SendListNum+1)*2; //文件数量
+  	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =2;//(m_SendListNum+1)*2; //文件数量
   	mRecorder_flag.LIST_flag = OFF;
   	CAT_SpiReadWords(EEPADD_LUBONUM, 1, (unsigned int*)&wave_total);
   	//if(g_gRunPara[RP_LBSTORAGE_TIME] >0)
@@ -2050,8 +2071,9 @@ void CBJ101S::lubo_directory_confirm(WORD InfoAddr,DWORD Directory_ID,BYTE call_
 			m_SendListNum++;bR_FileNum++;
 			if(m_SendListNum >= (g_sRecData.m_gRecANum+g_sRecData.m_gACTRecANum+g_sRecData.m_gXHRecANum))
 				*pTxPos1 = 0;//0=无后续标志
-	  		SendFrameTail(PRM, dwCode, 0x01,0);
-			mRecorder_flag.LIST_flag = ON; 
+			else
+				mRecorder_flag.LIST_flag = ON; 
+	  		SendFrameTail(PRM, dwCode, 0x01,0);			
 			
 	  		return;
   	  		}

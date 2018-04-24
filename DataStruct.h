@@ -547,7 +547,7 @@ extern unsigned int g_test;
     unsigned int g_unRELTimeFlg_101;
     
     unsigned int g_unOffset;    //物理地址转换偏移量*/
-    char  ComtrderCfg1[360];
+    //char  ComtrderCfg1[360];
     char  ComtrderCfg_adj[50];
 	
 	unsigned char g_EncComNo;		 //哪个串口在跑加密数据1==GPRS 2 ==DeBug， 其余无效
@@ -632,7 +632,7 @@ extern unsigned int g_test;
     extern unsigned char eight_pulse_counter;
     extern unsigned int unFrameNum; //临时存储待发送短信条数
     extern unsigned char g_uc101Flg;
-    extern char  ComtrderCfg1[360];
+    //extern char  ComtrderCfg1[360];
     extern char  ComtrderCfg_adj[50];
 		
 	extern unsigned char g_EncComNo;//
@@ -704,7 +704,7 @@ extern unsigned int g_test;
         unsigned int g_gExtDinYesTimer[3];	//外部DIN输入确认时间计时
 	unsigned int g_gExtDinNoTimer[3];		//外部DIN输入清除时间计时
 	unsigned char g_gPhasErrTimer[3];	      //开关位置错误确认时间计时
-	unsigned char g_gI0OverTimer;		//I0超时确认时间计时
+	unsigned int g_gI0OverTimer;		//I0超时确认时间计时
 	//unsigned char g_gExtDinNoTimer[3];		//外部DIN输入清除时间计时
         //unsigned int g_gDinRtcLock[2][RTC_NUM];
 	

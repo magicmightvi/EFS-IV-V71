@@ -351,25 +351,27 @@ typedef double         FP64;            //双精度浮点数
 #define PM_I0                   7       //零序电流
 //============================  LOG日志        =======================================
 
-#define LOG_INFO_NUM            64//42
+#define LOG_INFO_NUM            32
 
-#define LOG_RESET               1  //功能投退
-#define LOG_101_LINK        	2  //手动投切
-#define LOG_101_ERR        		3 //最终投切成功
-#define LOG_SELF_CHEK          	4  //接地告警
-#define LOG_SOFT_ERR           	5  //PT断线告警
+#define LOG_RESET               1  //系统复位
+#define LOG_101_LINK        	2  //101连接
+#define LOG_101_ERR        		3 //101错误
+#define LOG_SELF_CHEK          	4  //自检告警
+#define LOG_SOFT_ERR           	5  //软件故障
 #define LOG_POW_ONF            	6  //控制器失电
-#define LOG_UCAP              	7 //零序过压报警
-#define LOG_PAR_CHAG          	8 //
-#define LOG_UPT_ERR           	9  //相电压过压告警
-#define LOG_EARTH        		10 //最终投切成功
-#define LOG_EARTH_TDELAY        11  //接地告警
-#define LOG_8FULS_STA           12  //PT断线告警
-#define LOG_I0_ERR           13  //控制器失电
-#define LOG_LATCH               14 //零序过压报警
-#define LOG_I0T_ERR             	16 //线电压过压报警
-#define LOG_KM_ERR              17  //相电压过压告警
-#define LOG_BREAK              	18  //相电压过压告警
+#define LOG_UCAP              	7 //电容报警
+#define LOG_PAR_CHAG          	8 //修改参数
+
+#define LOG_UPT_ERR           	16  //相电压告警
+#define LOG_EARTH        		17 //接地告警
+#define LOG_EARTH_TDELAY        18  //接地告警
+#define LOG_8FULS_STA           19  //8脉冲开始结束
+#define LOG_I0_ERR           	20  //电流过大
+#define LOG_LATCH               21 //闭锁
+#define LOG_I0T_ERR             22 //电流持续时间过长
+#define LOG_KM_ERR              23  //开关吸合过长
+#define LOG_BREAK              	24  //接地线断线
+#define LOG_SOFT_LATCH 			25	//软闭锁
 
 //============================  校正参数        =======================================
 #define ADJ_PARA_NUM                            7//13   //校正参数包括每个通道的基准源校正和目标值校正，将来有功率计算的话还有相位校正

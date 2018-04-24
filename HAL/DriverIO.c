@@ -267,14 +267,14 @@ void ScanDin(void)
 
 void RmInfoChk(void)
 {
-    unsigned char m;
+    unsigned char m,k;
     //unsigned int unRmtTemp = 0;
     //unsigned int j=1;
     for(m= 0;m < RMT_INFO_NUM;m++)
     {
          if(g_gRmtInfoBak[m] != g_gRmtInfo[m])
         {       
-        /*
+        /**/
                for(k = 0; k < g_ucYxTransNum;k++)
                {
                    if(m == g_ucYXAddr[k]-1)
@@ -284,8 +284,8 @@ void RmInfoChk(void)
                        break;
                    }
              
-        	 }  */
-        CreatNewSoe(m,g_gRmtInfo[m],2);	 
+        	 }  
+        //CreatNewSoe(m,g_gRmtInfo[m],2);	 
         g_gRmtInfoBak[m] = g_gRmtInfo[m];   
        }
     }    
@@ -356,9 +356,9 @@ void ScanDinYX(void)
 	if(g_gRmtMeas[RM_I0] >= g_gProcCntJug[PC_PULSE_VALID])
 		{
 		g_gI0OverTimer++;
-		if(g_gI0OverTimer>100)
+		if(g_gI0OverTimer>1000)
 			{
-			g_gI0OverTimer=100;
+			g_gI0OverTimer=1100;
 			g_gRmtInfo[YX_I0_TIMEOVER]=1;
 			SaveLOG(LOG_I0T_ERR, 1);
 			}
@@ -371,7 +371,12 @@ void ScanDinYX(void)
 			SaveLOG(LOG_I0T_ERR, 0);
 			}
 		else
-			g_gI0OverTimer--;
+			{
+			if(g_gI0OverTimer>50)
+				g_gI0OverTimer -= 50;
+			else
+				g_gI0OverTimer = 0;
+			}
 		}
 //*******************************************
 
@@ -984,8 +989,8 @@ void ActOut(unsigned int OutType, unsigned int OutValue)
 
 void ScanSoftLacth(void)
 {
-	if(g_gRmtInfo[YX_EFS_LATCH] == 1)
-		return;
+	//if(g_gRmtInfo[YX_EFS_LATCH] == 1)
+	//	return;
 	if(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_PT_LATCH])	
 	{
 	if((g_gRmtInfo[YX_PHASEA_OFF] == 1)
@@ -998,17 +1003,21 @@ void ScanSoftLacth(void)
 			if(ptoff_timeout==0)
 				{
 				ptoff_timeout =0;
-				KA0_OFF; KB0_OFF;KC0_OFF; g_gKON=OFF;
-				eight_pulse_flag=0;
+				if(g_gRmtInfo[YX_EFS_LATCH] == 0)
+					{
+					KA0_OFF; KB0_OFF;KC0_OFF; g_gKON=OFF;
+					eight_pulse_flag=0;
     				pulse_phase_flag=0; 
     				efslatch_flag= g_gProcCntJug[PC_LACTH_TIME];		 	         ///////±ÕËø17·ÖÖÓ
     				latch_upload_flag=0x55;      	
     				uart0_event_flag=0;         ///////ÔÚÕâÀïÖÃ0£¬ÊÇÎªÁËÈÃ×´Ì¬Á¿×îÔçÏÔÊ¾
     				g_gRmtInfo[YX_EFS_LATCH] = 1;   //ÖÃ±ÕËøÒ£ÐÅÎ» 
-    				SaveLOG(LOG_LATCH, 1);
+    				//SaveLOG(LOG_LATCH, 1);
     				chongfa=0;	moniguzhang=0;
-    				g_gRmtMeas[RM_ACT_NUM] = 0;
-				g_gRmtInfo[YX_EFS_ACT] = 0;   //Í¶ÇÐ×´Ì¬ Ò£ÐÅÖÃ0	
+    				//g_gRmtMeas[RM_ACT_NUM] = 0;
+					g_gRmtInfo[YX_EFS_ACT] = 0;   //Í¶ÇÐ×´Ì¬ Ò£ÐÅÖÃ0	
+					}
+				SaveLOG(LOG_SOFT_LATCH, 1);
 				}
 			}
 		else
@@ -1042,18 +1051,21 @@ void ScanSoftLacth(void)
 			if(km_timeout==0)
 				{
 				km_timeout =0;
-				KA0_OFF; KB0_OFF;KC0_OFF; g_gKON=OFF;
-				eight_pulse_flag=0;
+				if(g_gRmtInfo[YX_EFS_LATCH] == 0)
+					{
+					KA0_OFF; KB0_OFF;KC0_OFF; g_gKON=OFF;
+					eight_pulse_flag=0;
     				pulse_phase_flag=0; 
     				efslatch_flag= g_gProcCntJug[PC_LACTH_TIME];		 	         ///////±ÕËø17·ÖÖÓ
     				latch_upload_flag=0x55;      	
     				uart0_event_flag=0;         ///////ÔÚÕâÀïÖÃ0£¬ÊÇÎªÁËÈÃ×´Ì¬Á¿×îÔçÏÔÊ¾
-    				g_gRmtInfo[YX_EFS_LATCH] = 1;   //ÖÃ±ÕËøÒ£ÐÅÎ» 
-    				SaveLOG(LOG_LATCH, 1);
-					SaveLOG(LOG_KM_ERR, 1);
+    				g_gRmtInfo[YX_EFS_LATCH] = 1;   //ÖÃ±ÕËøÒ£ÐÅÎ»     				
     				chongfa=0;	moniguzhang=0;
-    				g_gRmtMeas[RM_ACT_NUM] = 0;
-				g_gRmtInfo[YX_EFS_ACT] = 0;   //Í¶ÇÐ×´Ì¬ Ò£ÐÅÖÃ0	
+    				//g_gRmtMeas[RM_ACT_NUM] = 0;
+    				g_gRmtInfo[YX_EFS_ACT] = 0;   //Í¶ÇÐ×´Ì¬ Ò£ÐÅÖÃ0	
+					}
+				SaveLOG(LOG_SOFT_LATCH, 1);
+				SaveLOG(LOG_KM_ERR, 1);
 				}
 			}
 		else
@@ -1076,8 +1088,10 @@ void ScanSoftLacth(void)
 			if(i0_timeout==0)
 				{
 				i0_timeout =0;
-				KA0_OFF; KB0_OFF;KC0_OFF; g_gKON=OFF;
-				eight_pulse_flag=0;
+				if(g_gRmtInfo[YX_EFS_LATCH] == 0)
+					{
+					KA0_OFF; KB0_OFF;KC0_OFF; g_gKON=OFF;
+					eight_pulse_flag=0;
     				pulse_phase_flag=0; 
     				efslatch_flag= g_gProcCntJug[PC_LACTH_TIME];		 	         ///////±ÕËø17·ÖÖÓ
     				latch_upload_flag=0x55;      	
@@ -1086,15 +1100,18 @@ void ScanSoftLacth(void)
     				SaveLOG(LOG_LATCH, 1);
 					SaveLOG(LOG_I0_ERR, 1);
     				chongfa=0;	moniguzhang=0;
-    				g_gRmtMeas[RM_ACT_NUM] = 0;
-				g_gRmtInfo[YX_EFS_ACT] = 0;   //Í¶ÇÐ×´Ì¬ Ò£ÐÅÖÃ0	
+    				//g_gRmtMeas[RM_ACT_NUM] = 0;
+					g_gRmtInfo[YX_EFS_ACT] = 0;   //Í¶ÇÐ×´Ì¬ Ò£ÐÅÖÃ0	
+					}
+				SaveLOG(LOG_SOFT_LATCH, 1);
+				SaveLOG(LOG_I0_ERR, 1);
 				}
 			}
 		else
 			{
 			i0_timeout=g_gProcCnt[PC_OVERLOAD_T];//(g_gRunPara[RP_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK])/3;
 			if(i0_timeout==0)i0_timeout=1;
-			if(i0_timeout>g_gRunPara[RP_PLUSE_TIME])i0_timeout=1;
+			//if(i0_timeout>g_gRunPara[RP_PLUSE_TIME])i0_timeout=1;
 			}
 		}
 	else

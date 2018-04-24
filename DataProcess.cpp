@@ -378,6 +378,7 @@ void InitDataProc(void)
     soe_area = 0;
     //soe_num = 0;
     g_gWeekNum = 0;
+	log_recorded.log_status_bk=0;log_recorded.log_status=0;
 
 }
 //==============================================================================
@@ -994,6 +995,10 @@ void RecData(void)
 	 else
 	  	g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] =g_unAdcData[CHAN_U0]-g_gAdjAD[CHAN_U0];
 	  g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][4] =g_unAdcData[CHAN_I0]-g_gAdjAD[CHAN_I0];
+
+		g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = g_gRmtMeas[RM_UA];
+		g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][4] = g_gRmtMeas[RM_UB];
+	  
 	  if((g_gKON>0)&&(g_gKON<4))//张弢开关已经闭合//录波增加继电器开关量
 	  	g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][4] |= (1<<14);//录波增加继电器开关量
 	  else	
@@ -1072,6 +1077,7 @@ void RecActData(void)
               g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][0]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2]; 
 	 else
 	  	g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] =g_unAdcData[CHAN_U0]-g_gAdjAD[CHAN_U0];
+	 g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3]=g_gRmtMeas[RM_I0];
 	  g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][4] =g_unAdcData[CHAN_I0]-g_gAdjAD[CHAN_I0];//g_gRmtMeas[RM_I0]
 	  if((g_gKON>0)&&(g_gKON<4))//张弢开关已经闭合//录波增加继电器开关量
 	  	{
@@ -1879,7 +1885,7 @@ void SaveRecData(void)
 //张弢 录波 需要写文件目录  
   temp[1]=g_sRecData.m_gRecCNum;
   gRecorder_filecfg.FileName=temp[1];//设为文件名
-  gRecorder_filecfg.CFG_Leng=strlen(ComtrderCfg1);//
+  gRecorder_filecfg.CFG_Leng=317;//strlen(ComtrderCfg1);//
   gRecorder_filecfg.TOTAL_Leng=64;//gRecorder_filecfg.CFG_Leng+6400;//
   gRecorder_filecfg.CFG_Samp=4000;	//采样频率 
 #ifdef SD_101S
@@ -2003,7 +2009,7 @@ if((g_sRecData.m_ucActRecStart == OFF))
   	temp[1]=g_sRecData.m_gACTRecCNum;
 	gRecorder_filecfg.FileName=temp[1]+MAX_REC_NUM+1;//设为文件名
 	}  
-  gRecorder_filecfg.CFG_Leng=strlen(ComtrderCfg1);//
+  gRecorder_filecfg.CFG_Leng=317;//strlen(ComtrderCfg1);//
   gRecorder_filecfg.CFG_Samp=800;	//采样频率 
 #ifdef SD_101S
   gRecorder_filecfg.CFG_Samp=800;	//采样频率 
@@ -2110,7 +2116,7 @@ if((g_sRecData.m_ucActRecStart == OFF))
   	temp[1]=g_sRecData.m_gACTRecCNum;
 	gRecorder_filecfg.FileName=temp[1]+MAX_REC_NUM+1;//设为文件名
 	}  
-  gRecorder_filecfg.CFG_Leng=strlen(ComtrderCfg1);//
+  gRecorder_filecfg.CFG_Leng=317;//strlen(ComtrderCfg1);//
   gRecorder_filecfg.CFG_Samp=800;	//采样频率 
 #ifdef SD_101S
   gRecorder_filecfg.CFG_Samp=800;	//采样频率 
@@ -2546,11 +2552,10 @@ void SaveLOG(char   logtype,char logvalue )
 	if(logtype>31)
 		return;
 	temp=0;
-	temp = (unsigned long)(1<<logtype);
-	if(temp>0xffff)
-		{
-		temp = 0;
-		}
+	if(logtype>=16)
+		temp = (((DWORD)((WORD)(1<<(logtype-16))))<< 16);
+	else
+		temp = ((DWORD)((WORD)(1<<logtype)));
 	if(logvalue==1)
 		log_recorded.log_status |= temp;
 	else if(logvalue==0)
@@ -2593,7 +2598,7 @@ void SaveMEMLOG(char   logtype,char logvalue )
    	g_sLogData[log_recorded.log_MemNewPtr].m_gLogTimer[0] = g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000;
 	g_sLogData[log_recorded.log_MemNewPtr].m_gLogTimer[6] = LOBYTE(g_sRtcManager.m_gRealTimer[RTC_MICROSEC]);
 	g_sLogData[log_recorded.log_MemNewPtr].m_gLogTimer[7] = HIBYTE(g_sRtcManager.m_gRealTimer[RTC_MICROSEC]);
-	if(((logtype==LOG_8FULS_STA)&&(logvalue==0))||(logtype==LOG_BREAK))
+	if(((logtype==LOG_8FULS_STA)&&(logvalue==1))||(logtype==LOG_BREAK))
 		{
 		for(i=0;i<8;i++)
 			g_sLogData[log_recorded.log_MemNewPtr].m_gRmtMeas[i]=yc[i];

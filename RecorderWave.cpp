@@ -1103,7 +1103,7 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
       char ch[128]={0};
       //char ch_1[5]={0};
       BYTE byLoadDa[32] = {0};
-      pdat_name="EFS";
+      pdat_name="ulog.msg,v1.0";
       unsigned char *pTxPos;
       //WORD n,i;
       //WORD log_leng =0;
@@ -1570,9 +1570,9 @@ unsigned char *  FileDatadat(unsigned char *pTxBuf,unsigned char leng,WORD wSecL
           if(gRecorder_Readfilecfg.CFG_Samp==800)xt=1250;//张弢 动作录波 频率800 时间间隔1250
       	   if(gRecorder_Readfilecfg.CFG_Samp==1600)xt=625;//张弢 动作录波 频率1600 时间间隔625
       	   if(gRecorder_Readfilecfg.CFG_Samp==2000)xt=500;//张弢 动作录波 频率1600 时间间隔625
-          unsigned int dka;//,dkd;
+          unsigned int dka,dkd;
 	   dka = MAKEWORD(datBuff[8],datBuff[9]);
-	   //dkd = (dka>>14)&0x1;
+	   dkd = (dka>>14)&0x1;
 	   if(dka&((unsigned int)(1<<15)))
 	   	dka |=(1<<14);
 	   else
@@ -1619,7 +1619,7 @@ unsigned char *  FileDatadat(unsigned char *pTxBuf,unsigned char leng,WORD wSecL
 #ifdef YN_101S
 		 ch[18]=(datBuff[9]>>6)&0x01;//信号源控制信号//云南录波取控制信号
 #else
-		ch[18]=a+b*2+c*4;//取三相接触器辅助触点信号
+		ch[18]=a+b*2+c*4+dkd*8;//取三相接触器辅助触点信号
 #endif
 		 ch[19]=0;
 		 i+=20;k=20;

@@ -237,7 +237,7 @@ void CHECK8PLUS(void)
     {
       g_FinishACTFlag = 0x55;   
     }
-	SaveLOG(LOG_8FULS_STA,0);
+	SaveLOG(LOG_8FULS_STA,1);
     g_MaichongNum = 0;
     
     if(pulse_phase_flag ==1)
@@ -922,7 +922,7 @@ __interrupt void TIMER0_A0_ISR(void)
         //ProtLogic();//张弢 程序放入CalcuRmtMeas(void) 5ms执行1次       
         RecActData();
 		McSecCount++;	
-		if(McSecCount>=16)//每32 采样32*56.25uS=625us 则计算存储数据// 张弢测试中断嵌套
+		if(McSecCount>=8)//每16 采样16*1.25ms=20ms 则计算存储数据// 张弢测试中断嵌套
     		{	
 		 	g_unRmCaluFlag = ON; 
 		 	McSecCount = 0;
@@ -972,6 +972,7 @@ __interrupt void TIMER1_A1_ISR(void)    //毫秒中断函数
     static unsigned int SecCount = 0;     //秒计时
     static unsigned char NumKON = 0;     //8脉冲时 每个脉冲的10ms计数
     static unsigned char Numyc = 0;     //8脉冲遥测值 yc[] 的数组下标
+    static unsigned char KMon=0;		//继电器控制接触器动作
     //static unsigned char Numk=0;     //8脉冲遥测值 yc[] 的数组下标
     switch(TA1IV)
     {
@@ -1108,7 +1109,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
                     	g_sRecData.m_gFaultRecSOE[REC_DAY] = g_sRtcManager.m_gRealTimer[RTC_DATE];
                     	g_sRecData.m_gFaultRecSOE[REC_MONTH] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
                     	g_sRecData.m_gFaultRecSOE[REC_YEAR] = (g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000);
-						SaveLOG(LOG_8FULS_STA,1);
+						SaveLOG(LOG_8FULS_STA,0);
 		      			}		
                     if(eight_delay_counter==0)
                         eight_delay_flag=0x55;
@@ -1133,11 +1134,15 @@ _EINT();//开总中断// 张弢测试中断嵌套
 	  	  if((KJa1==ka)||(KJb1==kb)||(KJc1==kc)||(g_gKON==1)||(g_gKON==2)||(g_gKON==3))
 #else	                
           if(KJb1==kb)
-#endif					
+#endif		
+		  {
+		  KMon=0x55;
+		  }
+			if(KMon==0x55)
           	{
          	NumKON++;
-		   	if(NumKON==5)
-				{//8脉冲继电器闭合50ms后，记录电流值
+		   	if(NumKON==20)
+				{//8脉冲继电器闭合200ms后，记录电流值
 				if(Numyc<8)
 					{
 			  		yc[Numyc]=g_gRmtMeas[RM_I0]; 
@@ -1149,12 +1154,13 @@ _EINT();//开总中断// 张弢测试中断嵌套
              	g_I0RmtZeroNum=0;
 			   	g_gRmtInfo[YX_BREAK]=0; 			
             	if(g_I0RmtNum < 19)
-                	g_I0RmtNum++;
+                  	g_I0RmtNum++;
             	}
 			else
 		      	{
 		      	g_I0RmtZeroNum++;
 		      	}
+			if(NumKON>30)KMon=0;//继电器动作300ms后不在判断
             }
 			else //if(g_gKON==OFF)//开关未闭合
 				{
@@ -1430,7 +1436,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
 				   g_gRmtInfo[YX_PHASEB_ACT] = 0;
 				   g_gRmtInfo[YX_PHASEC_ACT] = 0;
                                 g_gRmtInfo[YX_EFS_LATCH] = 0;   //置解锁遥信位 
-                                SaveLOG(LOG_LATCH, 0);
+                                SaveLOG(LOG_LATCH, 0);SaveLOG(LOG_SOFT_LATCH, 0);
                                 g_gRmtInfo[YX_RH_FAIL] = 0;   //燃弧失败遥信复归
                                 g_gRmtInfo[YX_MANUAL_ACTION] = 0;   //置手动投切结束
                                // g_gRmtInfo[0] &= ~YX_EIGHT_PULSE;   //有效8脉冲清除 
