@@ -250,6 +250,15 @@ void cfg_dat_length(RECORDER_CFG *pgRecorder_cfg,int file_current_num)
       		CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(CfgEnd),(unsigned char*)CfgEnd);
       		tt +=strlen(CfgEnd);
 		}
+
+	if(tt <330)
+        {
+        char i;
+       	for(i=0; i< 40; i++)//n < strlen(ch),
+        	{ch[i] = 0x20;}
+		CAT_SpiWriteBytes(EEPADD_CFG+tt,40,(unsigned char*)ch);
+		tt=330;
+        }
       pgRecorder_cfg->CFG_Leng=tt;
       CAT_SpiWriteWord(EEPADD_CFG-2,tt);
       //strtemp = ComtrderCfg1;

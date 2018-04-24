@@ -999,16 +999,16 @@ unsigned int operate20(unsigned int unCommPortIndex)
         for(j = 0; j < 3; j++)
         {  
             unTemp = g_gProcCnt[j];
-            unTemp = (((unsigned long)6000* unTemp) /g_gRmtMeas[j + RM_UA]); //张弢 目标校准，上位机下载参数 初始值为电压60V,电流2A
+            unTemp = (((unsigned long)6000* unTemp) /g_gRmtFilMeas[j + RM_UA]); //张弢 目标校准，上位机下载参数 初始值为电压60V,电流2A
             if(unTemp > 3000 && unTemp < 6000)
                 g_gProcCnt[j] = unTemp;                
         }
             unTemp = g_gProcCnt[3];
-            unTemp = (((unsigned long)6000 * unTemp) /g_gRmtMeas[RM_U0]); //张弢 目标校准，上位机下载参数 初始值为电压60V,电流2A
+            unTemp = (((unsigned long)6000 * unTemp) /g_gRmtFilMeas[RM_U0]); //张弢 目标校准，上位机下载参数 初始值为电压60V,电流2A
             if(unTemp > 3000 && unTemp < 6000)
                 g_gProcCnt[3] = unTemp;
             unTemp = g_gProcCnt[4];
-            unTemp = (((unsigned long)200 * unTemp) /g_gRmtMeas[RM_I0]); //张弢 目标校准，上位机下载参数 初始值为电压60V,电流2A
+            unTemp = (((unsigned long)200 * unTemp) /g_gRmtFilMeas[RM_I0]); //张弢 目标校准，上位机下载参数 初始值为电压60V,电流2A
             if(unTemp > 3000 && unTemp < 6000)
                 g_gProcCnt[4] = unTemp;
          for(i = 0; i <= 4; i++)
@@ -1123,8 +1123,8 @@ unsigned int operateFF(unsigned int unCommPortIndex)
 		utmpadj=((unsigned long)(g_gAdjObj[1]*(3000-xjj)))>>12;
 		if(xjj>utmpadj)xjj=xjj-utmpadj;
 		}
-        g_sTxBuff[0].m_gBuffer[7]= (unsigned char)(xjj);//(g_gRmtMeas[RM_UB]);  //////链路地址
-        g_sTxBuff[0].m_gBuffer[8]= (unsigned char)(xjj>>8);//(g_gRmtMeas[RM_UB] >> 8);   //////链路地址
+        g_sTxBuff[0].m_gBuffer[7]= (unsigned char)(xjj);//(g_gRmtFilMeas[RM_UB]);  //////链路地址
+        g_sTxBuff[0].m_gBuffer[8]= (unsigned char)(xjj>>8);//(g_gRmtFilMeas[RM_UB] >> 8);   //////链路地址
    	xjj=0;
 	for(i=0;i<32;i++)
 		{
@@ -1139,11 +1139,11 @@ unsigned int operateFF(unsigned int unCommPortIndex)
         g_sTxBuff[0].m_gBuffer[9]= (unsigned char)(xjj);//(g_gRmtMeas[RM_UC]);  //////链路地址
         g_sTxBuff[0].m_gBuffer[10]= (unsigned char)(xjj>>8);//(g_gRmtMeas[RM_UC] >> 8);   //////链路地址
           
-        g_sTxBuff[0].m_gBuffer[11]= (unsigned char)(g_gRmtMeas[RM_U0]);  //////链路地址
-        g_sTxBuff[0].m_gBuffer[12]= (unsigned char)(g_gRmtMeas[RM_U0] >> 8);   //////链路地址
+        g_sTxBuff[0].m_gBuffer[11]= (unsigned char)(g_gRmtFilMeas[RM_U0]);  //////链路地址
+        g_sTxBuff[0].m_gBuffer[12]= (unsigned char)(g_gRmtFilMeas[RM_U0] >> 8);   //////链路地址
           
-        g_sTxBuff[0].m_gBuffer[13]= (unsigned char)(g_gRmtMeas[RM_I0]);  //////链路地址
-        g_sTxBuff[0].m_gBuffer[14]= (unsigned char)(g_gRmtMeas[RM_I0] >> 8);   //////链路地址
+        g_sTxBuff[0].m_gBuffer[13]= (unsigned char)(g_gRmtFilMeas[RM_I0]);  //////链路地址
+        g_sTxBuff[0].m_gBuffer[14]= (unsigned char)(g_gRmtFilMeas[RM_I0] >> 8);   //////链路地址
 	g_sTxBuff[0].m_gBuffer[15]=0;
 	for(i=4;i<15;i++)
 	    g_sTxBuff[0].m_gBuffer[15]+=g_sTxBuff[0].m_gBuffer[i];	

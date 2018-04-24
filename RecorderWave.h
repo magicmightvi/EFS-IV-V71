@@ -96,12 +96,12 @@ const char RECCfg[]=
 const char CfgEnd[]=
 "ASCII\n\
 1\n\
-\0";
+";
 
 const char CfgEnd1[]=
 "BINARY\n\
 1\n\
-\0";
+";
 
 /*
 const char ComtrderCfg[]=

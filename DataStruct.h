@@ -142,6 +142,7 @@ struct sSAMPLE_DATA
     unsigned char g_gKON;//继电器状态
     unsigned char g_gKONBK;//继电器状态
     unsigned int g_gRmtMeas[IEC_YC_NUM/*RMT_MEAS_NUM + 4*/];//遥测量，
+    unsigned int g_gRmtFilMeas[IEC_YC_NUM/*RMT_MEAS_NUM + 4*/];//10次中间值滤波后的遥测量，
     unsigned char g_gVErrTimer[10];	      //电压超过阈值确认时间计时	       
     unsigned int g_gRmtMeasPJ[3][32];
     unsigned int g_gRmtMeasBak[IEC_YC_NUM/*RMT_MEAS_NUM*/]; //备份遥测量
@@ -241,7 +242,8 @@ extern unsigned int g_test;
     extern unsigned int g_unAdcData[7]; //ADCMEM的数据存放到该数组中
     extern unsigned char g_gKON;//继电器状态
     extern unsigned char g_gKONBK;//继电器状态
-    extern unsigned int g_gRmtMeas[IEC_YC_NUM/*RMT_MEAS_NUM + 4*/];//遥测量，保存需要上传到后台的遥测数据  
+    extern unsigned int g_gRmtMeas[IEC_YC_NUM/*RMT_MEAS_NUM + 4*/];//遥测量，保存需要上传到后台的遥测数据 
+    extern unsigned int g_gRmtFilMeas[IEC_YC_NUM/*RMT_MEAS_NUM + 4*/];//10次中间值滤波后的遥测量，
     extern unsigned int g_gRmtMeasPJ[3][32];
     extern unsigned int g_gRmtMeasBak[IEC_YC_NUM/*RMT_MEAS_NUM */]; //备份遥测量
     extern unsigned int g_gYCYueXian;//张弢 遥测越限	

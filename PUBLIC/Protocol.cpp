@@ -1589,6 +1589,7 @@ void CProtocol::SendSoeSavedStu()
 }
 void CProtocol::SendTrigAck()
 {
+return;
 }
 
 //组织报文头,固定格式报文

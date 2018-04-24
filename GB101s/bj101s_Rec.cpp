@@ -453,7 +453,7 @@ void CBJ101S:: ReadFileDataUlog(WORD FileName,BYTE section_current,BYTE flag)
       {
 		sprintf((char *)ch,"%02d,%04d-%02d-%02d %02d:%02d:%02d.%03d,",
 			byLoadDa[0],byLoadDa[2]+2000,byLoadDa[3],byLoadDa[4],byLoadDa[5],byLoadDa[6],byLoadDa[7],
-			MAKEWORD(byLoadDa[8], byLoadDa[9]));//log 类型 年月日时分秒	
+			MAKEWORD(byLoadDa[8], byLoadDa[9]));//log类型 年月日时分秒	
         for(n = 0; n < strlen(ch); n++)
         {
             
@@ -467,7 +467,7 @@ void CBJ101S:: ReadFileDataUlog(WORD FileName,BYTE section_current,BYTE flag)
           logsum+= byLoadDa[11+n];
         }
         log_leng = strlen(ch) + (byLoadDa[1] -9);
-
+		//信息内容
 		if(((byLoadDa[0]==LOG_8FULS_STA)&&(byLoadDa[1]==1))||(byLoadDa[0]==LOG_BREAK))//8脉冲结束或者断线，显示8个电流值
         	{
           	sprintf((char *)ch,";I1=%d I2=%d I3=%d I4=%d I5=%d I6=%d I7=%d I8=%d,",
@@ -1195,18 +1195,20 @@ void CBJ101S::Send_ReadFile_Data(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,unsig
   //unsigned int t_FileNum;
   long FADDR_RECORDER;
 
-  m_Recorder_cfg.FileName = 0xff;
+  if((File_TYPE ==1)||(File_TYPE ==2))	
+  	{
+  	m_Recorder_cfg.FileName = 0xff;
   	if(File_ID<(MAX_REC_NUM+1))
   		{
 		FADDR_RECORDER =FADDR_RECORDER_DATA-256+ (unsigned long)(File_ID+1)*0x2000;
   		}
 	else if(File_ID<(MAX_REC_NUM+MAX_ACTREC_NUM+2))	
 		{
-		FADDR_RECORDER = FADDR_RECORDER_ACTDATA-256 +(unsigned long)(File_ID+1)*0x90000;
+		FADDR_RECORDER = FADDR_RECORDER_ACTDATA-256 +(unsigned long)(File_ID-51+1)*0x90000;
 		}
 	else if(File_ID<(MAX_REC_NUM+MAX_ACTREC_NUM+MAX_XHREC_NUM+3))	
 		{
-		FADDR_RECORDER = FADDR_RECORDER_XHDATA-256 +(unsigned long)(File_ID+1)*0x8000;
+		FADDR_RECORDER = FADDR_RECORDER_XHDATA-256 +(unsigned long)(File_ID-62+1)*0x8000;
 		}
 	else
 		{//err
@@ -1217,6 +1219,7 @@ void CBJ101S::Send_ReadFile_Data(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,unsig
 		{//err
 		return;
 		}
+  	}
 
 
     SendFrameHead(Style, Reason);
@@ -1416,19 +1419,20 @@ void CBJ101S::Send_ReadFile_Confirm(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,un
   //unsigned char *pTxPos,*pTxPos1;
   RECORDER_CFG m_Recorder_cfg;
   long FADDR_RECORDER;
-
-  m_Recorder_cfg.FileName = 0xff;
+  if((File_TYPE==1)||(File_TYPE==2))
+  	{
+  	m_Recorder_cfg.FileName = 0xff;
   	if(File_ID<(MAX_REC_NUM+1))
   		{
 		FADDR_RECORDER =FADDR_RECORDER_DATA-256+ (unsigned long)(File_ID+1)*0x2000;
   		}
 	else if(File_ID<(MAX_REC_NUM+MAX_ACTREC_NUM+2))	
 		{
-		FADDR_RECORDER = FADDR_RECORDER_ACTDATA-256 +(unsigned long)(File_ID+1)*0x90000;
+		FADDR_RECORDER = FADDR_RECORDER_ACTDATA-256 +(unsigned long)(File_ID-51+1)*0x90000;
 		}
 	else if(File_ID<(MAX_REC_NUM+MAX_ACTREC_NUM+MAX_XHREC_NUM+3))	
 		{
-		FADDR_RECORDER = FADDR_RECORDER_XHDATA-256 +(unsigned long)(File_ID+1)*0x8000;
+		FADDR_RECORDER = FADDR_RECORDER_XHDATA-256 +(unsigned long)(File_ID-62+1)*0x8000;
 		}
 	else
 		{//err
@@ -1439,6 +1443,7 @@ void CBJ101S::Send_ReadFile_Confirm(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,un
 		{//err
 		return;
 		}
+  	}
 
 
   SendFrameHead(Style, Reason);
@@ -1454,21 +1459,21 @@ void CBJ101S::Send_ReadFile_Confirm(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,un
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = File_ID >>8;
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
   m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
-  if(File_TYPE == 1)
+  if(File_TYPE == 1)//cfg
   {
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=m_Recorder_cfg.CFG_Leng;
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=m_Recorder_cfg.CFG_Leng >>8;
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=m_Recorder_cfg.CFG_Leng >>16;
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=m_Recorder_cfg.CFG_Leng >>24;
   }
-  else if(File_TYPE == 2)
+  else if(File_TYPE == 2)//dat
   {
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=m_Recorder_cfg.DATA_Leng;
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=m_Recorder_cfg.DATA_Leng >>8;
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=m_Recorder_cfg.DATA_Leng >>16;
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=m_Recorder_cfg.DATA_Leng >>24;
   }
-  else if(File_TYPE == 3)
+  else if(File_TYPE == 3)//fixpt
   {
     
     CAT_SpiReadBytes(EEPADD_DAYNUM+File_ID,1,&LoadDay);
@@ -1492,7 +1497,7 @@ void CBJ101S::Send_ReadFile_Confirm(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,un
         m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= m_Fixpt_TOTAL_Leng >>16;
         m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]= m_Fixpt_TOTAL_Leng >>24;
   }
-  else if(File_TYPE == 4)
+  else if(File_TYPE == 4)//soe
   {
     TOTAL_Leng = 12+soe_num * SOE_RECORD_LEN;//报文头9个字节
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = TOTAL_Leng;
@@ -1500,7 +1505,7 @@ void CBJ101S::Send_ReadFile_Confirm(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,un
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = TOTAL_Leng>>16;
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = TOTAL_Leng>>24;
   }
-  else if(File_TYPE == 5)
+  else if(File_TYPE == 5)//ulog
   {
     unsigned int FLogInfo[FLOGINFONUM]; 
     CAT_SpiReadWords(EEPADD_LOGP, FLOGINFONUM, FLogInfo);
@@ -2268,7 +2273,7 @@ void CBJ101S::lubo_directory_confirm(WORD InfoAddr,DWORD Directory_ID,BYTE call_
 }
 
 void CBJ101S::RecReadParaData(BYTE Style,BYTE VSQ)
-{/*
+{return;/*
    BYTE Reason = 0X05;
   BYTE PRM = 0, dwCode = 3;
   BYTE cpypara=0;
@@ -2355,8 +2360,9 @@ void CBJ101S::RecFIUpdata(BYTE Type)
   */
 }
 #ifndef YN_101S
-void CBJ101S::RecReadData(void)
-{/*
+/*void CBJ101S::RecReadData(void)
+{return;
+
   BYTE *pData = &pReceiveFrame->Frame68.Data[m_byInfoShift];
   WORD InfoAddr = MAKEWORD(pData[0],pData[1]);
   WORD wInfoAddr =0;
@@ -2424,8 +2430,8 @@ void CBJ101S::RecReadData(void)
         RecReadParaData(102,0);
       else  
         RecReadParaData(132,0x80);  
-  }  */
-}
+  }  
+}*/
 #endif
 
 #endif /*#ifdef INCLUDE_GB101_S*/

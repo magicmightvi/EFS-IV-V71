@@ -483,7 +483,7 @@ BOOL CBJ101S::RecFrame68(void)
             //RecCallDDCommand();
             break;//召唤电度
         case 0x66:
-            RecReadData();
+            //RecReadData();
             m_zdflag=0;
             break;//读数据处理
         case 0x67:	

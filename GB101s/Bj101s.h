@@ -244,7 +244,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		BOOL SendYKstop(void) ;
 		void SendInitFinish(void) ;//add by lqh 20081103
 		void SendAck(void);//add by lqh 20081103
-                void RecReadData(void);  //云南
+                //void RecReadData(void);  //云南
                 BOOL RecYSCommand(void); //云南
                 BOOL SendCallHistLoad(void); //云南
                 BOOL SendHistSOE(void); //云南

@@ -977,12 +977,9 @@ __interrupt void TIMER1_A1_ISR(void)    //毫秒中断函数
     switch(TA1IV)
     {
          case 0x02:
-//#ifdef INT_NEST  			 	
-//UCA1IE &= (~(UCRXIE + UCTXIE));              //关闭 USCI_A1RX 中断  // 张弢测试中断嵌套	 
-//UCA2IE &= (~(UCRXIE + UCTXIE));              // 关闭 USCI_A2 RX 中断  // 张弢测试中断嵌套// 张弢测试中断嵌套	
+	
 _EINT();//开总中断// 张弢测试中断嵌套	
-//delay(2000);	// 张弢测试中断嵌套
-//#endif 
+
             TA1CCR1 += 250;
             for(i = 0;i <= 2;i++)
     {
@@ -1141,7 +1138,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
 			if(KMon==0x55)
           	{
          	NumKON++;
-		   	if(NumKON==20)
+		   	if(NumKON==5)
 				{//8脉冲继电器闭合200ms后，记录电流值
 				if(Numyc<8)
 					{
