@@ -408,6 +408,7 @@ void CBJ101S:: ReadFileDataUlog(WORD FileName,BYTE section_current,BYTE flag)
 {
    unsigned char *pTxPos;
   char *pdat_name;
+  char *log_name;
   pdat_name="ulog.msg,v1.0";//"AU";
   char ch[60]={0};
   char ch_1[5]={0};
@@ -459,14 +460,79 @@ void CBJ101S:: ReadFileDataUlog(WORD FileName,BYTE section_current,BYTE flag)
             
           m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch[n];
           logsum+= ch[n];
-        }  
+        } 
+		log_leng = strlen(ch);
 		//文字说明
-        for(n = 0; n < byLoadDa[1] -9; n++)
-        {            
-          m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] =byLoadDa[11+n];
-          logsum+= byLoadDa[11+n];
-        }
-        log_leng = strlen(ch) + (byLoadDa[1] -9);
+		switch(byLoadDa[0])
+			{
+			case 1:
+				log_name="Restart";
+				break;
+			case 2:
+				log_name="101Link";
+				break;
+			case 3:
+				log_name="Restart";
+				break;
+			case 4:
+				log_name="101Link";
+				break;
+			case 5:
+				log_name="Restart";
+				break;
+			case 6:
+				log_name="PowerON_OFF";
+				break;
+			case 7:
+				log_name="BKPower";
+				break;
+			case 8:
+				log_name="ParaChange";
+				break;
+			case 11:
+				log_name="8PLUSE_I";
+				break;
+			case 16:
+				log_name="UPT_ERR";
+				break;
+			case 17:
+				log_name="EARTH";
+				break;
+			case 18:
+				log_name="EARTH_DELAY";
+				break;
+			case 19:
+				log_name="8PLUSE_STA";
+				break;
+			case 20:
+				log_name="I0_ERR";
+				break;
+			case 21:
+				log_name="LATCH";
+				break;
+			case 22:
+				log_name="I0T_ERR";
+				break;
+			case 23:
+				log_name="KM_ERR";
+				break;
+			case 24:
+				log_name="BREAK";
+				break;
+			case 25:
+				log_name="SOFT_LATCH";
+				break;
+			default:
+				log_name="ERR";
+			}
+		sprintf((char *)ch,"%s",log_name);
+        for(n = 0; n < strlen(ch); n++)
+        {
+            
+          m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ch[n];
+          logsum+= ch[n];
+        } 
+        log_leng += strlen(ch);
 		//信息内容
 		if((byLoadDa[0]==LOG_8FULS_I)||(byLoadDa[0]==LOG_BREAK))//8脉冲结束或者断线，显示8个电流值
         	{
@@ -1471,10 +1537,10 @@ void CBJ101S::Send_ReadFile_Confirm(WORD File_ID,BYTE File_TYPE,WORD InfoAddr,un
   }
   else if(File_TYPE == 2)//dat
   {
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=m_Recorder_cfg.DATA_Leng;
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=m_Recorder_cfg.DATA_Leng >>8;
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=m_Recorder_cfg.DATA_Leng >>16;
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=m_Recorder_cfg.DATA_Leng >>24;
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=(m_Recorder_cfg.TOTAL_Leng*20);
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=(m_Recorder_cfg.TOTAL_Leng*20) >>8;
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=(m_Recorder_cfg.TOTAL_Leng*20)>>16;
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ]=(m_Recorder_cfg.TOTAL_Leng*20) >>24;
   }
   else if(File_TYPE == 3)//fixpt
   {

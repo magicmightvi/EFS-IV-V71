@@ -1899,6 +1899,7 @@ void SaveRecData(void)
 #endif
   gRecorder_filecfg.CFG_EndSamp=640;//采样个数 
   gRecorder_filecfg.TOTAL_Leng=gRecorder_filecfg.CFG_EndSamp;//gRecorder_filecfg.CFG_Leng+6400;//  
+  gRecorder_filecfg.DATA_Leng=gRecorder_filecfg.TOTAL_Leng;
   gRecorder_filecfg.comtrade_time[RTC_MICROSEC]=g_sRecData.m_gFaultRecOver[REC_MSL] ;
   gRecorder_filecfg.comtrade_time[RTC_SEC]=g_sRecData.m_gFaultRecOver[REC_MSH];
   gRecorder_filecfg.comtrade_time[RTC_MINUT]=g_sRecData.m_gFaultRecOver[REC_MINU] ;
@@ -2030,6 +2031,7 @@ if((g_sRecData.m_ucActRecStart == OFF))
   	}
   gRecorder_filecfg.CFG_EndSamp=(g_sRecData.m_gActRecAdr-ulAddr)/10;//采样个数 
   gRecorder_filecfg.TOTAL_Leng=gRecorder_filecfg.CFG_EndSamp;//gRecorder_filecfg.CFG_Leng+6400;//
+  gRecorder_filecfg.DATA_Leng=gRecorder_filecfg.TOTAL_Leng;
   gRecorder_filecfg.comtrade_time[RTC_MICROSEC]=g_sRecData.m_gFaultRecSOE[REC_MSL] ;
   gRecorder_filecfg.comtrade_time[RTC_SEC]=g_sRecData.m_gFaultRecSOE[REC_MSH];
   gRecorder_filecfg.comtrade_time[RTC_MINUT]=g_sRecData.m_gFaultRecSOE[REC_MINU] ;
@@ -2587,7 +2589,7 @@ void ScanLOG()
 		if(olds!=news)
 			SaveMEMLOG(i,news);
 		}
-	temp = (long)(1<<LOG_RESET)|(1<<LOG_101_LINK)|(1<<LOG_PAR_CHAG);
+	temp = (long)(1<<LOG_RESET)|(1<<LOG_101_LINK)|(1<<LOG_PAR_CHAG)|(1<<LOG_8FULS_I);
 	temp = ~temp;
 	log_recorded.log_status &= temp;
 	log_recorded.log_status_bk=log_recorded.log_status;
