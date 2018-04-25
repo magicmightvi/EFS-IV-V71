@@ -2604,7 +2604,7 @@ void SaveMEMLOG(char   logtype,char logvalue )
    	g_sLogData[log_recorded.log_MemNewPtr].m_gLogTimer[0] = g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000;
 	g_sLogData[log_recorded.log_MemNewPtr].m_gLogTimer[6] = LOBYTE(g_sRtcManager.m_gRealTimer[RTC_MICROSEC]);
 	g_sLogData[log_recorded.log_MemNewPtr].m_gLogTimer[7] = HIBYTE(g_sRtcManager.m_gRealTimer[RTC_MICROSEC]);
-	if(((logtype==LOG_8FULS_STA)&&(logvalue==1))||(logtype==LOG_BREAK))
+	if((logtype==LOG_8FULS_I)||(logtype==LOG_BREAK))
 		{
 		for(i=0;i<8;i++)
 			g_sLogData[log_recorded.log_MemNewPtr].m_gRmtMeas[i]=yc[i];

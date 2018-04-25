@@ -1012,6 +1012,7 @@ void ScanSoftLacth(void)
     				latch_upload_flag=0x55;      	
     				uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
     				g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位 
+    				SaveLOG(LOG_8FULS_STA,0);
     				//SaveLOG(LOG_LATCH, 1);
     				chongfa=0;	moniguzhang=0;
     				//g_gRmtMeas[RM_ACT_NUM] = 0;
@@ -1059,7 +1060,8 @@ void ScanSoftLacth(void)
     				efslatch_flag= g_gProcCntJug[PC_LACTH_TIME];		 	         ///////闭锁17分钟
     				latch_upload_flag=0x55;      	
     				uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
-    				g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位     				
+    				g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位  
+    				SaveLOG(LOG_8FULS_STA,0);
     				chongfa=0;	moniguzhang=0;
     				//g_gRmtMeas[RM_ACT_NUM] = 0;
     				g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0	
@@ -1099,6 +1101,7 @@ void ScanSoftLacth(void)
     				g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位 
     				SaveLOG(LOG_LATCH, 1);
 					SaveLOG(LOG_I0_ERR, 1);
+					SaveLOG(LOG_8FULS_STA,0);
     				chongfa=0;	moniguzhang=0;
     				//g_gRmtMeas[RM_ACT_NUM] = 0;
 					g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0	

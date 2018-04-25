@@ -237,7 +237,7 @@ void CHECK8PLUS(void)
     {
       g_FinishACTFlag = 0x55;   
     }
-	SaveLOG(LOG_8FULS_STA,1);
+	SaveLOG(LOG_8FULS_I,1);
     g_MaichongNum = 0;
     
     if(pulse_phase_flag ==1)
@@ -406,6 +406,7 @@ void JAGACT1(void)//动作2次 超前相动作，滞后相动作
     latch_upload_flag=0x55;
     uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
     g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位    
+    SaveLOG(LOG_8FULS_STA,0);
     SaveLOG(LOG_LATCH, 1);
     g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0
     chongfa=0;  moniguzhang=0;	
@@ -563,6 +564,7 @@ void JAGACT2(void)//动作3次 超前相动作，滞后相动作，故障相动作
     	}    	
     uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
     g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位  
+    SaveLOG(LOG_8FULS_STA,0);
     SaveLOG(LOG_LATCH, 1);
     g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0    
     chongfa=0;moniguzhang=0;	
@@ -697,6 +699,7 @@ void JAGACT3(void)//动作2次 只有AC相有接触器，超前相动作，另一相动作
     	}    	
     uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
     g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位  
+    SaveLOG(LOG_8FULS_STA,0);
     SaveLOG(LOG_LATCH, 1);
     g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0    
     chongfa=0;	moniguzhang=0;
@@ -827,6 +830,7 @@ void JAGACT4(void)//动作1次 只有AC相有接触器，超前相动作
     		}             	  
              uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
              g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位 
+             SaveLOG(LOG_8FULS_STA,0);
              SaveLOG(LOG_LATCH, 1);
              g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0             
 	      chongfa=0;moniguzhang=0;
@@ -1106,7 +1110,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
                     	g_sRecData.m_gFaultRecSOE[REC_DAY] = g_sRtcManager.m_gRealTimer[RTC_DATE];
                     	g_sRecData.m_gFaultRecSOE[REC_MONTH] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
                     	g_sRecData.m_gFaultRecSOE[REC_YEAR] = (g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000);
-						SaveLOG(LOG_8FULS_STA,0);
+						SaveLOG(LOG_8FULS_STA,1);
 		      			}		
                     if(eight_delay_counter==0)
                         eight_delay_flag=0x55;
@@ -1188,6 +1192,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
     				latch_upload_flag=0x55;      	
     				uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
     				g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位 
+    				SaveLOG(LOG_8FULS_STA,0);
     				SaveLOG(LOG_LATCH, 1);
     				chongfa=0;	moniguzhang=0;
     				g_gRmtMeas[RM_ACT_NUM] = 0;
