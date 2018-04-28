@@ -296,6 +296,7 @@ unsigned char* LogDirectory(unsigned char *pTxBuf, unsigned char leng)
         *pTxBuf++ = 1;
         *pTxBuf++ = 0;
         Log_TOTAL_Leng = wavelog_total;//报文头9个字节
+        if(Log_TOTAL_Leng>1024)Log_TOTAL_Leng=1024;
         *pTxBuf++ = Log_TOTAL_Leng;
         *pTxBuf++ = Log_TOTAL_Leng>>8;
         *pTxBuf++ = Log_TOTAL_Leng>>16;  
@@ -795,85 +796,101 @@ unsigned char * FileDirectory(unsigned char *pTxBuf, unsigned char leng,unsigned
      }
      return pTxBuf;
 }
+/*
 unsigned char *  ApprovalLogFile(unsigned char *pTxBuf,unsigned char leng,WORD wSecLenPtr)
 {
-    //WORD FileName;
-    //BYTE Loadday;
-    //BYTE log_sum=0;
-    if(pTxBuf[leng + 3]==3)//节传输的认可,AFQ
-    {
-    //FileName = MAKEWORD(gRecorder_flag.pRXBuff[leng],gRecorder_flag.pRXBuff[leng + 1]);//-1;
-    
-    if(section_current < wavelog_total) //认可第一节后发送节2准备就绪
-    {
-      section_current++;//=2;
-      pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= SECTIONPREPAR_TYPE;
-      pTxBuf += leng;
-      log_recorded.log_Ptr  =0;
+	if(pTxBuf[leng + 3]==3)//节传输的认可,AFQ
+    	{
+    	if(section_current < wavelog_total) //认可第一节后发送节2准备就绪
+    		{
+      		section_current++;//=2;
+      		pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= SECTIONPREPAR_TYPE;
+      		pTxBuf += leng;
+      		log_recorded.log_Ptr  =0;
             log_recorded.log_Curren_count =1;
-      log_recorded.log_count =0;
-      
-     
-      log_sum_section =0;
+      		log_recorded.log_count =0;     
+      		log_sum_section =0;
       //fixpt_recorded.fixpt_count_flag =OFF;  
-      *pTxBuf++ = gRecorder_flag.pRXBuff[leng];//文件序号两个字节
-      *pTxBuf++ = gRecorder_flag.pRXBuff[leng + 1];
-      *pTxBuf++ = section_current;//当前节名称
-      
-     
-        //FileName = MAKEWORD(gRecorder_flag.pRXBuff[leng + 1],gRecorder_flag.pRXBuff[leng + 2]);
-       /*if(section_current == 1)//节名称为0传输.CFG的节长度
-       {
-        *pTxBuf++ = pgRecorder_cfg->CFG_Leng;
-        *pTxBuf++ = pgRecorder_cfg->CFG_Leng>>8; 
-         GLubocfg_Sum =0;
-        
-       }
-       else//传输.DAT节的长度
-       {
-        *pTxBuf++ = pgRecorder_cfg->DATA_Leng;
-        *pTxBuf++ = pgRecorder_cfg->DATA_Leng>>8;
-         GLubodat_Sum =0;
-       }*/
-       if(section_current == 1)//节名称为0传输.CFG的节长度
-    {
-      *pTxBuf++ = 9 +FLASH_PLOAD_LEN;
-      *pTxBuf++ = (9 +FLASH_PLOAD_LEN)>>8;  
-    }
-    else//传输.DAT节的长度
-    {
+      		*pTxBuf++ = gRecorder_flag.pRXBuff[leng];//文件序号两个字节
+      		*pTxBuf++ = gRecorder_flag.pRXBuff[leng + 1];
+      		*pTxBuf++ = section_current;//当前节名称    
        
-        *pTxBuf++ = FLASH_PLOAD_LEN;
-      *pTxBuf++ = FLASH_PLOAD_LEN>>8;   
-    }
-        //*pTxBuf++ = 128;
-        //*pTxBuf++ =0;
-        
-        *pTxBuf++ = 0;//6;//SRQ=0,第一节准备就绪
+       		if(section_current == 1)//节名称为0传输.CFG的节长度
+    			{
+      			*pTxBuf++ = 9 +FLASH_PLOAD_LEN;
+      			*pTxBuf++ = (9 +FLASH_PLOAD_LEN)>>8;  
+    			}
+    		else//传输.DAT节的长度
+    			{       
+        		*pTxBuf++ = FLASH_PLOAD_LEN;
+      			*pTxBuf++ = FLASH_PLOAD_LEN>>8;   
+    			}
+        	*pTxBuf++ = 0;//6;//SRQ=0,第一节准备就绪
       
-     }
+     		}
      else if(section_current >= wavelog_total)//== 2认可第二节后发送最后节
-     {
+     	{
         pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= LASTSECTION_TYPE;//发送的最后节信息
-        pTxBuf += leng;
-        
-      *pTxBuf++ = gRecorder_flag.pRXBuff[leng];//文件序号两个字节
-      *pTxBuf++ = gRecorder_flag.pRXBuff[leng + 1];
-      *pTxBuf++ = section_current;//当前节名称
-      *pTxBuf++ =1;//LSQ=1 不带停止激活的节传输
-        //pTxBuf[wSecLenPtr] = 1;//LSQ=3 不带停止激活的节传输
-         //GLubocfg_Sum = ChkluboSum(ComtrderCfg1, strlen(ComtrderCfg1));
-        //for(int i =0;i<Loadday;i++)
-        //fix_sum += fixpt_sum[i];
-         *pTxBuf++ = log_sum_total;//节的校验位
-     }
+        pTxBuf += leng;        
+      	*pTxBuf++ = gRecorder_flag.pRXBuff[leng];//文件序号两个字节
+      	*pTxBuf++ = gRecorder_flag.pRXBuff[leng + 1];
+      	*pTxBuf++ = section_current;//当前节名称
+      	*pTxBuf++ =1;//LSQ=1 不带停止激活的节传输        
+       	*pTxBuf++ = log_sum_total;//节的校验位
+     	}
      }
      else if(pTxBuf[leng + 3]==1)//文件传输的认可AFQ
-     {
-      section_current=1;
-      pTxBuf = NULL;
-     }
+     	{
+      	section_current=1;
+     	 pTxBuf = NULL;
+     	}
     return pTxBuf;
+}
+*/
+unsigned char *  ApprovalLogFile(unsigned char *pTxBuf,unsigned char leng,WORD wSecLenPtr)
+{
+	if(pTxBuf[leng + 3]==3)//节传输的认可,AFQ
+		{
+		if(section_current==1) //认可第一节后发送节2准备就绪
+			{
+			pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= LASTSECTION_TYPE;//发送的最后节信息
+			pTxBuf += leng; 		 
+			 *pTxBuf++ = gRecorder_flag.pRXBuff[leng];//文件序号两个字节
+			  *pTxBuf++ = gRecorder_flag.pRXBuff[leng + 1];
+			  *pTxBuf++ = section_current;//当前节名称
+			  *pTxBuf++ =1;//LSQ=1 不带停止激活的节传输		   
+			  *pTxBuf++ = log_sum_section;
+			}
+		}
+	  else if(pTxBuf[leng + 3]==1)//文件传输的认可AFQ
+		{
+			  section_current=1;
+			  pTxBuf = NULL;
+		}
+			 return pTxBuf;
+}
+
+unsigned char *  ApprovalSoeFile(unsigned char *pTxBuf,unsigned char leng,WORD wSecLenPtr)
+{
+  if(pTxBuf[leng + 3]==3)//节传输的认可,AFQ
+    {
+  	if(section_current==1) //认可第一节后发送节2准备就绪
+   		{
+    	pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= LASTSECTION_TYPE;//发送的最后节信息
+       	pTxBuf += leng;          
+      	 *pTxBuf++ = gRecorder_flag.pRXBuff[leng];//文件序号两个字节
+          *pTxBuf++ = gRecorder_flag.pRXBuff[leng + 1];
+          *pTxBuf++ = section_current;//当前节名称
+          *pTxBuf++ =1;//LSQ=1 不带停止激活的节传输          
+          *pTxBuf++ = soe_sum;//GLubodat_Sum + GLubocfg_Sum;//节的校验位
+    	}
+  	}
+  else if(pTxBuf[leng + 3]==1)//文件传输的认可AFQ
+    {
+          section_current=1;
+          pTxBuf = NULL;
+    }
+         return pTxBuf;
 }
 
 unsigned char *  ApprovalFixFile(unsigned char *pTxBuf,unsigned char leng,WORD wSecLenPtr)
@@ -958,31 +975,7 @@ unsigned char *  ApprovalFixFile(unsigned char *pTxBuf,unsigned char leng,WORD w
 
 
 
-unsigned char *  ApprovalSoeFile(unsigned char *pTxBuf,unsigned char leng,WORD wSecLenPtr)
-{
-  if(pTxBuf[leng + 3]==3)//节传输的认可,AFQ
-    {
-      if(section_current==1) //认可第一节后发送节2准备就绪
-        {
-    pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= LASTSECTION_TYPE;//发送的最后节信息
-            pTxBuf += leng;
-          
-          *pTxBuf++ = gRecorder_flag.pRXBuff[leng];//文件序号两个字节
-          *pTxBuf++ = gRecorder_flag.pRXBuff[leng + 1];
-          *pTxBuf++ = section_current;//当前节名称
-          *pTxBuf++ =1;//LSQ=1 不带停止激活的节传输
-          //pTxBuf[wSecLenPtr] = 1;//LSQ=3 不带停止激活的节传输
-              //GLubocfg_Sum = ChkluboSum(ComtrderCfg1, strlen(ComtrderCfg1));
-          *pTxBuf++ = soe_sum;//GLubodat_Sum + GLubocfg_Sum;//节的校验位
-    }
-  }
-  else if(pTxBuf[leng + 3]==1)//文件传输的认可AFQ
-    {
-          section_current=1;
-          pTxBuf = NULL;
-    }
-         return pTxBuf;
-}
+
 //#endif
 //***********************************************************************************
 //*函数名：ApprovalFile
@@ -1109,20 +1102,20 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
 {
         
       char *pdat_name;
+	  char *log_name;
       char ch[128]={0};
       //char ch_1[5]={0};
       BYTE byLoadDa[32] = {0};
       pdat_name="ulog.msg,v1.0";
-      unsigned char *pTxPos;
-      //WORD n,i;
-      //WORD log_leng =0;
+      unsigned char *pTxPos;      
       gRecorder_flag.LIST_flag = OFF;
-      BYTE Current_Section,n;
-      //BYTE length =0;
-      Current_Section = gRecorder_flag.pRXBuff[leng + 2];
-      unsigned long FLoadAddr = FADDR_LOG_START + ((unsigned long)(Current_Section-1) *FLASH_PLOG_LEN);
-      if(FLoadAddr>=FADDR_LOG_END)FLoadAddr = FLoadAddr-0x9000;
-      if((log_recorded.log_Ptr >= log_recorded.log_Curren_count ) &&(log_recorded.log_count_flag == ON))//最后一段Sample_num
+      //unsigned int Current_Section,
+      char n;	  
+      
+      //Current_Section = gRecorder_flag.pRXBuff[leng + 2];
+      //unsigned long FLoadAddr = FADDR_LOG_START + ((unsigned long)(log_recorded.log_Ptr) *FLASH_PLOG_LEN);
+      //if(FLoadAddr>=FADDR_LOG_END)FLoadAddr = FLoadAddr-0x9000;
+      if((log_recorded.log_Ptr >= (log_recorded.log_Curren_count) ) &&(log_recorded.log_count_flag == ON))//最后一段Sample_num
       {
          pTxBuf[5+g_ucPara101[IECP_LINKADDR_NUM]]= LASTSECTION_TYPE;//发送的最后段信息
           //pTxBuf[wSecLenPtr] = 3;//LSQ=3 不带停止激活的节传输
@@ -1152,20 +1145,33 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
           
           //sprintf((char *)ch,"%.*s,%02x%02x\r\n",sizeof(pdat_name),pdat_name,wavelog_total,(wavelog_total >>8));
           sprintf((char *)ch,"%.*s,%d,%d\r\n",sizeof(pdat_name),pdat_name,wavelog_total,g_gRunPara[RP_COMM_ADDR]);
-          for(n = 0; n < strlen(ch); n++)
+		  log_sum_section = 0;
+		  for(n = 0; n < strlen(ch); n++)
           {
             *pTxBuf++ = ch[n];
             log_sum_section += ch[n];
           }          
-          if(wavelog_total >0)
-          	log_recorded.log_Curren_count =1;//若有节数据数据，则对应的段至少为1，下面发送时再计算具体的段数
+          if(wavelog_total >=1024)
+          	{
+          	log_recorded.log_Curren_count =1024;//若有节数据数据，则对应的段至少为1，下面发送时再计算具体的段数
+			wavelog_ptr=log_recorded.log_FlashNewPtr+0xfe0;
+			if(wavelog_ptr>=FADDR_LOG_END)
+				wavelog_ptr -= 0x9000;
+		  	}
+		  else
+		  	{
+		  	log_recorded.log_Curren_count = wavelog_total;
+		  	wavelog_ptr=FADDR_LOG_START;
+          	}
           log_recorded.log_Ptr =0;
           log_recorded.log_count_flag = ON;
         }//下面未改
         else if(log_recorded.log_count_flag == ON)
         {
           
-          Sst26vf064b_Read(FLoadAddr,byLoadDa,FLASH_PLOAD_LEN);          
+          Sst26vf064b_Read(wavelog_ptr,byLoadDa,FLASH_PLOAD_LEN); 
+		  wavelog_ptr += 32;
+		  if(wavelog_ptr>=FADDR_LOG_END)wavelog_ptr=FADDR_LOG_START;
           if(log_recorded.log_Ptr < log_recorded.log_Curren_count)
           {          	  
 			  sprintf((char *)ch,"%02d,%01d,",byLoadDa[0],byLoadDa[1]);//log类型和值	
@@ -1173,8 +1179,78 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
               	{            
                 *pTxBuf++ = ch[n];
                 log_sum_section+= ch[n];
-                } 
-			  sprintf((char *)ch,"%04d-%02d-%02d %02d:%02d:%02d.%03d ",byLoadDa[2]+2000,byLoadDa[3]
+                }
+			  switch(byLoadDa[0])
+			{
+			case 1:
+				log_name="Restart    ";
+				break;
+			case 2:
+				log_name="101Link    ";
+				break;
+			case 3:
+				log_name="Restart    ";
+				break;
+			case 4:
+				log_name="101Link    ";
+				break;
+			case 5:
+				log_name="Restart    ";
+				break;
+			case 6:
+				log_name="PowerON_OFF";
+				break;
+			case 7:
+				log_name="BKPower    ";
+				break;
+			case 8:
+				log_name="ParaChange ";
+				break;
+			case 11:
+				log_name="8PLUSE_I   ";
+				break;
+			case 16:
+				log_name="UPT_ERR    ";
+				break;
+			case 17:
+				log_name="EARTH      ";
+				break;
+			case 18:
+				log_name="EARTH_DELAY";
+				break;
+			case 19:
+				log_name="8PLUSE_STA ";
+				break;
+			case 20:
+				log_name="I0_ERR     ";
+				break;
+			case 21:
+				log_name="LATCH      ";
+				break;
+			case 22:
+				log_name="I0T_ERR    ";
+				break;
+			case 23:
+				log_name="KM_ERR     ";
+				break;
+			case 24:
+				log_name="BREAK      ";
+				break;
+			case 25:
+				log_name="SOFT_LATCH ";
+				break;
+			default:
+				log_name="ERR";
+			}
+		sprintf((char *)ch,"%s",log_name);
+        for(n = 0; n < strlen(ch); n++)
+        {
+            
+          *pTxBuf++ = ch[n];
+          log_sum_section += ch[n];
+        } 
+		
+			  sprintf((char *)ch,",%04d-%02d-%02d %02d:%02d:%02d.%03d ",byLoadDa[2]+2000,byLoadDa[3]
 			  				,byLoadDa[4],byLoadDa[5],byLoadDa[6],byLoadDa[7], MAKEWORD(byLoadDa[8], byLoadDa[9]));//年月日时分秒	
 			  for(n = 0; n < strlen(ch); n++)
               	{            
@@ -1748,12 +1824,12 @@ unsigned char *SectionPrepareLog(unsigned char *pTxBuf,unsigned char leng)
       *pTxBuf++ = 9 +FLASH_PLOAD_LEN;
       *pTxBuf++ = (9 +FLASH_PLOAD_LEN)>>8;  
     }
-    else//传输.DAT节的长度
+    /*else//传输.DAT节的长度
     {
        
         *pTxBuf++ = FLASH_PLOAD_LEN;
       *pTxBuf++ = FLASH_PLOAD_LEN>>8;   
-    }
+    }*/
        *pTxBuf++ = 0;//SRQ=0,第一节准备就绪
     }
     return pTxBuf;
@@ -2511,7 +2587,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
     log_recorded.log_Ptr  =0;
         log_recorded.log_Curren_count =0;
     log_recorded.log_count =0;
-        log_sum_section =0;  
+        //log_sum_section =0;  
       pTxBuf = SectionPrepareLog(pTxBuf,leng);
   }
       }
@@ -2590,18 +2666,16 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
         pGprs->m_PaWaitflag_lubo = ON;
         pGprs->m_PaWaitCt_lubo =4;
         pGprs->m_TxNum_lubo = 0;
-
-       // memcpy(&(pGprs->m_gprsSendBuf[0]),pTXBuff,pTXBuff[1]+6);
-       //pGprs->m_gprsSendLen = pTXBuff[1]+6;
-	//CommSendData(pTXBuff,pTXBuff[1]+6,g_Cmid);	
+       memcpy(&(pGprs->m_gprsSendBuf[0]),pTXBuff,pTXBuff[1]+6);
+       pGprs->m_gprsSendLen = pTXBuff[1]+6;
   }
   else if(g_Cmid == g_CmIdDBG)
-  {
+  	{
     pDbg->m_PaWaitflag_lubo = ON;
-        pDbg->m_PaWaitCt_lubo = 4;
-        pDbg->m_TxNum_lubo = 0;
-    //memcpy(&(pDbg->m_gprsSendBuf[0]),pTXBuff,pTXBuff[1]+6);
-    //pDbg->m_gprsSendLen = pTXBuff[1]+6;
+  	pDbg->m_PaWaitCt_lubo = 4;
+    pDbg->m_TxNum_lubo = 0;
+    memcpy(&(pDbg->m_gprsSendBuf[0]),pTXBuff,pTXBuff[1]+6);
+    pDbg->m_gprsSendLen = pTXBuff[1]+6;
         //CommSendData(pTXBuff,pTXBuff[1]+6,g_Cmid);	    
   }
   

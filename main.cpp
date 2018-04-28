@@ -29,7 +29,7 @@ void app(void)@"APPLICATION"
     CAT_SpiWriteWords(EEPADD_RSTARTNUM, 1, &g_RstartNum);*/
 	SaveLOG(LOG_RESET,1);
     while(1)
-    {
+    {    
         /*WatchDog();
         HandleTimerEvent();
         CalcuRmtMeas();//整理AD采集数据     
@@ -124,11 +124,22 @@ void app(void)@"APPLICATION"
             {
                 SaveRecData();//按照COMTRADE格式整理录波数据，并分批次保存到Flash中
                 g_sRecData.m_ucRecSavingFlag = OFF;
-		 //g_sRecData.m_ucFaultRecStart = OFF;
-		 //g_sRecData.m_unRecAcTail =0; 
-		 // unsigned long ulAddr = (unsigned long)(FADDR_RECORDER_DATA+g_sRecData.m_gRecCNum*4)<<16;//flash地址  
-               // g_sRecData.m_gActRecAdr = ulAddr;//更新flash地址  
-		 // g_sRecData.m_ucActRecStart = ON;//张弢录波 动作录波开始//录波要在继电器动作提前0。5秒
+				if((g_gDebugP[Debug_ALLREC]==0x55)&&(g_sRecData.m_ucActRecStart == CLOSE))//正常录波模式
+		      			{
+						unsigned long ulAddr =FADDR_RECORDER_ACTDATA+ (unsigned long)(g_sRecData.m_gACTRecCNum)*0x90000;//flash地址  
+  						g_sRecData.m_gActRecAdr = ulAddr;//更新flash地址 	
+  						g_sRecData.m_unRecAcTail =0; 
+	    	 			g_sRecData.m_ucActRecStart = ON;//张弢录波 动作录波开始	
+	    	 			g_sRecData.m_LuboType = LuboType_ACT;
+	    				g_test=0;           		
+                    	g_sRecData.m_gFaultRecSOE[REC_MSL] =g_sRtcManager.m_gRealTimer[RTC_MICROSEC];
+                    	g_sRecData.m_gFaultRecSOE[REC_MSH] = g_sRtcManager.m_gRealTimer[RTC_SEC];
+                    	g_sRecData.m_gFaultRecSOE[REC_MINU] = g_sRtcManager.m_gRealTimer[RTC_MINUT];
+                    	g_sRecData.m_gFaultRecSOE[REC_HOUR] = g_sRtcManager.m_gRealTimer[RTC_HOUR];
+                    	g_sRecData.m_gFaultRecSOE[REC_DAY] = g_sRtcManager.m_gRealTimer[RTC_DATE];
+                    	g_sRecData.m_gFaultRecSOE[REC_MONTH] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
+                    	g_sRecData.m_gFaultRecSOE[REC_YEAR] = (g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000);
+		      			}
             } 
 	 //SaveActRecDataCFG();		
         ClkChange();    //在实际试验过程发现MSP430容易出现由外部晶振自动切换为内部DCO，因此需要及时发现并切回来。

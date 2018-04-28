@@ -205,12 +205,12 @@ int CProtocol::RcvData(int* iSocket)
           {
              m_RecBuf.wWritePtr = 0;
           }
-          #ifdef RF_TEST
-            if(*iSocket == g_CmIdRF)
+          /*
+            if(*iSocket == 1)
             {//将RF口收到的数据转发出去
-              CommSendData(m_RecBuf.pBuf,rxlen,g_CmIdEX);
+              CommSendData(m_RecBuf.pBuf,rxlen,1);
             }
-          #endif
+          */
           DoReceive();
        }
       else if(rxlen <= 0)//recv=0 对端发出断开命令
@@ -792,7 +792,15 @@ BOOL CProtocol::RecWriteFile(void)
           } //张弢0328
           g_ucParaChang |= BIT6;
           SendWrPaSuc();
-        }	
+        }
+	else if(bySec == 3)//调试串口波特率
+		{
+		g_gDebugP[Debug_U1BPS]=pData[0];
+		g_gDebugP[Debug_ALLREC]=pData[1];
+		g_gDebugP[Debug_CRC]=AddChar(g_gDebugP,Debug_CRC);				
+		CAT_SpiWriteBytes(EEPADD_DEBUG,Debug_PARA_NUM, g_gDebugP);
+		SendWrPaSuc();
+		}
       break;
       case 10://张弢 目标校准，上位机下载参数 初始值为电压60V,电流2A
         if(bySec == 0 )
@@ -1177,7 +1185,13 @@ void CProtocol::SendReadPa(WORD FileName,BYTE SecName)
            {
               m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gLBName[i];	  
            }
-        }		
+        }
+	else if(SecName==3)//调试串口波特率
+		{
+		wPaTotalNum = 2;
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gDebugP[Debug_U1BPS];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gDebugP[Debug_ALLREC];
+		}
            break;
     case 10://读ODU参数
           /* if(pOdu1 == null) break;

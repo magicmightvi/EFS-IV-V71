@@ -388,7 +388,7 @@ unsigned int operate07(unsigned int unCommPortIndex)
     
     g_gProcCnt[PC_PULSE_VALID]=g_unRX_Buff[unCommPortIndex][8];		
     if((g_gProcCnt[PC_PULSE_VALID]>15)||(g_gProcCnt[PC_PULSE_VALID]<1)) 
-        g_gProcCnt[PC_PULSE_VALID]=3;
+        g_gProcCnt[PC_PULSE_VALID]=1;
 			
     if(g_gProcCnt[PC_LOW_P]>=g_gProcCnt[PC_HIGH_P])
     {

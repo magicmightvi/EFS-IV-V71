@@ -540,8 +540,8 @@ BOOL CBJ101S::RecFrame68(void)
                 m_PaWaitCt_lubo = 0;
                 wSendLISTNum = 0;
         BK_FRecorder_Current_COUNT = g_FRecorder_Current_COUNT;
-        for(int i =0;i<64;i++)
-          lubo_valid[i] = 0;
+        //for(int i =0;i<64;i++)
+        //  lubo_valid[i] = 0;
                 memcpy(gRecorder_flag.pRXBuff,&pReceiveFrame->Frame68.Start1,6+pReceiveFrame->Frame68.Length1);  
                 //Code_Lubo(&pReceiveFrame->Frame68.Start1,m_SendBuf.pBuf);
               }	
@@ -561,8 +561,8 @@ BOOL CBJ101S::RecFrame68(void)
             SendEncFrameAck(0x0191, 0x0000, 0x1F);
             return TRUE;
         }     
-		for(int i =0;i<64;i++)
-          lubo_valid[i] = 0;
+		//for(int i =0;i<64;i++)
+        //  lubo_valid[i] = 0;
         
         mRecorder_flag.LIST_flag = OFF;//收到短贞确认需要回数据时，置位改标志位
                 mRecorder_flag.xuchuanflag= OFF;
@@ -1575,8 +1575,10 @@ void CBJ101S::DoCommSendIdle(void)
             
             m_PaWaitCt_lubo =  4;//g_gRunPara[RP_LUBOGPRS_T];
             m_PaWaitflag_lubo = ON;
-           Code_Lubo(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);// SendlbRetry();
+           //Code_Lubo(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);// 
+           SendlbRetry();
             m_TxNum_lubo++;gRes_rec.res_timeout = 0x55;
+			//g_gRunPara[RP_PLUSEXH_MODFK]++;
             return;
           }
           else

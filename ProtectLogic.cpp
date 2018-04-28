@@ -50,7 +50,7 @@ void ProtStart(void)
     tAcTail2 = (g_sSampleData.m_unAcDataTail - 8) & 0x1F;   //半个周期前的位置
     tAcTailN = (g_sSampleData.m_unAcDataTail - 16) & 0x1F;  //一个周期前的位置
   //  for(i = 0; i < 3; i++)  //A相 B相 C相
-    if(g_gProcCnt[PC_OVERLOAD_CNT] != 0)   //过流保护投入
+  /*  if(g_gProcCnt[PC_OVERLOAD_CNT] != 0)   //过流保护投入
     {
         if(g_gProcMeas[PM_I0] >= g_gProcCntJug_I0[0])  //电流过载
         {
@@ -70,7 +70,7 @@ void ProtStart(void)
     {
          g_gOverLoadTimeNum = 0;
          g_gOverLoadFlg = 0; 
-    }
+    }*/
     {
 
         pAcData = g_sSampleData.m_gAcAdcData[4];
@@ -336,6 +336,7 @@ void PulseReady(void)
 	 eight_pulse_flag=1; 	
 	 g_TQBSCounter = 2;//投切、闭锁指示灯计数器  =0 是灭 =0x55 闭锁常亮  >=1投切闪烁
 	 g_gRmtInfo[YX_EFS_ACT] = 1;   //投切状态 遥信置1 
+	 g_I0RmtZeroNum = 0;
         }   
 	if(moniguzhang==1)  
 		{
@@ -799,21 +800,22 @@ void Sign_Repeat(unsigned char repeat_flag,unsigned char rev_flag)
 	     g_TQBSCounter = 2;//投切、闭锁指示灯计数器  =0 是灭 =0x55 闭锁常亮  >=1投切闪烁	
 	     g_gRmtInfo[YX_EFS_ACT] = 1;   //投切状态 遥信置1 
 	     if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF))	
-		{	     		
-	    	g_test=0;
-    		g_sRecData.m_unRecAcTail =0; 
-          	g_sRecData.m_gFaultRecSOE[REC_MSL] =g_sRtcManager.m_gRealTimer[RTC_MICROSEC];
-              g_sRecData.m_gFaultRecSOE[REC_MSH] = g_sRtcManager.m_gRealTimer[RTC_SEC];
-           	g_sRecData.m_gFaultRecSOE[REC_MINU] = g_sRtcManager.m_gRealTimer[RTC_MINUT];
-           	g_sRecData.m_gFaultRecSOE[REC_HOUR] = g_sRtcManager.m_gRealTimer[RTC_HOUR];
+			{				
+	    		g_test=0;
+    			g_sRecData.m_unRecAcTail =0; 
+          		g_sRecData.m_gFaultRecSOE[REC_MSL] =g_sRtcManager.m_gRealTimer[RTC_MICROSEC];
+              	g_sRecData.m_gFaultRecSOE[REC_MSH] = g_sRtcManager.m_gRealTimer[RTC_SEC];
+           		g_sRecData.m_gFaultRecSOE[REC_MINU] = g_sRtcManager.m_gRealTimer[RTC_MINUT];
+           		g_sRecData.m_gFaultRecSOE[REC_HOUR] = g_sRtcManager.m_gRealTimer[RTC_HOUR];
              	g_sRecData.m_gFaultRecSOE[REC_DAY] = g_sRtcManager.m_gRealTimer[RTC_DATE];
              	g_sRecData.m_gFaultRecSOE[REC_MONTH] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
              	g_sRecData.m_gFaultRecSOE[REC_YEAR] = (g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000);  
-  		unsigned long ulAddr = FADDR_RECORDER_ACTDATA+(unsigned long)(g_sRecData.m_gACTRecCNum)*0x90000;//flash地址  
-  		g_sRecData.m_gActRecAdr = ulAddr;//更新flash地址 	
-  		g_sRecData.m_ucActRecStart = ON;//张弢录波 动作录波开始	
-  		g_sRecData.m_LuboType = LuboType_ACT;
-		SaveLOG(LOG_8FULS_STA,1);
+  				unsigned long ulAddr = FADDR_RECORDER_ACTDATA+(unsigned long)(g_sRecData.m_gACTRecCNum)*0x90000;//flash地址  
+  				g_sRecData.m_gActRecAdr = ulAddr;//更新flash地址 	
+  				g_sRecData.m_ucActRecStart = ON;//张弢录波 动作录波开始	
+  				g_sRecData.m_LuboType = LuboType_ACT;
+				
+			SaveLOG(LOG_8FULS_STA,1);
 	     	}
 	}   
     }

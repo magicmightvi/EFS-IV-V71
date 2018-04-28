@@ -216,7 +216,7 @@ struct sSAMPLE_DATA
         unsigned int g_unFilterIndex = 0;   //交流测量数据滤波数据保存的位置
         volatile unsigned int g_unRmCaluFlag;    //遥测运算标志, 在中断中置ON，在大循环中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
         volatile unsigned int g_unTESTFlag;  
-  	unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量，为采样值的平方*16 最大值为(2048*2048/2*16)
+  	//unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量，为采样值的平方*16 最大值为(2048*2048/2*16)
         //unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量，包括内部遥信量
 
 	unsigned int  g_SendLuboNum;
@@ -309,7 +309,7 @@ extern unsigned int g_test;
 	extern struct sLOG_DATA g_sLogData[MAX_LOG_NUM];//LOG数据
   	//extern unsigned int g_gRmtMeas[RMT_MEAS_NUM];//遥测量，保存需要上传到后台的遥测数据
         extern unsigned int g_gRmAcFilt[RMT_MEAS_NUM][RM_FILTER_NUM];//遥测量中的交流测量数据滤波 添加了3个线电压，但AD通道数不变，所以此处AC_AD_CHAN_NUM + 3
-	extern unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量
+	//extern unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量
        // extern unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量，包括内部遥信量   
        extern volatile unsigned int g_unRmCaluFlag;    //遥测运算标志, 在中断中置ON，在大循环中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
        extern volatile unsigned int g_unTESTFlag;
@@ -345,6 +345,7 @@ extern unsigned int g_test;
 	 unsigned char  g_gLBName[LBName_NUM+1];//张弢 汉字站名地址
      //   unsigned int g_gRunPara[RUN_PARA_NUM];//运行参数，保存装置的一些配置信息，包括通信参数等
      	unsigned char g_ucPara101[IEC_PARA_NUM];    //IEC运行的运行参数
+     	unsigned char g_ucDebug[Debug_PARA_NUM];    //调试用参数
      	//unsigned char g_unParaObjComBk[4];//IEC参数中的端口对象4个数据进行备份，有变化时重映射类对象与端口的对应关系
         unsigned char g_ucYCAddr[IEC_YC_NUM + 1];   //遥测的点表，可以把遥测中的数据按照偏移量重新排列，最多按照20个配置，为0的不上传，点号为1-255
         unsigned char g_ucYXAddr[IEC_YX_NUM + 1];   //遥信的点表，为0的不上传，点号为1-255
@@ -374,7 +375,7 @@ extern unsigned int g_test;
         unsigned int g_gProcCnt[PROC_CNT_NUM];//保护定值，保存保护动作需要用到的定值
         //unsigned int g_gETHProcCnt[24];
         unsigned int g_gProcCntJug[27];       //用于判断的计算后的保护定值
-        unsigned long g_gProcCntJug_I0[3];       //用于过载判断的计算后的保护定值
+        //unsigned long g_gProcCntJug_I0[3];       //用于过载判断的计算后的保护定值
         unsigned int g_gOverLoadTimeNum;     //用于过载计时，时间以1.25ms基准
         unsigned int g_gOverLoadFlg;        //过载标志 ON 为过载
         unsigned int g_gAdjObj[ADJ_PARA_NUM];//张弢 目标校准，上位机下载参数 初始值为电压60V,电流2A    
@@ -385,6 +386,7 @@ extern unsigned int g_test;
   	//unsigned int g_gRunInfo[RUN_INFO_NUM];//运行信息，保存装置运行的部分信息，比如合分闸次数  	
   	unsigned char g_gChangFlag[PARA_NUM];	//参数变化标志，如果发生参数更改，则置位，把参数保存到eeprom中
         unsigned int g_gYXConformTime[2];       //遥信确认时间，0：信号源断线 1：
+        unsigned char g_gDebugP[Debug_PARA_NUM];//调试串口波特率
 #else
         extern unsigned int g_gRunParaYxRsdTTBk;//运行参数中遥信重发时间间隔备份
         extern unsigned int g_unYxTrans[RMT_WSYX_NUM];  //根据遥信的点表，重新配置生成的遥信内容
@@ -406,6 +408,7 @@ extern unsigned int g_test;
 		extern unsigned char g_gLBNameLen;
 	//	extern unsigned int g_gRunPara[RUN_PARA_NUM];//运行参数，保存装置的一些配置信息，包括通信参数等
     	extern unsigned char g_ucPara101[IEC_PARA_NUM];    //IEC运行的运行参数
+    	extern unsigned char g_ucDebug[Debug_PARA_NUM];    //调试用参数
 		//extern unsigned char g_unParaObjComBk[4];//IEC参数中的端口对象4个数据进行备份，有变化时重映射类对象与端口的对应关系
 		extern unsigned char g_ucYCAddr[IEC_YC_NUM + 1];   //遥测的点表，可以把遥测中的数据按照偏移量重新排列，最多按照20个配置，为0的不上传，点号为1-255
         extern unsigned char g_ucYXAddr[IEC_YX_NUM + 1];   //遥信的点表，为0的不上传，点号为1-255 
@@ -424,7 +427,7 @@ extern unsigned int g_test;
                 extern unsigned int g_gProcCnt[PROC_CNT_NUM];//保护定值，保存保护动作需要用到的定值
         //extern unsigned int g_gETHProcCnt[24];
         extern unsigned int g_gProcCntJug[27];       //用于判断的计算后的保护定值
-        extern unsigned long g_gProcCntJug_I0[3];       //用于过载判断的计算后的保护定值
+        //extern unsigned long g_gProcCntJug_I0[3];       //用于过载判断的计算后的保护定值
         extern unsigned int g_gOverLoadTimeNum;     //用于过载计时，时间以1.25ms基准
         extern unsigned int g_gOverLoadFlg;        //过载标志 ON 为过载
         extern BYTE g_gIPPort[13];//  2个IP及端口
@@ -439,7 +442,7 @@ extern unsigned int g_test;
 	
 	extern unsigned char g_gChangFlag[PARA_NUM];	//参数变化标志，如果发生参数更改，则置位，把参数保存到eeprom中
 	extern unsigned int g_gYXConformTime[2];       //遥信确认时间，0：信号源断线 1：
-		
+	extern unsigned char g_gDebugP[Debug_PARA_NUM];//调试串口波特率	
 #endif
 
 //=================================== 通信模块 ==========================================
@@ -557,9 +560,9 @@ extern unsigned int g_test;
 	unsigned char g_bHostRandom[8];  //主站随机数
 	unsigned char m_bUnitRandom[8];   //终端自身随机数，用于与运维工具通信
 	int g_wEncCerWPtr;				   //Cer证书记录位?
-	char g_bUnitID[25];//终端ID,24字节第一个字是节长度	 
+	char g_bUnitID[1];//终端ID,24字节第一个字是节长度	 
 	unsigned char g_bAppType;//加密报文应用类型
-	char g_pDevId[30]="12345678901234567890123456789";
+	//char g_pDevId[30]="12345678901234567890123456789";
 #else
     extern struct  sTX_BUFF g_sTxBuff[COMM_PORT_NUM];
     extern struct  sRX_BUFF g_sRxBuff[COMM_PORT_NUM];
@@ -643,9 +646,9 @@ extern unsigned int g_test;
  	extern unsigned char g_bHostRandom[8];//主站随机数
 	extern unsigned char m_bUnitRandom[8];//
 	extern int g_wEncCerWPtr;//   
-	extern char g_bUnitID[25];//终端ID,24字节第一个字是节长度   
+	extern char g_bUnitID[1];//终端ID,24字节第一个字是节长度   
 	extern unsigned char g_bAppType;//加密报文应用类型 
-	extern char g_pDevId[30];
+	//extern char g_pDevId[30];
 #endif
     
 //=======================DriverTimer.c--定时器驱动模块===============================================
@@ -708,7 +711,7 @@ extern unsigned int g_test;
         unsigned int g_gExtDinYesTimer[3];	//外部DIN输入确认时间计时
 	unsigned int g_gExtDinNoTimer[3];		//外部DIN输入清除时间计时
 	unsigned char g_gPhasErrTimer[3];	      //开关位置错误确认时间计时
-	unsigned int g_gI0OverTimer;		//I0超时确认时间计时
+	unsigned int g_gI0OverTimer=0;		//I0超时确认时间计时
 	//unsigned char g_gExtDinNoTimer[3];		//外部DIN输入清除时间计时
         //unsigned int g_gDinRtcLock[2][RTC_NUM];
 	
@@ -852,9 +855,9 @@ extern unsigned int g_test;
         extern unsigned char upload_GPRS;
         extern  unsigned char upload_SMS;              ////每隔60秒钟发送一条短信。
         extern unsigned char SMS_delay;               ////延时短信延时每隔2秒钟发送一条短信。   
-        extern unsigned int   km_timeout; 
-        extern unsigned int   i0_timeout; 		
-	 extern unsigned int   ptoff_timeout;	
+        //extern unsigned int   km_timeout; 
+        //extern unsigned int   i0_timeout; 		
+	 //extern unsigned int   ptoff_timeout;	
 	 extern unsigned char soft_latch;	
         extern unsigned char main_reset_flag;//=0x00;            /////////主板复位标志
         extern unsigned char flash_write;                 ////////写录波数据到FLASH

@@ -634,7 +634,13 @@ void CheckCfgPara(void)
     	 RstLBName(); 
     	}
     if(g_gRunPara[RP_FLOAD_T] !=0)g_gSaveload=g_gRunPara[RP_FLOAD_T]-1;//每隔一段时间存储负荷记录
-	
+    
+	CAT_SpiReadBytes(EEPADD_DEBUG,Debug_PARA_NUM, g_gDebugP);
+	if(g_gDebugP[Debug_CRC]!=AddChar(g_gDebugP,Debug_CRC))
+		{
+		g_gDebugP[Debug_U1BPS]=0;g_gDebugP[Debug_ALLREC]=0;g_gDebugP[Debug_CRC]=0;
+		CAT_SpiWriteBytes(EEPADD_DEBUG,Debug_PARA_NUM, g_gDebugP);
+		}
     	
    /* CAT_SpiReadBytes(EEPADD_IECYKADDR, IEC_YK_NUM + 1, g_ucYKPa);  //读出
     if (g_ucYKPa[IEC_YK_NUM] != AddChar(g_ucYKPa, IEC_YK_NUM))       //CRC校验
@@ -1079,7 +1085,7 @@ void CalcProtCnt(void)
     g_gProcCntJug[PC_LOW_Z] = g_gProcCnt[PC_LOW_Z];          //零序电压低定值
     g_gProcCntJug[PC_NO_V] = g_gProcCnt[PC_NO_V];       //无压门槛值
     g_gProcCntJug[PC_I0_START] = g_gProcCnt[PC_I0_START];//线电压高定值
-    g_gProcCntJug[PC_PULSE_VALID] = g_gProcCnt[PC_PULSE_VALID] /10 / 15;       //8脉冲有效定值
+    g_gProcCntJug[PC_PULSE_VALID] = g_gProcCnt[PC_PULSE_VALID] /20;       //8脉冲有效定值
 	if(g_gProcCnt[PC_T_DELAY] > 2000)
         g_gProcCntJug[PC_T_DELAY] = g_gProcCnt[PC_T_DELAY] /10 - 200;
     else
@@ -1106,9 +1112,9 @@ void CalcProtCnt(void)
 
    // g_gProcCntJug[PC_GPRS_MODEL] = 0;      //GPRS方式定值
    // g_gProcCntJug[PC_REV_CURRENT] = 20;       //翻转电流定值  
-    g_gProcCntJug_I0[0]  =  (unsigned long)g_gProcCnt[PC_OVERLOAD_I] * g_gProcCnt[PC_OVERLOAD_I] * COEF_I_0_AD2 >> 7;               //  22448=(100/15 * 4096/COEF_AD_I_0)*(100/15 * 4096/COEF_AD_I_0)*128
-    g_gProcCntJug_I0[1]  =  (unsigned long)g_gProcCntJug_I0[0] - (g_gProcCntJug_I0[0] >> 4);
-    g_gProcCntJug_I0[2]  =  (unsigned long)g_gProcCnt[PC_OVERLOAD_T] * 8;
+    //g_gProcCntJug_I0[0]  =  (unsigned long)g_gProcCnt[PC_OVERLOAD_I] * g_gProcCnt[PC_OVERLOAD_I] * COEF_I_0_AD2 >> 7;               //  22448=(100/15 * 4096/COEF_AD_I_0)*(100/15 * 4096/COEF_AD_I_0)*128
+    //g_gProcCntJug_I0[1]  =  (unsigned long)g_gProcCntJug_I0[0] - (g_gProcCntJug_I0[0] >> 4);
+    //g_gProcCntJug_I0[2]  =  (unsigned long)g_gProcCnt[PC_OVERLOAD_T] * 8;
 
 }
 //==============================================================================
@@ -1162,7 +1168,7 @@ void RstRunPara(void)
     g_gRunPara[RP_LOW_Z] = 1000;          //零序电压低定值
     g_gRunPara[RP_NO_V] = 1000;       //无压门槛值
     g_gRunPara[RP_T_DELAY] = 10000;               //故障延时时间
-    g_gRunPara[RP_PULSE_VALID] = 3000;       //8脉冲有效定值		
+    g_gRunPara[RP_PULSE_VALID] = 6000;       //8脉冲有效定值		
 /*
 #else
     g_gRunPara[RP_I0_START] = 110;                //零序电流门槛值

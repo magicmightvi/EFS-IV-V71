@@ -365,10 +365,10 @@ void InitDataProc(void)
         }
     } 
    
-    for(i = 0; i < PROC_MEAS_NUM; i++)
+   /* for(i = 0; i < PROC_MEAS_NUM; i++)
     {
         g_gProcMeas[i] = 0;
-    }
+    }*/
     //g_gRmtMeas[RM_ACT_NUM] = 1;//张弢 动作次数
     //soe变量初始化    
     g_unDSoeSavePtr = 0;
@@ -1002,8 +1002,8 @@ void RecData(void)
 	  	g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] =g_unAdcData[CHAN_U0]-g_gAdjAD[CHAN_U0];
 	  g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][4] =g_unAdcData[CHAN_I0]-g_gAdjAD[CHAN_I0];
 
-		g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = g_gRmtMeas[RM_UA];
-		g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][4] = g_gRmtMeas[RM_UB];
+		//g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = g_gRmtMeas[RM_UA];
+		//g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][4] = g_gRmtMeas[RM_UB];
 	  
 	  if((g_gKON>0)&&(g_gKON<4))//张弢开关已经闭合//录波增加继电器开关量
 	  	g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][4] |= (1<<14);//录波增加继电器开关量
@@ -1037,7 +1037,7 @@ void RecData(void)
 #ifdef YN_101S
 	 if(g_sRecData.m_unRecAcLockCnt >= 10)   //故障发生后的5个周波记录完毕，记录最后时间，
 #else
-	 if(g_sRecData.m_unRecAcLockCnt >= 120)   //故障发生后的5个周波记录完毕，记录最后时间，
+	 if(g_sRecData.m_unRecAcLockCnt >= 370)   //故障发生后的5个周波记录完毕，记录最后时间，
 #endif
         {
             g_sRecData.m_ucFaultRecStart = CLOSE;//录波结束，故障恢复后，恢复OFF
@@ -1996,7 +1996,7 @@ void SaveActRecData(void)
  	}
 else if(g_sRecData.m_LuboType == LuboType_ACT)	
 	{
- 	if(save_page_num>2300)//动作录波存储空间最大为9*64kB，共2304page
+ 	if(save_page_num>934)//最长存30秒800采样//动作录波存储空间最大为9*64kB，共2304page
  		g_sRecData.m_ucActRecStart = OFF;	
 	}
 

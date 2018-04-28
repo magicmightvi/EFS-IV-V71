@@ -122,7 +122,7 @@ public:
 	BYTE m_TxNum_lubo;
 	BYTE m_PaWaitflag_lubo;
 	BYTE m_PaWaitCt_lubo;
-	BYTE m_gprsSendBuf[1];
+	BYTE m_gprsSendBuf[255];
 	BYTE m_gprsSendLen;
 };
 

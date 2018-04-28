@@ -50,7 +50,7 @@ void InitSCI(void)
     P5SEL |= 0xc0;                  // P5.6,7 = USCI_A0 TXD/RXD
     UCA1CTL1 |= UCSWRST;           // **Put state machine in reset**
     UCA1CTL1 |= UCSSEL_1;          // ACLK
-	switch(g_ucPara101[IECP_OBJ_COM0])
+	switch( g_gDebugP[Debug_U1BPS])
 	{  
 	case 0://9600
 		UCA1BR0 = 0x82;
@@ -72,11 +72,11 @@ void InitSCI(void)
 		UCA1BR0 = 0x8a;                // 9600=1666(0x682)  57600=277(x115) 115200=138(8a)
     		UCA1BR1 = 0x00;                //19200=833(x341) 38400=416(x1a0)									   
 		break;
-		default://9600		
+	default://9600		
 		UCA1BR0 = 0x82;		
 		UCA1BR1 = 0x06;
-		g_ucPara101[IECP_OBJ_COM0]=0;
-		g_ucParaChang |= BIT1;
+		g_gDebugP[Debug_U1BPS]=0;//g_gDebugUbps[1]=0;
+		//CAT_SpiWriteBytes(EEPADD_DEBUG_BPS,2,g_gDebugUbps);
 		}
     UCA1CTL1 &= ~UCSWRST;          // **Initializ1 RX 中断+UCTXIE
     UCA1IE |= (UCRXIE + UCTXIE);              // 使能 USCI_A0 RX 中断
@@ -220,7 +220,7 @@ unsigned char  ucRxdReg;
            // if((g_CmIdGPRS == cCmId) && !g_GprsPowerSt)//for test 模拟GPRS关闭状态，关闭子站应该收不到数据
              // break;
             ucRxdReg = UCA1RXBUF;
-            g_sRxBuff[cCmId].m_iRcvCount = 50;
+            g_sRxBuff[cCmId].m_iRcvCount = 10;
              g_sRxBuff[cCmId].m_iBufT &= (MAX_RXBUFF_LEN - 1);
             g_sRxBuff[cCmId].m_gBuf[g_sRxBuff[cCmId].m_iBufT] = ucRxdReg;   //保存数据到接收缓冲器 
             g_sRxBuff[cCmId].m_iBufT++;

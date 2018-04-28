@@ -157,7 +157,7 @@ struct RECORDER_CFG//配置文件的录波目录
     unsigned char FileName;
     unsigned int comtrade_time[RTC_NUM];//故障发生时间，指示器的录波为终端收到指示器录波的时间,同时是文件建立时间
     unsigned int comtrade_time1[RTC_NUM];
-    unsigned int yx_time1[RTC_NUM];	//对应的遥信时间
+    //unsigned int yx_time1[RTC_NUM];	//对应的遥信时间
     //unsigned int CFG_Leng;//配置文件的长度
     
     DWORD CFG_Leng; 
@@ -215,9 +215,9 @@ struct FIXPT_RECORDER
 };
 struct LOG_RECORDER
 {	  
-	unsigned char log_Ptr;
+	unsigned int log_Ptr;
 	unsigned char log_count;//文件内容的偏移指针值。
-	unsigned char log_Curren_count;
+	unsigned int log_Curren_count;
 	unsigned char log_count_flag;
 	//unsigned char check_sum;
 	char log_MemPtr;//内存中LOG数据头地址
@@ -309,13 +309,15 @@ RECORDER_WAVE_EXT  LOG_RECORDER log_recorded;
 RECORDER_WAVE_EXT  BYTE fix_YC_NUM;
 
 RECORDER_WAVE_EXT  unsigned char fixpt_sum[96];
-RECORDER_WAVE_EXT  BYTE lubo_valid[64];
-RECORDER_WAVE_EXT  BYTE lubonum_valid[64];
+//RECORDER_WAVE_EXT  BYTE lubo_valid[64];
+//RECORDER_WAVE_EXT  BYTE lubonum_valid[64];
 
 //RECORDER_WAVE_EXT  BYTE bySoeDa[512];
 RECORDER_WAVE_EXT unsigned char *  ApprovalSoeFile(unsigned char *pTxBuf,unsigned char leng,WORD wSecLenPtr);
 RECORDER_WAVE_EXT unsigned char wavefix_total;
 RECORDER_WAVE_EXT unsigned int wavelog_total;
+RECORDER_WAVE_EXT unsigned long wavelog_ptr;
+
 RECORDER_WAVE_EXT void LuBoNum(unsigned int wave_total);
 RECORDER_WAVE_EXT unsigned char *  ApprovalFixFile(unsigned char *pTxBuf,unsigned char leng,WORD wSecLenPtr);
 RECORDER_WAVE_EXT  unsigned char log_sum_section;

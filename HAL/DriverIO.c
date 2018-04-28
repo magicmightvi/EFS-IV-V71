@@ -93,6 +93,7 @@ void ClkChange(void)
 {
     if(SFRIFG1&OFIFG)
     {
+    	//g_gRunPara[RP_DYX_INFADDR]++;
         do
         {
             UCSCTL7 &= ~(XT2OFFG + XT1LFOFFG + DCOFFG);
