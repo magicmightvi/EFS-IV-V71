@@ -17,16 +17,17 @@ void app(void)@"APPLICATION"
     InitSys();
     //strcpy(ComtrderCfg1,ComtrderCfg);
       if(pGprs!= null) ((CPrtcSms*)pGprs)->SendRCmdToIHD(0,11,null);
-	WDG_CLR;delayms(3000);   WDG_CLR;     
+	FEED_WATCH_DOG();;delayms(3000);   WDG_CLR;     
       if(pGprs!= null) ((CPrtcSms*)pGprs)->SendRCmdToIHD(5,11,null);
 	//WDG_CLR;delayms(3000);   WDG_CLR;    
 	   //if(pGprs!= null) ((CPrtcSms*)pGprs)->SendRCmdToIHD(84,11,null);//读CSQ	
     //启动时取出重启次数加1并保存
    /* CAT_SpiReadWords(EEPADD_RSTARTNUM, 1, &g_RstartNum);
     if(g_RstartNum >= 0xfffe) g_RstartNum = 0;
-    
+    FEED_WATCH_DOG();
     g_RstartNum++;
     CAT_SpiWriteWords(EEPADD_RSTARTNUM, 1, &g_RstartNum);*/
+    FEED_WATCH_DOG();
 	SaveLOG(LOG_RESET,1);
     while(1)
     {    
@@ -51,7 +52,8 @@ void app(void)@"APPLICATION"
         if(pGprs != null) pGprs->Run();
 
         SaveCfgPara();*/
-        WDG_CLR;
+        SaveActRecData();
+        FEED_WATCH_DOG();
 	if(g_STimeout == ON)
 		{
 		g_STimeout = OFF;
@@ -80,6 +82,7 @@ void app(void)@"APPLICATION"
        			}
     			}					
 		}
+	SaveActRecData();
 	 if(g_NolinkReset>1440)
 	 	{
 	 	g_NolinkReset=0;
@@ -94,10 +97,12 @@ void app(void)@"APPLICATION"
 #endif	
 			CheckCfgERR();
         }
-    
+    SaveActRecData();
         CalcuRmtMeas();//有效值计算，并更新对应的遥测值
+    SaveActRecData();
         ScanDin();
 	 YCthCross();//遥测越限判断	
+	 SaveActRecData();
      ProtLogic();   
 	if(newsms_8pluse == ON)
 		{	
@@ -108,17 +113,20 @@ void app(void)@"APPLICATION"
 		{	
 		newsms_abn = OFF;
  		CreatNewSMS(ABN_CHECK);
-		}       
-	WDG_CLR;
+		}
+	SaveActRecData();
+	FEED_WATCH_DOG();
         Comm_LED_101(); //液晶通信
-        WDG_CLR;
+       FEED_WATCH_DOG();
         //if(g_ucGPRSState==GPRSState_IDLE)
+        SaveActRecData();
 	 Comm_GPRS_SMS();////张弢0330 如串口在空闲状态，则可以发送SMS
         
         if(pDbg != null) pDbg->Run();
         if(pGprs != null) pGprs->Run();
-        
+        SaveActRecData();
         SaveCfgPara();
+		SaveActRecData();
 
             if(g_sRecData.m_ucRecSavingFlag == YES)//如果有新的录波数据则分批次保存到FLASH中
             {
@@ -141,21 +149,20 @@ void app(void)@"APPLICATION"
                     	g_sRecData.m_gFaultRecSOE[REC_YEAR] = (g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000);
 		      			}
             } 
-	 //SaveActRecDataCFG();		
+	SaveActRecData();	
         ClkChange();    //在实际试验过程发现MSP430容易出现由外部晶振自动切换为内部DCO，因此需要及时发现并切回来。
-        WDG_CLR;
+        FEED_WATCH_DOG();
         SaveSoeDataRepeat();
 
         RmInfoChk();//张弢 移入主循环，否则栈太大无法中断嵌套
-        g_gRmtInfo[YX_SYSRESET] =0;
-        //ScanDinYX();//张弢 移入主循环，否则栈太大无法中断嵌套	
-        //ScanSoftLacth();//pt断线软闭锁
+        g_gRmtInfo[YX_SYSRESET] =0;        
         if((g_gSaveload>=g_gRunPara[RP_FLOAD_T] )&&(g_gRunPara[RP_FLOAD_T] !=0))//每隔一段时间存储负荷记录
         	{
         	g_gSaveload=0;
 		SaveLoad();	
-        	}
+        SaveActRecData();	}
 		SaveFlashLOG();
+		SaveActRecData();
         if(g_sRecData.m_EraseBlock == ON)
         	{
         	g_sRecData.m_EraseBlock = OFF;
@@ -179,6 +186,7 @@ void app(void)@"APPLICATION"
   		Block_Erase(ulAddr+0x80000);//ERASE 1个BLOCK 
   		delayms(100);WatchDog();   
         	}
+		SaveActRecData();
         if(g_sRecData.m_EraseBlock == YES)
         	{
         	g_sRecData.m_EraseBlock = OFF;

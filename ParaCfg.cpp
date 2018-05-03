@@ -324,11 +324,13 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
           // g_gRunPara[RP_JAG_P] = 0x55;       //相判据标志
           // g_gRunPara[RP_JAG_Z] = 0x55;       //零序判据标志
         }
-	 if((g_gRunPara[RP_T_DELAY]/10-200)<=g_gRunPara[RP_RHSEND_TIME1])
+	 if((g_gRunPara[RP_T_DELAY]/10)<=(g_gRunPara[RP_RHSEND_TIME1]+g_gRunPara[RP_RHPLUSE_TIME2]+200))
 	 	{
-	 	g_gRunPara[RP_RHSEND_TIME1]=100;
+	 	//g_gRunPara[RP_RHSEND_TIME1]=100;
 		g_gRunPara[RP_T_DELAY] = 10000;               //故障延时时间
 	 	}
+	 if(g_gRunPara[RP_T_DELAY]<4000)
+	 	g_gRunPara[RP_T_DELAY] = 10000;               //故障延时时间
 	if(u_dellubo==1 )
     	{
     	//g_gRunPara[RP_CFG_KEY]=g_gRunPara[RP_CFG_KEY]&(~BIT[RPCFG_DEL_LUBO]);
@@ -1089,7 +1091,7 @@ void CalcProtCnt(void)
 	if(g_gProcCnt[PC_T_DELAY] > 2000)
         g_gProcCntJug[PC_T_DELAY] = g_gProcCnt[PC_T_DELAY] /10 - 200;
     else
-        g_gProcCntJug[PC_T_DELAY] = g_gProcCnt[PC_T_DELAY] /10;               //故障延时时间 换算成10毫秒
+        g_gProcCntJug[PC_T_DELAY] = g_gProcCnt[PC_T_DELAY] /10 - 200;               //故障延时时间 换算成10毫秒
 /*
 #else
     g_gProcCntJug[PC_HIGH_P] = g_gProcCnt[PC_HIGH_P] * 100;                //相电压高定值
@@ -1135,7 +1137,7 @@ void RstRunPara(void)
     //g_gRunPara[RP_STATUSRP_INTERVAL] = 1;  //状态汇报上线间隔（天）
     g_gRunPara[RP_FLOAD_T] = 15;  ////负荷记录存储时间间隔 分钟
     g_gRunPara[RP_COMM_ADDR] = 1;//通信站地址      站地址默认为1
-    g_gRunPara[RP_SYX_INFADDR] = 128;
+    g_gRunPara[RP_SYX_INFADDR] = 1;
 #ifdef  CQ_101S
      g_gRunPara[RP_SYX_INFADDR]=1;//张弢重庆 0x0700+171
      g_gRunPara[RP_SENDYC_T] = 0; 

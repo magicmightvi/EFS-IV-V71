@@ -1042,7 +1042,7 @@ void CProtocol::SendReadRecData(WORD FileName,WORD SecName)
           m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = ucTemp[i];         
         }
         //m_SendBuf.pBuf[wSecLenPtr] = 128;
-        WDG_CLR;
+        FEED_WATCH_DOG();
         if (k <99)
             m_SendBuf.pBuf[4] |= 0x80;//控制域最高位用来表示还有没后续报文
         SendFrameTailForPa();

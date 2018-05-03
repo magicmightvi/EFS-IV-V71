@@ -21,7 +21,7 @@ void delayms(unsigned int unMSNum)
     unsigned int i,j;
     for(i = 0;i < unMSNum;i++)
     {
-        WDG_CLR;
+       FEED_WATCH_DOG();
        for(j = 0;j < 2000;j++);
     }
 }

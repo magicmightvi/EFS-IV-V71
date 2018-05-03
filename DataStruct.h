@@ -345,7 +345,7 @@ extern unsigned int g_test;
 	 unsigned char  g_gLBName[LBName_NUM+1];//张弢 汉字站名地址
      //   unsigned int g_gRunPara[RUN_PARA_NUM];//运行参数，保存装置的一些配置信息，包括通信参数等
      	unsigned char g_ucPara101[IEC_PARA_NUM];    //IEC运行的运行参数
-     	unsigned char g_ucDebug[Debug_PARA_NUM];    //调试用参数
+     	//unsigned char g_ucDebug[Debug_PARA_NUM];    //调试用参数
      	//unsigned char g_unParaObjComBk[4];//IEC参数中的端口对象4个数据进行备份，有变化时重映射类对象与端口的对应关系
         unsigned char g_ucYCAddr[IEC_YC_NUM + 1];   //遥测的点表，可以把遥测中的数据按照偏移量重新排列，最多按照20个配置，为0的不上传，点号为1-255
         unsigned char g_ucYXAddr[IEC_YX_NUM + 1];   //遥信的点表，为0的不上传，点号为1-255
@@ -408,7 +408,7 @@ extern unsigned int g_test;
 		extern unsigned char g_gLBNameLen;
 	//	extern unsigned int g_gRunPara[RUN_PARA_NUM];//运行参数，保存装置的一些配置信息，包括通信参数等
     	extern unsigned char g_ucPara101[IEC_PARA_NUM];    //IEC运行的运行参数
-    	extern unsigned char g_ucDebug[Debug_PARA_NUM];    //调试用参数
+    	//extern unsigned char g_ucDebug[Debug_PARA_NUM];    //调试用参数
 		//extern unsigned char g_unParaObjComBk[4];//IEC参数中的端口对象4个数据进行备份，有变化时重映射类对象与端口的对应关系
 		extern unsigned char g_ucYCAddr[IEC_YC_NUM + 1];   //遥测的点表，可以把遥测中的数据按照偏移量重新排列，最多按照20个配置，为0的不上传，点号为1-255
         extern unsigned char g_ucYXAddr[IEC_YX_NUM + 1];   //遥信的点表，为0的不上传，点号为1-255 
@@ -717,7 +717,7 @@ extern unsigned int g_test;
 	
         unsigned char g_gucPhaseSQU[3];  //存储相序检测各相过零标志数
         unsigned char g_gucPhaseSQUTestNum;  //相序检测各相过零点计数
-        unsigned int rh_counter=0;//燃弧成功遥信 延时计数器
+        //unsigned int rh_counter=0;//燃弧成功遥信 延时计数器
         unsigned int rh_send_ok=0;//燃弧脉冲发送完成 =0x55 发出8脉冲 =0x85 故障消失 =0        
         unsigned int fault_time=0;            ///////故障计数值
         unsigned char fault_begin;               //故障出现延时 
@@ -839,7 +839,7 @@ extern unsigned int g_test;
         
         extern unsigned char g_gucPhaseSQU[3];  //存储相序检测各相过零标志数
         extern unsigned char g_gucPhaseSQUTestNum;  //相序检测各相过零点计数
-        extern unsigned int rh_counter;//燃弧成功遥信 延时计数器  
+        //extern unsigned int rh_counter;//燃弧成功遥信 延时计数器  
         extern unsigned int rh_send_ok;//燃弧脉冲发送完成 =1 发出8脉冲 =0          
         extern unsigned int fault_time;            ///////故障计数值
         extern unsigned char fault_begin;               //故障出现延时              

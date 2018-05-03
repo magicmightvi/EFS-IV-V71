@@ -379,7 +379,7 @@ unsigned int operate07(unsigned int unCommPortIndex)
         g_gProcCnt[PC_I0_START]=26;
     
     g_gProcCnt[PC_T_DELAY]=g_unRX_Buff[unCommPortIndex][6];                    //////¹ÊÕÏÑÓÊ±
-    if((g_gProcCnt[PC_T_DELAY]>60)||(g_gProcCnt[PC_T_DELAY]<1))
+    if((g_gProcCnt[PC_T_DELAY]>60)||(g_gProcCnt[PC_T_DELAY]<4))
         g_gProcCnt[PC_T_DELAY]=10;
     
     g_gProcCnt[PC_NO_V]=g_unRX_Buff[unCommPortIndex][7];	

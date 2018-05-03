@@ -725,7 +725,7 @@ typedef double         FP64;            //双精度浮点数
 #define EEPADDBK_IECPARA            0x0600
 #define EEPADDBK_IECYCADDR        0x0640
 #define EEPADDBK_IECYKADDR        0x0680
-#define EEPADDBK_RP                      0x06c0
+#define EEPADDBK_RP                      0x0690
 
 #define EEPADD_LOADNUM               0x0720   
 #define EEPADDBK_LOADNUM           0x0730

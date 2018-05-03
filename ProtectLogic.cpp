@@ -311,6 +311,7 @@ void PulseReady(void)
                     	else if(g_gRmtMeas[RM_UA] <= g_gProcCntJug[PC_LOW_P] &&(g_gRmtMeas[RM_UC] < g_gRmtMeas[RM_UB] ))
 				g_ucEarthFlg = 3;////////C相发生故障
                 }
+			pulse_phase_flag = 3;
                 switch(g_ucEarthFlg)
                 {
                     case 1://a相发生故障
@@ -343,6 +344,7 @@ void PulseReady(void)
 		eight_pulse_flag=1; 	//=1为模拟故障 
 		g_TQBSCounter = 2;//投切、闭锁指示灯计数器  =0 是灭 =0x55 闭锁常亮  >=1投切闪烁
 		g_gRmtInfo[YX_EFS_ACT] = 1;   //投切状态 遥信置1 
+		g_I0RmtZeroNum = 0;
 		}
 	//g_gModfk[0]=0;g_gModfk[1]=0;g_gModfk[2]=0;
 	kat=0;kbt=0;kct=0;Numk=0;
@@ -672,22 +674,12 @@ void ProtLogic(void)
     {
     	 eight_delay_flag=0;
     	 PulseReady();
-	 if(rh_send_ok == 0x55)g_gRmtInfo[YX_RH_FAIL] = 1;   //燃弧失败遥信置位	 
+	 if(rh_send_ok == 0x55)
+	 	{
+	 	g_gRmtInfo[YX_RH_FAIL] = 1;   //燃弧失败遥信置位	
+	 	g_gRmtInfo[YX_RH_SUCCESS]=0;
+	 	}
 	 rh_send_ok = 0x85;	
-	 /*
-	 //g_sRecData.m_ucActRecStart = ON;//张弢录波 动作录波开始
-	 g_test=0;
-         //g_sRecData.m_unRecAcTail =0; 
-                    g_sRecData.m_gFaultRecSOE[REC_MSL] =g_sRtcManager.m_gRealTimer[RTC_MICROSEC];
-                    g_sRecData.m_gFaultRecSOE[REC_MSH] = g_sRtcManager.m_gRealTimer[RTC_SEC];
-                    g_sRecData.m_gFaultRecSOE[REC_MINU] = g_sRtcManager.m_gRealTimer[RTC_MINUT];
-                    g_sRecData.m_gFaultRecSOE[REC_HOUR] = g_sRtcManager.m_gRealTimer[RTC_HOUR];
-                    g_sRecData.m_gFaultRecSOE[REC_DAY] = g_sRtcManager.m_gRealTimer[RTC_DATE];
-                    g_sRecData.m_gFaultRecSOE[REC_MONTH] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
-                    g_sRecData.m_gFaultRecSOE[REC_YEAR] = (g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000);	
-  //unsigned long ulAddr = (unsigned long)(FADDR_RECORDER_DATA+g_sRecData.m_gRecCNum*4)<<16;//flash地址  
-  //g_sRecData.m_gActRecAdr = ulAddr;//更新flash地址  	
-  */
        if(g_gProcCnt[PC_EFS_MODEL]>0)                   //////信号源类型为II型，
        	 {
        	 	if(g_ucEarthFlg == 1)                               //(mm[0]<=mm[1])&&(mm[0]<=mm[2])
@@ -799,6 +791,7 @@ void Sign_Repeat(unsigned char repeat_flag,unsigned char rev_flag)
 	     }	
 	     g_TQBSCounter = 2;//投切、闭锁指示灯计数器  =0 是灭 =0x55 闭锁常亮  >=1投切闪烁	
 	     g_gRmtInfo[YX_EFS_ACT] = 1;   //投切状态 遥信置1 
+	     g_I0RmtZeroNum = 0;
 	     if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF))	
 			{				
 	    		g_test=0;
@@ -838,6 +831,7 @@ void Sign_Repeat(unsigned char repeat_flag,unsigned char rev_flag)
         }
         else                       ///////II型信号源
         {
+        	pulse_phase_flag = 3;
             switch(repeat_flag)    //模拟故障
             {
                 case 1://a相发生故障
