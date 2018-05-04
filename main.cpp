@@ -17,7 +17,7 @@ void app(void)@"APPLICATION"
     InitSys();
     //strcpy(ComtrderCfg1,ComtrderCfg);
       if(pGprs!= null) ((CPrtcSms*)pGprs)->SendRCmdToIHD(0,11,null);
-	FEED_WATCH_DOG();;delayms(3000);   WDG_CLR;     
+	FEED_WATCH_DOG();delayms(3000);     
       if(pGprs!= null) ((CPrtcSms*)pGprs)->SendRCmdToIHD(5,11,null);
 	//WDG_CLR;delayms(3000);   WDG_CLR;    
 	   //if(pGprs!= null) ((CPrtcSms*)pGprs)->SendRCmdToIHD(84,11,null);//¶ÁCSQ	
