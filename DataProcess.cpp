@@ -2104,7 +2104,7 @@ if((g_sRecData.m_ucActRecStart == OFF))
 }
  
 }
-
+/*
 void SaveActRecDataCFG(void)
 {
  unsigned int temp[8];
@@ -2205,6 +2205,7 @@ if((g_sRecData.m_ucActRecStart == OFF))
   g_sRecData.m_ucActRecStart = CLOSE;
 }
 }
+*/
 /*
 void SaveRecData(void)
 {

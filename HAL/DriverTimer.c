@@ -1131,7 +1131,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
 				ka=0;kb=0;kc=0;
 				}	
 #ifdef CONDIN_3
-             if(g_gRmtMeas[RM_I0] >= g_gProcCntJug[PC_PULSE_VALID])
+             if(g_gRmtMeas[RM_I0] >= I01A)
             	{
              	g_I0RmtZeroNum=0;
 			//g_gRmtInfo[YX_BREAK]=0;
@@ -1161,12 +1161,13 @@ _EINT();//开总中断// 张弢测试中断嵌套
             	if(g_I0RmtNum < 19)
                   	g_I0RmtNum++;
             	}
-			else
+			if(g_gRmtMeas[RM_I0] < I01A)
 		      	{
 		      	g_I0RmtZeroNum++;
 		      	}
-			if(NumKON>(7+g_gProcCnt[PC_PLUSE_TIME]))
-				KMon=0;//继电器动作70ms+8脉冲脉宽后不在判断
+			//if(NumKON>(7+g_gProcCnt[PC_PLUSE_TIME]))
+			if(NumKON>30)
+				KMon=0;//继电器动作300ms
             }
 		else //if(g_gKON==OFF)//开关未闭合
 			{
@@ -1184,7 +1185,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
             g_I0RmtNum = 0;			
 			}
 		//if( g_gRmtInfo[YX_EARTH_FAULT] == 0)g_I0RmtZeroNum = 0; 
-		if(g_I0RmtZeroNum>=3*(g_gRunPara[RP_PLUSE_TIME]))
+		if(g_I0RmtZeroNum>=4*(g_gRunPara[RP_PLUSE_TIME]))
 			{
 			g_gRmtInfo[YX_BREAK]=1; newsms_abn= ON;
 			SaveLOG(LOG_BREAK, 1);			

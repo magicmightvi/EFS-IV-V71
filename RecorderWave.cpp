@@ -144,8 +144,8 @@ void cfg_dat_length(RECORDER_CFG *pgRecorder_cfg,int file_current_num)
 	else //if(gRecorder_filecfg.CFG_Samp==800)  
       	{	//gRecorder_cfg[temp[1]].CFG_EndSamp  
       		//memcpy(&ComtrderCfg1[tt],ACTCfg,5);
-      		CAT_SpiWriteBytes(EEPADD_CFG+tt, 5,(unsigned char*)ACTCfg);
-		tt +=5;
+      		CAT_SpiWriteBytes(EEPADD_CFG+tt, 4,(unsigned char*)ACTCfg);
+		tt +=4;
 		sprintf((char *)ch,"%u\n",pgRecorder_cfg->CFG_EndSamp);
 		//memcpy(&ComtrderCfg1[tt],ch,strlen(ch));
 		CAT_SpiWriteBytes(EEPADD_CFG+tt, strlen(ch), (unsigned char*) ch);

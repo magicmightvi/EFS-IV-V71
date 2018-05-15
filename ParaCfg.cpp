@@ -1087,7 +1087,7 @@ void CalcProtCnt(void)
     g_gProcCntJug[PC_LOW_Z] = g_gProcCnt[PC_LOW_Z];          //零序电压低定值
     g_gProcCntJug[PC_NO_V] = g_gProcCnt[PC_NO_V];       //无压门槛值
     g_gProcCntJug[PC_I0_START] = g_gProcCnt[PC_I0_START];//线电压高定值
-    g_gProcCntJug[PC_PULSE_VALID] = g_gProcCnt[PC_PULSE_VALID] /20;       //8脉冲有效定值
+    g_gProcCntJug[PC_PULSE_VALID] = g_gProcCnt[PC_PULSE_VALID] /10;       //8脉冲有效定值
 	if(g_gProcCnt[PC_T_DELAY] > 2000)
         g_gProcCntJug[PC_T_DELAY] = g_gProcCnt[PC_T_DELAY] /10 - 200;
     else
