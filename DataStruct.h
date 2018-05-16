@@ -18,8 +18,8 @@ extern "C"
 //	#include "SMS\PrtcSms.h"
      
 // #pragma location=0x0FF00 
- const unsigned char VerNum[]="Ver73.00";
-const unsigned char VerNum_INLCD=73;
+ const unsigned char VerNum[]="Ver74.00";
+const unsigned char VerNum_INLCD=74;
 //================================== LOG日志模块 ============================================ 
 struct sLOG_DATA//1条LOG日志的内容
 {

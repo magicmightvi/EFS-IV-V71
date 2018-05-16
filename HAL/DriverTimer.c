@@ -1205,7 +1205,8 @@ _EINT();//开总中断// 张弢测试中断嵌套
     				SaveLOG(LOG_LATCH, 1);
     				chongfa=0;	moniguzhang=0;
     				g_gRmtMeas[RM_ACT_NUM] = 0;
-  				 g_sRecData.m_gACTDelay = 200;//g_sRecData.m_ucActRecStart = OFF;//张弢录波 动作录波结束	
+					if(g_sRecData.m_ucActRecStart == ON)
+  				 		g_sRecData.m_gACTDelay = 200;//g_sRecData.m_ucActRecStart = OFF;//张弢录波 动作录波结束	
 				}
 			}
 
