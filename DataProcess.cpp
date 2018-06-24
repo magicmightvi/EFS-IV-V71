@@ -502,11 +502,20 @@ unsigned long CalcuDft(unsigned char AdcChannel)
     long i = 0;
     unsigned long result=0; 
 
-    for( n = 0 ; n < AC_SAMPLE_DOTS; n++ )
+	unsigned char a,b;
+	a=0;b=16;
+	if((g_sSampleData.m_unAcDataTail&0x1F)<16)
+		{
+		a=16;b=32;
+		}
+
+    //for( n = 0 ; n < AC_SAMPLE_DOTS; n++ )
+    for( n = a ; n < b; n++ )
     {   
 
-        tAdcData = g_sSampleData.m_gAcAdcData[AdcChannel][(g_sSampleData.m_unAcDataTail - n) & 0x1F];
-	 r += ((long)real[2*n]) * tAdcData;
+        //tAdcData = g_sSampleData.m_gAcAdcData[AdcChannel][(g_sSampleData.m_unAcDataTail - n) & 0x1F];
+        tAdcData = g_sSampleData.m_gAcAdcData[AdcChannel][(n) & 0x1F];
+	 	r += ((long)real[2*n]) * tAdcData;
         i += (long)img[2*n] * tAdcData;
     }
     r = r >> 13;
@@ -817,7 +826,7 @@ unsigned long Templm = 0;
 
     for(i = 0; i < IEC_YC_NUM/*RMT_MEAS_NUM*/; i++)
     { 
-	 uuTemp[i] = g_gRmtMeas[i] ;//云南遥测要1次值
+	 uuTemp[i] = g_gRmtFilMeas[i] ;//云南遥测要1次值
         if(i==7)
         	{        	
         	if(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_CURRENT_PRIMARY])
@@ -864,7 +873,7 @@ unsigned long Templm = 0;
           	     	if(g_gChangeYCNum < 9)
                     	  g_gChangeYCNum++;
 			g_gYCchangData[g_gChangeYCNum - 1] = i;				
-			 g_gYCchangData[g_gChangeYCNum + 9] = g_gRmtMeas[i];//昨天云南，遥测要一次值
+			 g_gYCchangData[g_gChangeYCNum + 9] = g_gRmtFilMeas[i];//昨天云南，遥测要一次值
 			 if(i == 7)
 			 	{
 			 	if(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_CURRENT_PRIMARY])

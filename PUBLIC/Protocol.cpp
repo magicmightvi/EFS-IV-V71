@@ -797,6 +797,8 @@ BOOL CProtocol::RecWriteFile(void)
 		{
 		g_gDebugP[Debug_U1BPS]=pData[0];
 		g_gDebugP[Debug_ALLREC]=pData[1];
+		if(g_gDebugP[Debug_U1BPS]>4)g_gDebugP[Debug_U1BPS]=0;
+		if((g_gDebugP[Debug_ALLREC]!=0)&&(g_gDebugP[Debug_ALLREC]!=0x55))g_gDebugP[Debug_ALLREC]=0;
 		g_gDebugP[Debug_CRC]=AddChar(g_gDebugP,Debug_CRC);				
 		CAT_SpiWriteBytes(EEPADD_DEBUG,Debug_PARA_NUM, g_gDebugP);
 		SendWrPaSuc();

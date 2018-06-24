@@ -1093,12 +1093,12 @@ _EINT();//开总中断// 张弢测试中断嵌套
               	
                       }
        	         }
-                 if(eight_delay_counter>0)
+                 if((eight_delay_counter>0)&&(efslatch_flag==0))
                 	{
                     eight_delay_counter--;
 		      		if((eight_delay_counter==80)&&(g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF))	
 		      			{//动作录波要在继电器动作前最少0.5秒开始，现在设定提前0.8s
-		      			if(g_gDebugP[Debug_ALLREC]!=0x55)//正常录波模式
+		      			if(g_gDebugP[Debug_ALLREC]==0)//正常录波模式
 		      				{
 						unsigned long ulAddr =FADDR_RECORDER_ACTDATA+ (unsigned long)(g_sRecData.m_gACTRecCNum)*0x90000;//flash地址  
   						g_sRecData.m_gActRecAdr = ulAddr;//更新flash地址 	
@@ -1166,14 +1166,14 @@ _EINT();//开总中断// 张弢测试中断嵌套
 		      	g_I0RmtZeroNum++;
 		      	}
 			//if(NumKON>(7+g_gProcCnt[PC_PLUSE_TIME]))
-			if(NumKON>30)
+			if(NumKON>I0JugTime)
 				KMon=0;//继电器动作300ms
             }
 		else //if(g_gKON==OFF)//开关未闭合
 			{
 		  	NumKON=0;		  		
 		  	if(Numyc>=8)Numyc=0;
-		  	if(g_I0RmtNum >= 3) //((g_gProcCnt[PC_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK])/2))     //检测到有效电流
+		  	if(g_I0RmtNum >= 8) //((g_gProcCnt[PC_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK])/2))     //检测到有效电流
             	{
               	g_I0RmtNum = 0;
                	if(g_MaichongNum < 8)
@@ -1185,7 +1185,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
             g_I0RmtNum = 0;			
 			}
 		//if( g_gRmtInfo[YX_EARTH_FAULT] == 0)g_I0RmtZeroNum = 0; 
-		if(g_I0RmtZeroNum>=4*(g_gRunPara[RP_PLUSE_TIME]))
+		if(g_I0RmtZeroNum>=4*I0JugTime)
 			{
 			g_gRmtInfo[YX_BREAK]=1; newsms_abn= ON;
 			SaveLOG(LOG_BREAK, 1);			
@@ -1296,7 +1296,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
 				else if(g_sRecData.m_gXHDelay>=(g_gRunPara[RP_RHSEND_TIME1]-60))
 		  			{
 		  		//g_sRecData.m_gXHDelay=fault_time;
-		  			if((g_gDebugP[Debug_ALLREC]!=0x55)&&(g_sRecData.m_ucActRecStart == CLOSE))//正常录波模式
+		  			if((g_gDebugP[Debug_ALLREC]==0)&&(g_sRecData.m_ucActRecStart == CLOSE))//正常录波模式
 		  			{
 				//开始录波
 	    			g_test=0;
@@ -1335,7 +1335,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
 			rh_counter=g_gRunPara[RP_RHT_DELAY];//遥信延时开始
 			rh_send_ok = 0;
 		  }	*/	  
-                if((fault_time>=g_gProcCntJug[PC_T_DELAY]) && fault_save == 0)
+                if((fault_time>=g_gProcCntJug[PC_T_DELAY]) && (fault_save == 0))
                     fault_save=0x55;   	  		
                 else if(fault_time==0)
                 {
