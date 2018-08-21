@@ -398,7 +398,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
 	 	g_gRunPara[RP_RHSEND_TIME1]=100;
 	 if(g_gRunPara[RP_CT_TRANS]==0)g_gRunPara[RP_CT_TRANS]=20;
          CalcProtCnt();
-	SaveLOG(LOG_PAR_CHAG,1);
+	g_gRmtInfo[YX_PAR_CHAG]=1;//SaveLOG(LOG_PAR_CHAG,1);
     }
     
     //IEC101参数设置
@@ -409,7 +409,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         CAT_SpiWriteBytes(EEPADD_IECPARA , IEC_PARA_NUM, g_ucPara101);     //保存到EEPROM中
         CAT_SpiWriteBytes(EEPADDBK_IECPARA, IEC_PARA_NUM, g_ucPara101);    //保存到EEPROM的备份区中
         //InitSCI();
-        SaveLOG(LOG_PAR_CHAG,1);
+        g_gRmtInfo[YX_PAR_CHAG]=1;//SaveLOG(LOG_PAR_CHAG,1);
     }
     //遥信地址点表
     if((g_ucParaChang & BIT2) == BIT2)
@@ -432,7 +432,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
                 break;
         }
         g_ucYxTransNum = i;
-		SaveLOG(LOG_PAR_CHAG,1);
+		g_gRmtInfo[YX_PAR_CHAG]=1;//SaveLOG(LOG_PAR_CHAG,1);
        /* g_gRMTBitBackCount = 0; //如果遥信点表重新配置，则清空未上传的长时标遥信
         g_gRMTBitBackCount_Aut = 0;
         g_EquInfo[COMM_INDEX_GPRS]  &= NBIT1;//清标识
@@ -446,7 +446,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         g_ucYCAddr[IEC_YC_NUM] = AddChar(g_ucYCAddr, IEC_YC_NUM);      //计算CS
         CAT_SpiWriteBytes(EEPADD_IECYCADDR , IEC_YC_NUM + 1, g_ucYCAddr);     //保存到EEPROM中
         CAT_SpiWriteBytes(EEPADDBK_IECYCADDR, IEC_YC_NUM + 1, g_ucYCAddr);    //保存到EEPROM的备份区中
-        SaveLOG(LOG_PAR_CHAG,1);      
+        g_gRmtInfo[YX_PAR_CHAG]=1;//SaveLOG(LOG_PAR_CHAG,1);      
     }
     //遥控地址点表
  /*   if((g_ucParaChang & BIT4) == BIT4)
@@ -464,7 +464,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         CAT_SpiWriteBytes(EEPADD_PHONE , PHONE_PA_NUM, g_gSmsPhone);     //保存到EEPROM中
         CAT_SpiWriteBytes(EEPADDBK_PHONE, PHONE_PA_NUM, g_gSmsPhone);    //保存到EEPROM的备份区中
         CheckTELNUMPara();//张弢 0328 将g_gSmsPhone转成TEL_NUM g_ucphone_perm 
-        SaveLOG(LOG_PAR_CHAG,1);
+        g_gRmtInfo[YX_PAR_CHAG]=1;//SaveLOG(LOG_PAR_CHAG,1);
     }
  
    	//张弢 读汉字站名
@@ -477,7 +477,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         g_gLBName[LBName_NUM] = AddChar(g_gLBName, LBName_NUM);      //计算CS
         CAT_SpiWriteBytes(EEPADD_LBNAME   , LBName_NUM+1, g_gLBName);     //保存到EEPROM中
         CAT_SpiWriteBytes(EEPADD_LBNAMELEN, 1, &g_gLBNameLen);    //保存到EEPROM的备份区中
-        SaveLOG(LOG_PAR_CHAG,1);
+        g_gRmtInfo[YX_PAR_CHAG]=1;//SaveLOG(LOG_PAR_CHAG,1);
     }	
     if((g_ucParaChang & BIT7) == BIT7)
     {

@@ -1242,7 +1242,8 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
 			default:
 				log_name="ERR";
 			}
-		sprintf((char *)ch,"%s",log_name);
+		//sprintf((char *)ch,"%s",log_name);
+		sprintf((char *)ch,"%12d",byLoadDa[0]);	  
         for(n = 0; n < strlen(ch); n++)
         {
             

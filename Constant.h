@@ -330,6 +330,17 @@ typedef double         FP64;            //双精度浮点数
 #define YX_I0_HIGH         45//I0过流	1：过流状态；0：
 #define YX_KJ_TIMEOVER 46//开关闭合超时	1：超时；0：
 #define YX_I0_TIMEOVER 47//I0超时	1：超时；0：
+#define YX_EARTH_TDELA 48  //接地告警确定
+#define YX_8FULS_STA   49  //8脉冲开始结束
+#define YX_SOFT_LATCH 50	//软闭锁
+#define YX_UCAP       51 //电容报警
+#define YX_101_LINK   52  //101连接
+#define YX_101_ERR    53 //101错误
+#define YX_MEM_ERR    54 //存储器错误
+#define YX_SOFT_ERR   55  //软件故障
+#define YX_8FULS_I	  56
+#define YX_PAR_CHAG   57
+
 #define YX_SYSRESET 63//系统复位
 //#define YX_I0_HIGH         48//I0过流	1：过流状态；0：
 //#define YX_I0_HIGH         49//I0过流	1：过流状态；0：
@@ -372,7 +383,6 @@ typedef double         FP64;            //双精度浮点数
 #define LOG_PAR_CHAG          	8 //修改参数
 
 #define LOG_8FULS_I             11  //8脉冲电流
-
 
 #define LOG_UPT_ERR           	16  //相电压告警
 #define LOG_EARTH        		17 //接地告警
@@ -924,7 +934,7 @@ const unsigned char ucVerNum[]="Ver02.02";
 #define FADDR_RECORDER_XHDATA      0x6C0000   //熄弧录波数据0x6C0000
 #define FADDR_LOG_START      0x720000   //LOG数据0x720000-7290000
 #define FADDR_LOG_END      0x729000  
-#define MAX_LOG_NUM       4//内存中LOG的数量
+#define MAX_LOG_NUM       8//内存中LOG的数量
 
 /*
 程序升级7AF000

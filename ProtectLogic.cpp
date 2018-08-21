@@ -151,7 +151,7 @@ void ProtStart(void)
            	fault_end=0x55;
               g_gRmtInfo[YX_EARTH_FAULT] = 0;
 			g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;
-			SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
+			g_gRmtInfo[YX_EARTH_TDELA]=0;//SaveLOG(LOG_EARTH_TDELAY,0);
      	    }
      	} 
         else if((g_gProcCnt[PC_JAG_Z]==0)&&(g_gProcCnt[PC_JAG_P]==0x55))      //////////////////相故障判据  
@@ -162,7 +162,7 @@ void ProtStart(void)
                 fault_end=0x55;
                 g_gRmtInfo[YX_EARTH_FAULT] = 0;
 		  		g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;	
-		  		SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
+		  		g_gRmtInfo[YX_EARTH_TDELA]=0;//SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
                 //g_gRmtInfo[0] &= ~(YX_PHASEA_FAULT + YX_PHASEB_FAULT + YX_PHASEC_FAULT);
             }     
        	}    
@@ -174,7 +174,7 @@ void ProtStart(void)
                 fault_end=0x55;
                 g_gRmtInfo[YX_EARTH_FAULT] = 0;
 		 		g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;
-		 		SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
+		 		g_gRmtInfo[YX_EARTH_TDELA]=0;//SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
                 //g_gRmtInfo[0] &= ~(YX_PHASEA_FAULT + YX_PHASEB_FAULT + YX_PHASEC_FAULT);
             }     
        	 }  
@@ -188,7 +188,7 @@ void ProtStart(void)
             {
            	 fault_begin=0x55;
            	 fault_end=0;	
-			 SaveLOG(LOG_EARTH,1);
+			 //SaveLOG(LOG_EARTH,1);
             }              	 		
         }	
     }
@@ -201,21 +201,21 @@ void ProtStart(void)
                 fault_begin=0x55;
 		  		fault_pluse =RM_UA;
            		fault_end=0;
-				SaveLOG(LOG_EARTH,1);
+				//SaveLOG(LOG_EARTH,1);
             }     
             else if((g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))) ////////B相电压   单相接地判据
        	    { 	
     	 		fault_begin=0x55;
 				fault_pluse =RM_UB;	
     	 		fault_end=0;
-				SaveLOG(LOG_EARTH,1);
+				//SaveLOG(LOG_EARTH,1);
     	    }    
 	    	else if((g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P]))) /////////C相电压   单相接地判据
 	    		{ 	
     	 		fault_begin=0x55;
 				fault_pluse =RM_UC;	
     	 		fault_end=0;
-				SaveLOG(LOG_EARTH,1);
+				//SaveLOG(LOG_EARTH,1);
     	  		}     
         }         
     }       	
@@ -226,7 +226,7 @@ void ProtStart(void)
             if((g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])) /////////A相电压   单相接地判据
        	    	{ 	
            	 	fault_begin=0x55;
-			 	SaveLOG(LOG_EARTH,1);
+			 	//SaveLOG(LOG_EARTH,1);
 				fault_pluse =RM_UA;	 
            	 	fault_end=0;
             	}       
@@ -235,14 +235,14 @@ void ProtStart(void)
            	 	fault_begin=0x55;
 				fault_pluse =RM_UB;	 
            	 	fault_end=0;
-				SaveLOG(LOG_EARTH,1);
+				//SaveLOG(LOG_EARTH,1);
             	}      
             else if((g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P]))&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])) /////////A相电压   单相接地判据
        	    	{ 	
            	 	fault_begin=0x55;
 				fault_pluse =RM_UC;	 
            	 	fault_end=0;
-				SaveLOG(LOG_EARTH,1);
+				//SaveLOG(LOG_EARTH,1);
             	}          	     	     
        	 }     
       } 
@@ -691,7 +691,7 @@ void ProtLogic(void)
        	 }   
        else
            fault_sms_type=4; 
-	   SaveLOG(LOG_EARTH_TDELAY,1);
+	   g_gRmtInfo[YX_EARTH_TDELA]=1;//SaveLOG(LOG_EARTH_TDELAY,1);
        CreatNewSMS(FAULT_OCCUR);                      //产生故障短信//张弢  
     }
 
@@ -808,7 +808,7 @@ void Sign_Repeat(unsigned char repeat_flag,unsigned char rev_flag)
   				g_sRecData.m_ucActRecStart = ON;//张弢录波 动作录波开始	
   				g_sRecData.m_LuboType = LuboType_ACT;
 				
-			SaveLOG(LOG_8FULS_STA,1);
+			g_gRmtInfo[YX_8FULS_STA]=1;//SaveLOG(LOG_8FULS_STA,1);
 	     	}
 	}   
     }

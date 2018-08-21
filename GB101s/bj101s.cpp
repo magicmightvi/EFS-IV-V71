@@ -2805,7 +2805,7 @@ void CBJ101S::Initlink(void)
     else if(m_initflag&8)
     {
        m_initflag&=~8;
-	   SaveLOG(LOG_101_LINK,1);
+	   g_gRmtInfo[YX_101_LINK]=1;//SaveLOG(LOG_101_LINK,1);
     } 
     if(!m_initflag && (m_guiyuepara.mode == 1))  //∆Ω∫‚ Ω
        m_linkflag=1;      

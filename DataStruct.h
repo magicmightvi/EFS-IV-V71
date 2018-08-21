@@ -18,14 +18,14 @@ extern "C"
 //	#include "SMS\PrtcSms.h"
      
 // #pragma location=0x0FF00 
- const unsigned char VerNum[]="Ver74.00";
-const unsigned char VerNum_INLCD=74;
+ const unsigned char VerNum[]="Ver99.00";
+const unsigned char VerNum_INLCD=99;
 //================================== LOG日志模块 ============================================ 
 struct sLOG_DATA//1条LOG日志的内容
 {
-	char m_gLogType;
-	char m_gLogValu;
-	char m_gLogTimer[RTC_NUM+1];//年 月 日 时 分 秒 毫秒 毫秒
+	unsigned char m_gLogType;
+	unsigned char m_gLogValu;
+	unsigned char m_gLogTimer[RTC_NUM+1];//年 月 日 时 分 秒 毫秒 毫秒
 	unsigned int m_gRmtMeas[8];//U0 UA UB UC I0 UPT CSQ UCAP  或者8个电流  
 };
 
@@ -164,8 +164,8 @@ struct sSAMPLE_DATA
     unsigned int g_NolinkWifi = 0;		
     unsigned char g_GPRSSendLink = 0;// 1分钟重练一次101
     unsigned char g_RenZLink = 0;	//重庆 认证标志	
-    unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量 一个遥信信息占1个bit位
-    unsigned int g_gRmtInfoBak[RMT_INFO_NUM];//遥信量备份 一个遥信信息占1个bit位
+    unsigned char g_gRmtInfo[RMT_INFO_NUM];//遥信量 一个遥信信息占1个bit位
+    unsigned char g_gRmtInfoBak[RMT_INFO_NUM];//遥信量备份 一个遥信信息占1个bit位
     //unsigned char g_gSCosBuff[SOE_BUFF_NUM][SOE_DATA_LEN];
     unsigned char g_gSCosBuff[1][SOE_DATA_LEN];
     unsigned char g_MaichongNum = 0;           //脉冲计数
@@ -260,8 +260,8 @@ extern unsigned int g_test;
     extern unsigned char g_GPRSSendLink ;
     extern unsigned char g_RenZLink;	//重庆 认证标志
     
-    extern unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量 一个遥信信息占2个bit位
-    extern unsigned int g_gRmtInfoBak[RMT_INFO_NUM];
+    extern unsigned char g_gRmtInfo[RMT_INFO_NUM];//遥信量 一个遥信信息占2个bit位
+    extern unsigned char g_gRmtInfoBak[RMT_INFO_NUM];
     //extern unsigned char g_gSCosBuff[SOE_BUFF_NUM][SOE_DATA_LEN];
     extern unsigned char g_gSCosBuff[1][SOE_DATA_LEN];    
    // extern unsigned char g_gGroundBuff[SOE_BUFF_NUM];

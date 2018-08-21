@@ -221,7 +221,7 @@ void ScanDin(void)
     if((Powerdown_counter == 0)&&(power_off_flag==1))    /////////信号源掉电恢复	
     {
        power_off_flag=0;
-	   SaveLOG(LOG_POW_ONF, 0);
+	   //SaveLOG(LOG_POW_ONF, 0);
        g_gRmtInfo[YX_EFS_OFF] = 0;
        for(i=0;i<6;i++)
            g_sSoeData.m_gPowerONBuff[i] = g_sRtcManager.m_gRealTimer[i]; 
@@ -235,7 +235,7 @@ void ScanDin(void)
         power_off_flag=1;	  
         power_ctl_flag=5;              ///////断电遥控标志   延时5秒钟
         save_power_off=0x55; 
-		SaveLOG(LOG_POW_ONF, 1);
+		//SaveLOG(LOG_POW_ONF, 1);
         g_gRmtInfo[YX_EFS_OFF] = 1;
         //KB1_ON; //KB1改为投切灯           ///新电路板 	 
         //CreatNewSMS(POWER_OFF);                      //产生掉电短信//张弢
@@ -268,14 +268,17 @@ void ScanDin(void)
 
 void RmInfoChk(void)
 {
-    unsigned char m,k;
+    unsigned char i,m;
     //unsigned int unRmtTemp = 0;
     //unsigned int j=1;
+    if(log_recorded.log_Mem_Flag != 0)
+		return;
+	
     for(m= 0;m < RMT_INFO_NUM;m++)
     {
-         if(g_gRmtInfoBak[m] != g_gRmtInfo[m])
+   		if(g_gRmtInfoBak[m] != g_gRmtInfo[m])
         {       
-        /**/
+        /*
                for(k = 0; k < g_ucYxTransNum;k++)
                {
                    if(m == g_ucYXAddr[k]-1)
@@ -283,12 +286,36 @@ void RmInfoChk(void)
                        //unRmtTemp = (g_gRmtInfo[0] & j)>>i;
                        CreatNewSoe(m,g_gRmtInfo[m],2);//g_ucYXAddr[i]-1
                        break;
-                   }
-             
-        	 }  
-        //CreatNewSoe(m,g_gRmtInfo[m],2);	 
+                   }             
+        	 	} 
+     	*/
+     	g_sLogData[log_recorded.log_MemNewPtr].m_gLogType=m;
+		g_sLogData[log_recorded.log_MemNewPtr].m_gLogValu=g_gRmtInfo[m];
+		for(i=0;i<6;i++)
+    		g_sLogData[log_recorded.log_MemNewPtr].m_gLogTimer[i] = g_sRtcManager.m_gRealTimer[i];
+   		g_sLogData[log_recorded.log_MemNewPtr].m_gLogTimer[0] = g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000;
+		g_sLogData[log_recorded.log_MemNewPtr].m_gLogTimer[6] = LOBYTE(g_sRtcManager.m_gRealTimer[RTC_MICROSEC]);
+		g_sLogData[log_recorded.log_MemNewPtr].m_gLogTimer[7] = HIBYTE(g_sRtcManager.m_gRealTimer[RTC_MICROSEC]);
+		if((m==YX_8FULS_I)||(m==YX_BREAK))
+			{
+			for(i=0;i<8;i++)
+				g_sLogData[log_recorded.log_MemNewPtr].m_gRmtMeas[i]=yc[i];
+			}
+		else
+			{
+			g_sLogData[log_recorded.log_MemNewPtr].m_gRmtMeas[RM_U0] =g_gRmtMeas[RM_U0];
+			g_sLogData[log_recorded.log_MemNewPtr].m_gRmtMeas[RM_UA] =g_gRmtMeas[RM_UA];
+			g_sLogData[log_recorded.log_MemNewPtr].m_gRmtMeas[RM_UB] =g_gRmtMeas[RM_UB];
+			g_sLogData[log_recorded.log_MemNewPtr].m_gRmtMeas[RM_UC] =g_gRmtMeas[RM_UC];
+			g_sLogData[log_recorded.log_MemNewPtr].m_gRmtMeas[4] =g_gRmtMeas[RM_UPt];
+			g_sLogData[log_recorded.log_MemNewPtr].m_gRmtMeas[5] =g_gRmtMeas[RM_UCAP];
+			g_sLogData[log_recorded.log_MemNewPtr].m_gRmtMeas[6] =g_gRmtMeas[RM_CSQ];
+			}
+		log_recorded.log_MemNewPtr++;
+		if(log_recorded.log_MemNewPtr >= MAX_LOG_NUM)
+			log_recorded.log_MemNewPtr = 0;
         g_gRmtInfoBak[m] = g_gRmtInfo[m];   
-       }
+       	}
     }    
 }
 void ScanDinYX(void)
@@ -361,7 +388,7 @@ void ScanDinYX(void)
 			{
 			g_gI0OverTimer=1100;
 			g_gRmtInfo[YX_I0_TIMEOVER]=1;
-			SaveLOG(LOG_I0T_ERR, 1);
+			//SaveLOG(LOG_I0T_ERR, 1);
 			}
 		}
 	else
@@ -369,7 +396,7 @@ void ScanDinYX(void)
 		if(g_gI0OverTimer==0)
 			{
 			g_gRmtInfo[YX_I0_TIMEOVER]=0;
-			SaveLOG(LOG_I0T_ERR, 0);
+			//SaveLOG(LOG_I0T_ERR, 0);
 			}
 		else
 			{
@@ -392,7 +419,7 @@ void ScanDinYX(void)
             g_gExtDinYesTimer[0] = g_gRunPara[YX_delay];
             g_gExtDinStat[1] |= 1;
             //ucTemp[0] = 1;
-	     g_gRmtInfo[YX_KJA]=0;
+	     g_gRmtInfo[YX_KJA]=1;
         }
     }
     else
@@ -416,7 +443,7 @@ void ScanDinYX(void)
             g_gExtDinYesTimer[1] = g_gRunPara[YX_delay];
             g_gExtDinStat[1] |= 0x02;
             //ucTemp[1] = 1;
-            g_gRmtInfo[YX_KJB]=0;
+            g_gRmtInfo[YX_KJB]=1;
         }
     }
     else
@@ -441,7 +468,7 @@ void ScanDinYX(void)
             g_gExtDinYesTimer[2] = g_gRunPara[YX_delay];
             g_gExtDinStat[1] |= 1;
             //ucTemp[0] = 1;
-	     g_gRmtInfo[YX_KJC]=0;
+	     g_gRmtInfo[YX_KJC]=1;
         }
     }
     else
@@ -1013,13 +1040,13 @@ void ScanSoftLacth(void)
     				latch_upload_flag=0x55;      	
     				uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
     				g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位 
-    				SaveLOG(LOG_8FULS_STA,0);
+    				g_gRmtInfo[YX_8FULS_STA]=0;//SaveLOG(LOG_8FULS_STA,0);
     				//SaveLOG(LOG_LATCH, 1);
     				chongfa=0;	moniguzhang=0;
     				//g_gRmtMeas[RM_ACT_NUM] = 0;
 					g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0	
 					}
-				SaveLOG(LOG_SOFT_LATCH, 1);
+				g_gRmtInfo[YX_SOFT_LATCH]=1;//SaveLOG(LOG_SOFT_LATCH, 1);
 				}
 			}
 		else
@@ -1062,13 +1089,13 @@ void ScanSoftLacth(void)
     				latch_upload_flag=0x55;      	
     				uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
     				g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位  
-    				SaveLOG(LOG_8FULS_STA,0);
+    				g_gRmtInfo[YX_8FULS_STA]=0;//SaveLOG(LOG_8FULS_STA,0);
     				chongfa=0;	moniguzhang=0;
     				//g_gRmtMeas[RM_ACT_NUM] = 0;
     				g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0	
 					}
-				SaveLOG(LOG_SOFT_LATCH, 1);
-				SaveLOG(LOG_KM_ERR, 1);
+				g_gRmtInfo[YX_SOFT_LATCH]=1;//SaveLOG(LOG_SOFT_LATCH, 1);
+				g_gRmtInfo[YX_KJ_TIMEOVER]=1;//SaveLOG(LOG_KM_ERR, 1);
 				}
 			}
 		else
@@ -1077,7 +1104,7 @@ void ScanSoftLacth(void)
 	else
 		{
 		km_timeout = g_gRunPara[RP_KM_TIME];
-		SaveLOG(LOG_KM_ERR, 0);
+		g_gRmtInfo[YX_KJ_TIMEOVER]=0;//SaveLOG(LOG_KM_ERR, 0);
 		}
 	}
 
@@ -1100,15 +1127,15 @@ void ScanSoftLacth(void)
     				latch_upload_flag=0x55;      	
     				uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
     				g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位 
-    				SaveLOG(LOG_LATCH, 1);
-					SaveLOG(LOG_I0_ERR, 1);
-					SaveLOG(LOG_8FULS_STA,0);
+    				//SaveLOG(LOG_LATCH, 1);
+					g_gRmtInfo[YX_I0_HIGH]=1;//SaveLOG(LOG_I0_ERR, 1);
+					g_gRmtInfo[YX_8FULS_STA]=0;//SaveLOG(LOG_8FULS_STA,0);
     				chongfa=0;	moniguzhang=0;
     				//g_gRmtMeas[RM_ACT_NUM] = 0;
 					g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0	
 					}
-				SaveLOG(LOG_SOFT_LATCH, 1);
-				SaveLOG(LOG_I0_ERR, 1);
+				g_gRmtInfo[YX_SOFT_LATCH]=1;//SaveLOG(LOG_SOFT_LATCH, 1);
+				g_gRmtInfo[YX_I0_HIGH]=1;//SaveLOG(LOG_I0_ERR, 1);
 				}
 			}
 		else
@@ -1123,7 +1150,7 @@ void ScanSoftLacth(void)
 		i0_timeout = g_gProcCnt[PC_OVERLOAD_T];//(g_gRunPara[RP_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK])/3;
 		if(i0_timeout==0)i0_timeout=1;
 		if(i0_timeout>g_gRunPara[RP_PLUSE_TIME])i0_timeout=1;
-		SaveLOG(LOG_I0_ERR, 0);
+		g_gRmtInfo[YX_I0_HIGH]=0;//SaveLOG(LOG_I0_ERR, 0);
 		}
 	}
 }

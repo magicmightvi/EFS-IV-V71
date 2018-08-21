@@ -28,7 +28,7 @@ void app(void)@"APPLICATION"
     g_RstartNum++;
     CAT_SpiWriteWords(EEPADD_RSTARTNUM, 1, &g_RstartNum);*/
     FEED_WATCH_DOG();
-	SaveLOG(LOG_RESET,1);
+	//SaveLOG(LOG_RESET,1);
     while(1)
     {    
         /*WatchDog();
@@ -154,7 +154,7 @@ void app(void)@"APPLICATION"
         FEED_WATCH_DOG();
         SaveSoeDataRepeat();
 
-        RmInfoChk();//张弢 移入主循环，否则栈太大无法中断嵌套
+        //RmInfoChk();//张弢 移入主循环，否则栈太大无法中断嵌套
         g_gRmtInfo[YX_SYSRESET] =0;        
         if((g_gSaveload>=g_gRunPara[RP_FLOAD_T] )&&(g_gRunPara[RP_FLOAD_T] !=0))//每隔一段时间存储负荷记录
         	{

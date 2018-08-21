@@ -50,7 +50,74 @@ const char ComtrderCfg[]=
 50\n\
 1\n\
 ";
-
+/*
+const char LogName[]=
+"FUN_ON     \n// 0功能投退
+MANUAL     \n//  1  //手动投切
+ACT_SUCCESS\n//       2 //最终投切成功
+EARTH_FAULT\n//          3  //接地告警
+PHASE_OFF  \n//          4  //PT断线告警
+EFS_OFF    \n//          5  //控制器失电
+U0_HIGH    \n//         6 //零序过压报警
+UAB_HIGH   \n//          7 //线电压过压报警
+U_HIGH     \n//         8  //相电压过压告警
+U_LOW      \n//         9 //相电压欠压告警
+KJC        \n// 10 //硬遥信1
+PHASEA_ACT \n//          11 //A相投切
+PHASEB_ACT \n//          12  //B相投切
+PHASEC_ACT \n//          13 //C相相投切
+EFS_LATCH  \n//          14//闭锁 1=闭锁 0=解锁
+UA_HIGH    \n//          15  //A相电压过压告警
+UA_LOW     \n//          16 //A相电压欠压告警
+UB_HIGH    \n//          17  //B相电压过压告警
+UB_LOW     \n//          18  //B相电压欠压告警
+UC_HIGH    \n//          19  //C相电压过压告警
+UC_LOW     \n//          20  //C相电压欠压告警
+PHASEA_OFF \n//      21  //PT断线告警
+PHASEB_OFF \n//      22  //PT断线告警
+PHASEC_OFF \n//      23  //PT断线告警
+AEARTH_FAUL\n//          24  //接地告警
+BEARTH_FAUL\n//          25 //接地告警
+CEARTH_FAUL\n//        26 //接地告警
+BACKUP1    \n//27
+BACKUP2    \n//28
+BACKUP3    \n//29
+BACKUP4    \n//30
+BACKUP5    \n//31
+YX_KJB     \n//     32 //硬遥信1
+YX_KJA     \n//     33 //硬遥信2
+YX_RH_SUCCE\n//          34 //燃弧成功
+YX_RH_FAIL \n//        35 //燃弧失败
+YX_BREAK   \n//         36 //断线
+YX_LBOK    \n//          37 //录波完成
+SBP_OFF    \n//    38 //后备电源stand-by power 0：后备电源正常，1：后备电源异常
+RH_ACT     \n//     39//装置熄弧动作	1：熄弧开关投入，0：熄弧开关投入结束
+EFS_ACT    \n//    40//装置特征信号投入	1：处于投切工作状态；0：装置开关投切工作状态结束
+I0_ACT     \n//      41//接地电流反馈	   1：I0>0 ；0：I0=0
+PHASEA_ERR \n// 42//A相开关位置异常	1：异常状态；0：
+PHASEB_ERR \n// 43//B相开关位置异常	1：异常状态；0：
+PHASEC_ERR \n// 44//C相开关位置异常	1：异常状态；0：
+I0_HIGH    \n//     45//I0过流	1：过流状态；0：
+KJ_TIMEOVER\n// 46//开关闭合超时	1：超时；0：
+I0_TIMEOVER\n// 47//I0超时	1：超时；0：
+EARTH_TDELA\n// 48  //接地告警确定
+8FULS_STA  \n// 49  //8脉冲开始结束
+SOFT_LATCH \n//50	//软闭锁
+UCAP       \n//51 //电容报警
+101_LINK   \n//52  //101连接
+101_ERR    \n//53 //101错误
+MEM_ERR    \n//54 //存储器错误
+SOFT_ERR   \n//55  //软件故障
+8FULS_I	   \n//56
+PAR_CHAG   \n// 57
+BACKUP6    \n//58
+BACKUP7    \n//59
+BACKUP8    \n//60
+BACKUP9    \n//61
+BACKUP10   \n//62
+SYSRESET   \n//63//系统复位
+";
+*/
 const char ComtrderCfg_1[]=
 ",1999\n\
 9,5A,4D\n\

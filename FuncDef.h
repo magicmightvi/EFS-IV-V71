@@ -64,6 +64,7 @@ extern "C"
     	int ReadSoe(unsigned char *pBuf,int iSegNo,int iStartNo,int iSoeNum);
         int ReadSoeHistory(unsigned char *pBuf,int iSegNo,int iStartNo,int iSoeNum);
 	void SaveLoad(void);
+	void SaveYX(char  yxtype,char yxvalue);
 	void SaveLOG(char   logtype,char logvalue);
 	void SaveMEMLOG(char   logtype,char logvalue);
 	void ScanLOG(void);
@@ -101,6 +102,7 @@ extern "C"
         extern int ReadSoe(unsigned char *pBuf,int iSegNo,int iStartNo,int iSoeNum);
         extern int ReadSoeHistory(unsigned char *pBuf,int iSegNo,int iStartNo,int iSoeNum);
         extern void SaveLoad(void);
+		extern void SaveYX(char  yxtype,char yxvalue);
 		extern void SaveLOG(char   logtype,char logvalue);
 		extern void SaveMEMLOG(char   logtype,char logvalue);
 		extern void ScanLOG(void);

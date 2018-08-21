@@ -536,7 +536,7 @@ unsigned long CalcuDft(unsigned char AdcChannel)
 //  作者       : 林中一
 //==============================================================================
 void CalcuRmtMeas(void)
-{
+{ 
     unsigned int i;
     unsigned int TempRm = 0;
 
@@ -571,6 +571,7 @@ void CalcuRmtMeas(void)
 	 if(i == CHAN_Upt)//3
            g_gRmAcFilt[RM_UPt][g_unFilterIndex] = (unsigned long)table_sqrt(tDft) * COEF_AD_U>> 14;
     }
+	 
 	 a=(unsigned long)g_gRmAcFilt[RM_UA][g_unFilterIndex];
          b=(unsigned long)g_gRmAcFilt[RM_UB][g_unFilterIndex];
          c=(unsigned long)g_gRmAcFilt[RM_UC][g_unFilterIndex];
@@ -617,6 +618,7 @@ void CalcuRmtMeas(void)
     {
         g_unFilterIndex = 0;
     }
+	
 }
 
 	//==============================================================================
@@ -638,7 +640,7 @@ void ScanPT(void)
 	if(g_gVErrTimer[0]>5)
 		{
         	g_gRmtInfo[YX_U0_HIGH]=1;
-			SaveLOG(LOG_UPT_ERR,1);
+			//SaveLOG(LOG_UPT_ERR,1);
 		 g_gVErrTimer[0]=5;
 		}
     	  }
@@ -647,7 +649,7 @@ void ScanPT(void)
 	if(g_gVErrTimer[0]==0)
       		{
       		g_gRmtInfo[YX_U0_HIGH]=0;
-			SaveLOG(LOG_UPT_ERR,0);
+			//SaveLOG(LOG_UPT_ERR,0);
 			}
 	else
 		g_gVErrTimer[0]--;
@@ -666,7 +668,7 @@ void ScanPT(void)
 	if(g_gVErrTimer[2]>5)
 		{
         	g_gRmtInfo[YX_U_HIGH]=1;
-			SaveLOG(LOG_UPT_ERR,1);
+			//SaveLOG(LOG_UPT_ERR,1);
 		g_gVErrTimer[2]=5;
 		}
     	}
@@ -675,7 +677,7 @@ void ScanPT(void)
     	if(g_gVErrTimer[2]==0)
         	{
         	g_gRmtInfo[YX_U_HIGH]=0;
-			SaveLOG(LOG_UPT_ERR,0);
+			//SaveLOG(LOG_UPT_ERR,0);
     		}
 	else
 		g_gVErrTimer[2]--;
@@ -688,7 +690,7 @@ void ScanPT(void)
     	if(g_gVErrTimer[3]>5)
     		{
        	 g_gRmtInfo[YX_U_LOW] =1 ;
-		 SaveLOG(LOG_UPT_ERR,1);
+		 //SaveLOG(LOG_UPT_ERR,1);
 		 g_gVErrTimer[3]=5;
     		}
     	}
@@ -697,7 +699,7 @@ void ScanPT(void)
     	if(g_gVErrTimer[3]==0)
         	{
         	g_gRmtInfo[YX_U_LOW] =0 ;
-			SaveLOG(LOG_UPT_ERR,0);
+			//SaveLOG(LOG_UPT_ERR,0);
     		}
 	else
 		g_gVErrTimer[3]--;
@@ -1704,7 +1706,7 @@ void SetRIStatus( unsigned int RIIndex , unsigned int Status, BYTE RmtInfoFlag)
 	
     if(RmtInfoFlag == 1)       pRmtInfo = g_unYxTrans;
     else if(RmtInfoFlag == 2)  pRmtInfo = g_unYxTrans;//g_unDYxTrans;
-    else pRmtInfo = g_gRmtInfo;
+    //else pRmtInfo = g_gRmtInfo;
 
    iStVal = 3 << ((RIIndex & 7)*2);
    pRmtInfo[(RIIndex >> 3)] &= ~iStVal;//清除要设置的位
@@ -1730,25 +1732,29 @@ void CreatNewSoe(unsigned int SoeType,unsigned long SoeValue,unsigned char Flag)
       g_yxChangeflag = 0xffff;   
      // g_ucRefYxYcTs |= BIT0;
       //int iDinID = SoeType;
-      unsigned int *pchSoeTm;
+      //unsigned int *pchSoeTm;
+	 unsigned char *pchSoeTm;
       unsigned char *pchSoeBuf;
       
       if((int)SoeType >= 0 && SoeType < RMT_INFO_NUM + 2)  //注：增加2路硬遥信
-      {
-         
-          pchSoeTm = g_sRtcManager.m_gRealTimer;
+      {         
+          //pchSoeTm = g_sRtcManager.m_gRealTimer;
+		pchSoeTm = g_sLogData[log_recorded.log_MemPtr].m_gLogTimer;
           pchSoeBuf = g_gSCosBuff[0];//张弢 SOE存FLASH
           pchSoeBuf[SOE_FLAG] = SOEVALID;
           pchSoeBuf[SOE_TYPEL] = TsSoeType; //SOE类型(0-4095
           pchSoeBuf[SOE_TYPEH] = TsSoeType >> 8;
           pchSoeBuf[SOE_STVAL] = SoeValue;
-          pchSoeBuf[SOE_MSL] = (pchSoeTm[RTC_MICROSEC]+pchSoeTm[RTC_SEC]*1000)&0XFF;
-          pchSoeBuf[SOE_MSH] = (pchSoeTm[RTC_MICROSEC]+pchSoeTm[RTC_SEC]*1000)>>8;
+          //pchSoeBuf[SOE_MSL] = (pchSoeTm[RTC_MICROSEC]+pchSoeTm[RTC_SEC]*1000)&0XFF;
+          //pchSoeBuf[SOE_MSH] = (pchSoeTm[RTC_MICROSEC]+pchSoeTm[RTC_SEC]*1000)>>8;
+          pchSoeBuf[SOE_MSL] = (MAKEWORD(pchSoeTm[6],pchSoeTm[7])+pchSoeTm[RTC_SEC]*1000)&0XFF;
+		  pchSoeBuf[SOE_MSH] = (MAKEWORD(pchSoeTm[6],pchSoeTm[7])+pchSoeTm[RTC_SEC]*1000)>>8;
           pchSoeBuf[SOE_HOUR] = pchSoeTm[RTC_HOUR];
           pchSoeBuf[SOE_MINU] = pchSoeTm[RTC_MINUT];
           pchSoeBuf[SOE_DAY] =  pchSoeTm[RTC_DATE];
           pchSoeBuf[SOE_MONTH] = pchSoeTm[RTC_MONTH];
-          pchSoeBuf[SOE_YEAR] = pchSoeTm[RTC_YEAR]-2000; 
+          //pchSoeBuf[SOE_YEAR] = pchSoeTm[RTC_YEAR]-2000; 
+          pchSoeBuf[SOE_YEAR] = pchSoeTm[RTC_YEAR]; 
        
       }
     //处理soe尾指针
@@ -2555,6 +2561,7 @@ void SaveLoad(void)
     //在EEPROM中记录最新一条负荷记录的位置
     CAT_SpiWriteWords(EEPADD_LOADNUM, FLOADINFONUM, FLoadInfo);
 }
+
 //==============================================================================
 //  函数名称   : SaveLOG
 //  功能描述   : 将LOG数据存入内存中的sLOG_DATA g_sLogData[MAX_LOG_NUM] 存入FLASH
@@ -2650,6 +2657,7 @@ void SaveMEMLOG(char   logtype,char logvalue )
 void SaveFlashLOG(void)
 {
     unsigned char saveflag=0;
+	unsigned char k;
 	long fLoadAddr;
     //unsigned char LoadDataPtr=0;
     //unsigned long FLoadAddr;
@@ -2665,6 +2673,16 @@ void SaveFlashLOG(void)
 	{	
 	fLoadAddr = log_recorded.log_FlashNewPtr;	
 	Sst26vf064b_Page_WriteBytes(fLoadAddr,(unsigned char*)&g_sLogData[log_recorded.log_MemPtr],32);
+
+	 for(k = 0; k < g_ucYxTransNum;k++)
+  	{
+    	if(g_sLogData[log_recorded.log_MemPtr].m_gLogType == g_ucYXAddr[k]-1)
+       	{
+    		//unRmtTemp = (g_gRmtInfo[0] & j)>>i;
+       		CreatNewSoe(g_sLogData[log_recorded.log_MemPtr].m_gLogType,g_sLogData[log_recorded.log_MemPtr].m_gLogValu,2);//g_ucYXAddr[i]-1
+           	break;
+        }             
+   	} 
 	
 	log_recorded.log_FlashNewPtr += 32;	
 	if(log_recorded.log_FlashNewPtr >= FADDR_LOG_END)
