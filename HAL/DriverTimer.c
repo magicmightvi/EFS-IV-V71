@@ -1000,7 +1000,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
     }
             g_sRtcManager.m_gRealTimer[RTC_MICROSEC]++;  //系统实时时钟g_sRtcManager.m_gRealTimer的毫秒累加
             ScanDinYX();
-			ScanLOG();
+			//ScanLOG();
 			 RmInfoChk(); 
             MicSecCount++;
 	     Mic50SecCount++;		

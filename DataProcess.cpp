@@ -2561,7 +2561,7 @@ void SaveLoad(void)
     //在EEPROM中记录最新一条负荷记录的位置
     CAT_SpiWriteWords(EEPADD_LOADNUM, FLOADINFONUM, FLoadInfo);
 }
-
+/*
 //==============================================================================
 //  函数名称   : SaveLOG
 //  功能描述   : 将LOG数据存入内存中的sLOG_DATA g_sLogData[MAX_LOG_NUM] 存入FLASH
@@ -2643,7 +2643,7 @@ void SaveMEMLOG(char   logtype,char logvalue )
 		log_recorded.log_MemNewPtr = 0;
 	return;
 }
-
+*/
 //==============================================================================
 //  函数名称   : SaveFlashLOG
 //  功能描述   : 将内存中的sLOG_DATA g_sLogData[MAX_LOG_NUM] 存入FLASH

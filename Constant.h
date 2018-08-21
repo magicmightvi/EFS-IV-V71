@@ -370,7 +370,7 @@ typedef double         FP64;            //双精度浮点数
 #define PM_UCA                  6
 #define PM_I0                   7       //零序电流
 //============================  LOG日志        =======================================
-
+/*
 #define LOG_INFO_NUM            32
 
 #define LOG_RESET               1  //系统复位
@@ -394,7 +394,7 @@ typedef double         FP64;            //双精度浮点数
 #define LOG_KM_ERR              23  //开关吸合过长
 #define LOG_BREAK              	24  //接地线断线
 #define LOG_SOFT_LATCH 			25	//软闭锁
-
+*/
 
 //============================  校正参数        =======================================
 #define ADJ_PARA_NUM                            7//13   //校正参数包括每个通道的基准源校正和目标值校正，将来有功率计算的话还有相位校正
