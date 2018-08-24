@@ -27,7 +27,7 @@ void app(void)@"APPLICATION"
     FEED_WATCH_DOG();
     g_RstartNum++;
     CAT_SpiWriteWords(EEPADD_RSTARTNUM, 1, &g_RstartNum);*/
-    FEED_WATCH_DOG();
+    FEED_WATCH_DOG();LED_RUN_TOGG;
 	//SaveLOG(LOG_RESET,1);
     while(1)
     {    

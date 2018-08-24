@@ -258,10 +258,6 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
     	u_dellubo = 1;
     	g_gRunPara[RP_CFG_KEY]=g_gRunPara[RP_CFG_KEY]&(~BIT[RPCFG_DEL_LUBO]);
     	}
-    if(g_gRunPara[RP_PLUSE_TIME]<=g_gRunPara[RP_PLUSE_MODFK])
-    {
-        g_gRunPara[RP_PLUSE_MODFK]= 0;
-    }
     if(g_gRunPara[RP_PLUSE_TIME]<=g_gRunPara[RP_PLUSE_AMODFK])
     {
         g_gRunPara[RP_PLUSE_AMODFK]= 0;
@@ -516,10 +512,8 @@ void CheckCfgPara(void)
 		 CAT_SpiWriteWords(EEPADD_RP, RUN_PARA_NUM, g_gRunPara); //保存到EEPROM中
 	}
     }
-    if(g_gRunPara[RP_PLUSE_TIME]<=g_gRunPara[RP_PLUSE_MODFK])
-    {
-        g_gRunPara[RP_PLUSE_MODFK]= 0;
-    }	
+	if(g_gRunPara[YC_delay] == 0)
+		g_gRunPara[YC_delay] = 500;//遥测
     if(g_gRunPara[RP_PLUSE_TIME]<=g_gRunPara[RP_PLUSE_AMODFK])
     {
         g_gRunPara[RP_PLUSE_AMODFK]= 0;
@@ -689,10 +683,8 @@ void CheckCfgERR(void)
     		}
 		g_ucParaChang |= BIT0;   //调用保存函数
     }
-    if(g_gRunPara[RP_PLUSE_TIME]<=g_gRunPara[RP_PLUSE_MODFK])
-    {
-        g_gRunPara[RP_PLUSE_MODFK]= 0;
-    }	
+	if(g_gRunPara[YC_delay] == 0)
+		g_gRunPara[YC_delay] = 500;//遥测
     if(g_gRunPara[RP_PLUSE_TIME]<=g_gRunPara[RP_PLUSE_AMODFK])
     {
         g_gRunPara[RP_PLUSE_AMODFK]= 0;
@@ -1145,9 +1137,9 @@ void RstRunPara(void)
 #endif
     g_gRunPara[RP_DYX_INFADDR] = DYX_ADDR;
     g_gRunPara[RP_YCLIMIT] = 1000;//遥测阈值 绝对
-    g_gRunPara[RP_YCCAP] = 50;//遥测阈值 相对
-    
-    g_gRunPara[RP_PLUSE_MODFK]=3;
+    g_gRunPara[YC_delay] = 500;//遥测
+    //g_gRunPara[RP_PLUSE_MODFK]=3;
+    //g_gRunPara[RP_PLUSE_MODFK]=3;
     g_gRunPara[RP_PLUSE_AMODFK]=3;
     g_gRunPara[RP_PLUSE_BMODFK]=3;
     g_gRunPara[RP_PLUSE_CMODFK]=3;	

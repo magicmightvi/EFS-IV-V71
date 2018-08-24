@@ -773,8 +773,8 @@ unsigned char * FileDirectory(unsigned char *pTxBuf, unsigned char leng,unsigned
 		  
           *pTxBuf++ = gRecorder_Readfilecfg.CFG_SOF;
       
-        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC];//录波触点时间
-        *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_SEC];
+        *pTxBuf++= (gRecorder_Readfilecfg.comtrade_time[RTC_SEC]*1000+gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC])&0xff;//录波触点时间
+        *pTxBuf++= (gRecorder_Readfilecfg.comtrade_time[RTC_SEC]*1000+gRecorder_Readfilecfg.comtrade_time[RTC_MICROSEC])>>8;
         *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_MINUT];
         *pTxBuf++= gRecorder_Readfilecfg.comtrade_time[RTC_HOUR];
         //*pTxBuf++= gRecorder_cfg[wSendLISTNum].comtrade_time[RTC_DATE]|(gRecorder_cfg[wSendLISTNum].comtrade_time[RTC_WEEK]<<5);
@@ -1102,7 +1102,7 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
 {
         
       char *pdat_name;
-	  char *log_name;
+	  //char *log_name;
       char ch[128]={0};
       //char ch_1[5]={0};
       BYTE byLoadDa[32] = {0};
@@ -1180,6 +1180,7 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
                 *pTxBuf++ = ch[n];
                 log_sum_section+= ch[n];
                 }
+			  /*
 			  switch(byLoadDa[0])
 			{
 			case 1:
@@ -1242,8 +1243,9 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
 			default:
 				log_name="ERR";
 			}
-		//sprintf((char *)ch,"%s",log_name);
-		sprintf((char *)ch,"%12d",byLoadDa[0]);	  
+		sprintf((char *)ch,"%s",log_name);
+		*/
+		//sprintf((char *)ch,"%s",LogName[byLoadDa[0]]);	  
         for(n = 0; n < strlen(ch); n++)
         {
             

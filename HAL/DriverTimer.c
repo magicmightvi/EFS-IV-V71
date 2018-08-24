@@ -47,7 +47,7 @@ void InitTimer(void)
     //TA0CCR0 = 1250;                    // 输出周期1.25ms=2500=16点每周波//1.6khz
      //TA0CCR0 = 2500;                   //0.625ms=1250=32点每周波 800hz
 
-    TA0CCR0 = 500; 			    //输出周期250uS 每周波80点 4000hz    
+    TA0CCR0 = 499; 			    //输出周期250uS 每周波80点 4000hz    
     TA0CTL = TASSEL_1 + ID_3 + MC_1 + TACLR  ;         //TMA0模式配置 ACLK时钟, 8分频 ,计数清0，增计数  
 #ifndef _TIME_AD
     TA0CCTL0 |= CCIE; //使用中断 如果使用中断启动AD需呀这句话
@@ -56,12 +56,12 @@ void InitTimer(void)
 
     P2SEL |= BIT3;                    // PPS引脚设置
     P2DIR &= ~BIT3;
-    TA1CCTL2 = CAP + SCS + CM_1 +CCIE;           //秒脉冲捕捉设置
-    TA1CCTL1 |= CCIE;                    //TA1CCR1毫秒中断使能  
-    TA1CCR1 = 250;                      //毫秒计数  
-    TA1CTL = TASSEL_1 + ID_3 + MC_2 + TAIE;        //TMA1模式配置 ACLK时钟, 8分频 ,计数清0，连续计数
+    //TA1CCTL2 = CAP + SCS + CM_1 +CCIE;           //秒脉冲捕捉设置
+    //TA1CCTL1 |= CCIE;                   //TA1CCR1毫秒中断使能      
+    TA1CCR0 = 249;//TA1CCR1 = 250;                      //毫秒计数  
+    TA1CTL = TASSEL_1 + ID_3 + MC_1;// + TAIE;        //TMA1模式配置 ACLK时钟, 8分频 ,计数清0，连续计数
     TA1EX0 = TAIDEX_7;               //时钟再分频 /8  =250KHz
-    TA1CTL |= TACLR;
+    TA1CTL |= TACLR;TA1CCTL0 |= CCIE;
 
     TB0CTL = TBSSEL_1 + ID_3 + MC_1 + TBCLR ;   //时钟源为ACLK,8分频,计数清0，
     
@@ -237,7 +237,7 @@ void CHECK8PLUS(void)
     {
       g_FinishACTFlag = 0x55;   
     }
-	g_gRmtInfo[YX_8FULS_STA]=1;//SaveLOG(LOG_8FULS_I,1);
+	g_gRmtInfo[YX_8FULS_I]=1;//SaveLOG(LOG_8FULS_I,1);
     g_MaichongNum = 0;
     
     if(pulse_phase_flag ==1)
@@ -298,7 +298,7 @@ void JAGACT1(void)//动作2次 超前相动作，滞后相动作
       }
       if((eight_pulse_flag%2)==0)  ///////高脉冲
       {
-        eight_pulse_counter= g_gProcCnt[PC_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK];
+        //eight_pulse_counter= g_gProcCnt[PC_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK];
         //g_sRecData.m_ucRecStart = ON;
         if(pulse_phase_flag==1)    ///////A相
         {g_gKONBK=1;
@@ -332,7 +332,7 @@ void JAGACT1(void)//动作2次 超前相动作，滞后相动作
       }	
       else if((eight_pulse_flag%4)==3)  ///////低脉冲 1S
       {
-        eight_pulse_counter= g_gProcCnt[PC_SEND_TIME1] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
+        //eight_pulse_counter= g_gProcCnt[PC_SEND_TIME1] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
         if(pulse_phase_flag==1)    ///////A相
         {
           KA0_OFF;
@@ -354,7 +354,7 @@ void JAGACT1(void)//动作2次 超前相动作，滞后相动作
       }	
       else if((eight_pulse_flag%4)==1)  ///////低脉冲 1.25S      2014.8.5修改为1.5S
       {
-        eight_pulse_counter= g_gProcCnt[PC_SEND_TIME2] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
+        //eight_pulse_counter= g_gProcCnt[PC_SEND_TIME2] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
         if(pulse_phase_flag==1)    ///////A相
         {
           KA0_OFF;
@@ -429,7 +429,7 @@ void JAGACT2(void)//动作3次 超前相动作，滞后相动作，故障相动作
       }
       if((eight_pulse_flag%2)==0)  ///////高脉冲
       {
-        eight_pulse_counter= g_gProcCnt[PC_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK];
+        //eight_pulse_counter= g_gProcCnt[PC_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK];
         //g_sRecData.m_ucRecStart = ON;
         if(pulse_phase_flag==1)    ///////A相
         {g_gKONBK=1;
@@ -472,7 +472,7 @@ void JAGACT2(void)//动作3次 超前相动作，滞后相动作，故障相动作
        }	
       else if((eight_pulse_flag%4)==3)  ///////低脉冲 1S
       {
-        eight_pulse_counter= g_gProcCnt[PC_SEND_TIME1] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
+        //eight_pulse_counter= g_gProcCnt[PC_SEND_TIME1] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
         if(pulse_phase_flag==1)    ///////A相
         {
           KA0_OFF;  g_gKON=OFF;
@@ -491,7 +491,7 @@ void JAGACT2(void)//动作3次 超前相动作，滞后相动作，故障相动作
       }	
       else if((eight_pulse_flag%4)==1)  ///////低脉冲 1.25S      2014.8.5修改为1.5S
       {
-        eight_pulse_counter= g_gProcCnt[PC_SEND_TIME2] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
+        //eight_pulse_counter= g_gProcCnt[PC_SEND_TIME2] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
         if(pulse_phase_flag==1)    ///////A相
         {
           KA0_OFF;  g_gKON=OFF;
@@ -587,7 +587,7 @@ void JAGACT3(void)//动作2次 只有AC相有接触器，超前相动作，另一相动作
       }
       if((eight_pulse_flag%2)==0)  ///////高脉冲
       {
-        eight_pulse_counter= g_gProcCnt[PC_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK];
+        //eight_pulse_counter= g_gProcCnt[PC_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK];
         //g_sRecData.m_ucRecStart = ON;
         if(pulse_phase_flag==1)    ///////A相
         {g_gKONBK=1;
@@ -627,7 +627,7 @@ void JAGACT3(void)//动作2次 只有AC相有接触器，超前相动作，另一相动作
        }	
       else if((eight_pulse_flag%4)==3)  ///////低脉冲 1S
       {
-        eight_pulse_counter= g_gProcCnt[PC_SEND_TIME1] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
+        //eight_pulse_counter= g_gProcCnt[PC_SEND_TIME1] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
         if(pulse_phase_flag==1)    ///////A相
         {
           KA0_OFF;  g_gKON=OFF;
@@ -646,7 +646,7 @@ void JAGACT3(void)//动作2次 只有AC相有接触器，超前相动作，另一相动作
       }	
       else if((eight_pulse_flag%4)==1)  ///////低脉冲 1.25S      2014.8.5修改为1.5S
       {
-        eight_pulse_counter= g_gProcCnt[PC_SEND_TIME2] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
+        //eight_pulse_counter= g_gProcCnt[PC_SEND_TIME2] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
         if(pulse_phase_flag==1)    ///////A相
         {
           KA0_OFF;  g_gKON=OFF;
@@ -724,7 +724,7 @@ void JAGACT4(void)//动作1次 只有AC相有接触器，超前相动作
 
                  if((eight_pulse_flag%2)==0)  ///////高脉冲
                  {
-                     eight_pulse_counter= g_gProcCnt[PC_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK];
+                     //eight_pulse_counter= g_gProcCnt[PC_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK];
                     // g_sRecData.m_ucRecStart = ON;
                      if(pulse_phase_flag==1)    ///////A相
                     {g_gKONBK=1;
@@ -767,7 +767,7 @@ void JAGACT4(void)//动作1次 只有AC相有接触器，超前相动作
                  }	
                  else if((eight_pulse_flag%4)==3)  ///////低脉冲 1S
                  {
-                     eight_pulse_counter=g_gProcCnt[PC_SEND_TIME1] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
+                     //eight_pulse_counter=g_gProcCnt[PC_SEND_TIME1] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
                      if(pulse_phase_flag==1)    ///////A相
                     {
                           KA0_OFF;  g_gKON=OFF;
@@ -789,7 +789,7 @@ void JAGACT4(void)//动作1次 只有AC相有接触器，超前相动作
                  }
                  else if((eight_pulse_flag%4)==1)  ///////低脉冲 1.25S
                  {
-                     eight_pulse_counter=g_gProcCnt[PC_SEND_TIME2] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
+                     //eight_pulse_counter=g_gProcCnt[PC_SEND_TIME2] - g_gProcCnt[PC_PLUSE_TIME]+g_gRunPara[RP_PLUSE_MODFK];
                      if(pulse_phase_flag==1)    ///////A相
                     {
                           KA0_OFF;  g_gKON=OFF;
@@ -882,16 +882,16 @@ void ContronlRelay(void)
 
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void TIMER0_A0_ISR(void)
-{ 
+{  LED_RUN_TOGG;
    // unsigned int i,j;
       static unsigned char M125SecCount = 0;  // 1.25毫秒计时 // 张弢测试中断嵌套
-	static unsigned char pjno=0;
+	//static unsigned char pjno=0;
 	static unsigned char McSecCount=0;
  //#ifdef SD_101S     
       static unsigned char M05SecCount = 0;  // 0.5毫秒计时 // 张弢测试中断嵌套
  //#endif     
   //static unsigned char ucTime = 0;
-   LED_RUN_TOGG; 
+   
    // WDTCTL = WDTPW + WDTCNTCL;
 
     ADC12IFG = 0x3FF;   //以免中断异常
@@ -908,7 +908,7 @@ __interrupt void TIMER0_A0_ISR(void)
     g_gRmtMeas[RM_UCAP] = g_unAdcData[6];
     //if(g_unAdcData[6]>2800)g_gRmtInfo[YX_SBP_OFF]=0;//5.87
     //if(g_unAdcData[6]<2600)g_gRmtInfo[YX_SBP_OFF]=1;//5.4v		
-    ADC12CTL0 |= ADC12SC;     
+    ADC12CTL0 |= ADC12SC;  LED_RUN_TOGG;    
 #ifdef SD_101S
     if(M05SecCount&0x01)
     	{		
@@ -936,16 +936,16 @@ __interrupt void TIMER0_A0_ISR(void)
 #ifndef SD_101S	
     RecData();
 #endif	
-
+/*
     if((M05SecCount&0x7f)==0)//每32 采样32*56.25uS=625us 则计算存储数据// 张弢测试中断嵌套
     	{	 
 	 	g_gRmtMeasPJ[0][pjno]=g_gRmtMeas[1];
 	 	g_gRmtMeasPJ[1][pjno]=g_gRmtMeas[2];
 		g_gRmtMeasPJ[2][pjno]=g_gRmtMeas[3];
        	pjno++;
-		if(pjno>31)pjno=0;;	
+		if(pjno>31)pjno=0;	
     	}
-
+*/
         //扫描开关量输入
        /*ScanDin();
 
@@ -959,19 +959,19 @@ __interrupt void TIMER0_A0_ISR(void)
 
         ScanOut();      //完成出口动作的判断和启动，包括遥控的合分闸也是在大循环中置相关标志，在中断中启动。
 */
-  LED_RUN_TOGG;
+  //LED_RUN_TOGG;
 }
 
 	
 // Timer A1 interrupt service routine
 
 
-#pragma vector=TIMER1_A1_VECTOR
-__interrupt void TIMER1_A1_ISR(void)    //毫秒中断函数
+#pragma vector=TIMER1_A0_VECTOR
+__interrupt void TIMER1_A0_ISR(void)    //毫秒中断函数
 {
     unsigned char i = 0;
     //unsigned int unTemp = 0;
-    
+    //LED_RUN_TOGG; 
     static unsigned int MicSecCount = 0;  //10毫秒计时
     static unsigned int Mic50SecCount = 0;  //50毫秒计时//张弢 遥测越限	
     static unsigned int SecCount = 0;     //秒计时
@@ -979,13 +979,24 @@ __interrupt void TIMER1_A1_ISR(void)    //毫秒中断函数
     static unsigned char Numyc = 0;     //8脉冲遥测值 yc[] 的数组下标
     static unsigned char KMon=0;		//继电器控制接触器动作
     //static unsigned char Numk=0;     //8脉冲遥测值 yc[] 的数组下标
-    switch(TA1IV)
-    {
+    /*switch(TA1IV)
+    {case 0x00:
+		 	g_ucPara101[IECP_OBJ_COM0]=1;
+    	break;    
          case 0x02:
-	
+		 	g_ucPara101[IECP_OBJ_COM0]=2;
+    	break;
+	case 0x0E:
+		g_ucPara101[IECP_OBJ_COM0]=14;
+          break;
+     default:
+	 	g_ucPara101[IECP_OBJ_COM0]=3;
+          break;
+	}*/
+	 
 _EINT();//开总中断// 张弢测试中断嵌套	
 
-            TA1CCR1 += 250;
+            //TA1CCR1 += 250;
             for(i = 0;i <= 2;i++)
     {
       if(g_sRxBuff[i].m_iRcvCount > 0)
@@ -998,8 +1009,11 @@ _EINT();//开总中断// 张弢测试中断嵌套
         }
       }
     }
+			
             g_sRtcManager.m_gRealTimer[RTC_MICROSEC]++;  //系统实时时钟g_sRtcManager.m_gRealTimer的毫秒累加
             ScanDinYX();
+			ScanPT();
+			ProtStart();//启动元件判断			
 			//ScanLOG();
 			 RmInfoChk(); 
             MicSecCount++;
@@ -1381,7 +1395,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
                Mic50SecCount =0;
 		 //if((g_sRecData.m_ucActRecStart != OFF))	   
 		 	
-		 ScanPT();
+		 
              }
 	     		 
             if(SecCount >= 1000)   //秒计时
@@ -1612,14 +1626,17 @@ _EINT();//开总中断// 张弢测试中断嵌套
     if(g_gRmtMeas[RM_UCAP]<2600){g_gRmtInfo[YX_SBP_OFF]=1;}//5.4v	               
             }    
             
-                       
+    /*                   
           break;
-
+	case 0x0E:
+		g_ucPara101[IECP_OBJ_COM0]=14;
+          break;
      default:
+	 	g_ucPara101[IECP_OBJ_COM0]=3;
           break;
-    }
+    }*/
   //UCA1IE |= (UCRXIE + UCTXIE);              // 使能 USCI_A0 RX 中断  // 张弢测试中断嵌套	 
   //UCA2IE |= (UCRXIE + UCTXIE);              // 使能 USCI_A0 RX 中断  // 张弢测试中断嵌套	
-//LED_RUN_OFF;
+	//LED_RUN_TOGG; 
 }
 

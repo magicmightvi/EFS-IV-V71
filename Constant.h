@@ -424,11 +424,11 @@ typedef double         FP64;            //双精度浮点数
 #define RP_DYX_INFADDR     	7    //双点遥信起始信息体?
 #define RP_YCLIMIT              	 8   //遥测绝对越限值
 #define RP_YCCAP                	 9   //遥测相对越限值 相对指百分比
-#define RP_PLUSE_MODFK	   	10  //脉冲宽度修正，实际脉冲宽度为10ms为 RP_PLUSE_TIME -RP_PLUSE_MODFK 单位10ms 默认0
+#define YC_delay	   	    10  //遥测防抖时间间隔
 #define RP_PLUSEXH_MODFK	11  //脉冲宽度修正，实际脉冲宽度为10ms为 RP_PLUSE_TIME -RP_PLUSE_MODFK 单位10ms 
 //#define RP_DEVICE_TYPE		11     //设备类型 0 = 一遥； 1 = 二遥 ；2=信号源
 #define RP_YXRSD_T               12   //遥信重发间隔步长
-#define YX_delay                 13   //防抖时间间隔
+#define YX_delay                 13   //遥信防抖时间间隔
 
 #define RP_UA_ADJ           14       //UA校准系数值
 #define RP_UB_ADJ           15       //UB校准系数值

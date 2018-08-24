@@ -539,7 +539,7 @@ void CalcuRmtMeas(void)
 { 
     unsigned int i;
     unsigned int TempRm = 0;
-
+	static unsigned char pjno=0;
     unsigned long tDft,a,b,c;
     //unsigned int unTemp[3];
     if(g_unRmCaluFlag == OFF)   //如果遥测运算标志仍然为OFF，则说明1.25ms的AD中断没有进去过，g_gProcMeas没有更新，不需要运算
@@ -618,7 +618,11 @@ void CalcuRmtMeas(void)
     {
         g_unFilterIndex = 0;
     }
-	
+		g_gRmtMeasPJ[0][pjno]=g_gRmtMeas[1];
+	 	g_gRmtMeasPJ[1][pjno]=g_gRmtMeas[2];
+		g_gRmtMeasPJ[2][pjno]=g_gRmtMeas[3];
+       	pjno++;
+		if(pjno>31)pjno=0;
 }
 
 	//==============================================================================
@@ -637,11 +641,11 @@ void ScanPT(void)
     if(g_gRmtMeas[RM_U0] >= g_gProcCntJug[PC_HIGH_Z])  //零序过压
         {
         g_gVErrTimer[0]++;
-	if(g_gVErrTimer[0]>5)
+	if(g_gVErrTimer[0]> g_gRunPara[YC_delay])
 		{
         	g_gRmtInfo[YX_U0_HIGH]=1;
 			//SaveLOG(LOG_UPT_ERR,1);
-		 g_gVErrTimer[0]=5;
+		 g_gVErrTimer[0]=g_gRunPara[YC_delay];
 		}
     	  }
     else
@@ -665,11 +669,11 @@ void ScanPT(void)
     if(unTemp[0] >= g_gProcCntJug[PC_HIGH_P]) 
     	{
     	g_gVErrTimer[2]++;
-	if(g_gVErrTimer[2]>5)
+	if(g_gVErrTimer[2]>g_gRunPara[YC_delay])
 		{
         	g_gRmtInfo[YX_U_HIGH]=1;
 			//SaveLOG(LOG_UPT_ERR,1);
-		g_gVErrTimer[2]=5;
+		g_gVErrTimer[2]=g_gRunPara[YC_delay];
 		}
     	}
     else
@@ -687,11 +691,11 @@ void ScanPT(void)
     if(unTemp[2] <= g_gProcCntJug[PC_LOW_P]) 
     	{
     	g_gVErrTimer[3]++;
-    	if(g_gVErrTimer[3]>5)
+    	if(g_gVErrTimer[3]>g_gRunPara[YC_delay])
     		{
        	 g_gRmtInfo[YX_U_LOW] =1 ;
 		 //SaveLOG(LOG_UPT_ERR,1);
-		 g_gVErrTimer[3]=5;
+		 g_gVErrTimer[3]=g_gRunPara[YC_delay];
     		}
     	}
     else
@@ -708,10 +712,10 @@ void ScanPT(void)
     if(g_gRmtMeas[RM_UA]<= g_gProcCntJug[PC_LOW_P]) 
     	{
     	g_gVErrTimer[4]++;
-	if(g_gVErrTimer[4]>5)
+	if(g_gVErrTimer[4]>g_gRunPara[YC_delay])
 		{
         	g_gRmtInfo[YX_UA_LOW] =1 ;
-		g_gVErrTimer[4]=5;
+		g_gVErrTimer[4]=g_gRunPara[YC_delay];
 		}
     	}
     else
@@ -725,10 +729,10 @@ void ScanPT(void)
     if(g_gRmtMeas[RM_UB]<= g_gProcCntJug[PC_LOW_P]) 
     	{
     	g_gVErrTimer[5]++;
-	if(g_gVErrTimer[5]>5)
+	if(g_gVErrTimer[5]>g_gRunPara[YC_delay])
 		{
         	g_gRmtInfo[YX_UB_LOW] =1 ;
-		g_gVErrTimer[5]=5;
+		g_gVErrTimer[5]=g_gRunPara[YC_delay];
 		}
     	}
     else
@@ -742,10 +746,10 @@ void ScanPT(void)
     if(g_gRmtMeas[RM_UC]<= g_gProcCntJug[PC_LOW_P]) 
     	{
     	g_gVErrTimer[6]++;
-	if(g_gVErrTimer[6]>5)
+	if(g_gVErrTimer[6]>g_gRunPara[YC_delay])
 		{
         	g_gRmtInfo[YX_UC_LOW] =1 ;
-		g_gVErrTimer[6]=5;
+		g_gVErrTimer[6]=g_gRunPara[YC_delay];
 		}
     	}
     else
@@ -759,10 +763,10 @@ void ScanPT(void)
     if(g_gRmtMeas[RM_UA] > g_gProcCntJug[PC_HIGH_P])
     	{
     	g_gVErrTimer[7]++;
-	if(g_gVErrTimer[7]>5)
+	if(g_gVErrTimer[7]>g_gRunPara[YC_delay])
 		{
         	g_gRmtInfo[YX_UA_HIGH]=1;
-		g_gVErrTimer[7]=5;
+		g_gVErrTimer[7]=g_gRunPara[YC_delay];
 		}
     	}
     else
@@ -776,10 +780,10 @@ void ScanPT(void)
     if(g_gRmtMeas[RM_UB] > g_gProcCntJug[PC_HIGH_P])
     	{
     	g_gVErrTimer[8]++;
-	if(g_gVErrTimer[8]>5)
+	if(g_gVErrTimer[8]>g_gRunPara[YC_delay])
 		{
         	g_gRmtInfo[YX_UB_HIGH]=1;
-		g_gVErrTimer[8]=5;
+		g_gVErrTimer[8]=g_gRunPara[YC_delay];
 		}
     	}
     else
@@ -793,10 +797,10 @@ void ScanPT(void)
     if(g_gRmtMeas[RM_UC] > g_gProcCntJug[PC_HIGH_P])
     	{
     	g_gVErrTimer[9]++;
-	if(g_gVErrTimer[9]>5)
+	if(g_gVErrTimer[9]>g_gRunPara[YC_delay])
 		{
         	g_gRmtInfo[YX_UC_HIGH]=1;
-		g_gVErrTimer[9]=5;
+		g_gVErrTimer[9]=g_gRunPara[YC_delay];
 		}
     	}
     else
