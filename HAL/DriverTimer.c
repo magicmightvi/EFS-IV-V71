@@ -882,7 +882,7 @@ void ContronlRelay(void)
 
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void TIMER0_A0_ISR(void)
-{  LED_RUN_TOGG;
+{  //LED_RUN_TOGG;
    // unsigned int i,j;
       static unsigned char M125SecCount = 0;  // 1.25ºÁÃë¼ÆÊ± // ÕÅ|²âÊÔÖÐ¶ÏÇ¶Ì×
 	//static unsigned char pjno=0;
@@ -908,7 +908,7 @@ __interrupt void TIMER0_A0_ISR(void)
     g_gRmtMeas[RM_UCAP] = g_unAdcData[6];
     //if(g_unAdcData[6]>2800)g_gRmtInfo[YX_SBP_OFF]=0;//5.87
     //if(g_unAdcData[6]<2600)g_gRmtInfo[YX_SBP_OFF]=1;//5.4v		
-    ADC12CTL0 |= ADC12SC;  LED_RUN_TOGG;    
+    ADC12CTL0 |= ADC12SC;  //LED_RUN_TOGG;    
 #ifdef SD_101S
     if(M05SecCount&0x01)
     	{		

@@ -495,33 +495,33 @@ const int img[32]={ 0,-1598,-3135,-4551,-5793,-6811,-7568,-8035,
 //  作者       : lzy
 //===============================  
 unsigned long CalcuDft(unsigned char AdcChannel)
-{
+{LED_RUN_TOGG;
     unsigned char n;
     int tAdcData;
     long r = 0;
     long i = 0;
     unsigned long result=0; 
-
+/*
 	unsigned char a,b;
 	a=0;b=16;
 	if((g_sSampleData.m_unAcDataTail&0x1F)<16)
 		{
 		a=16;b=32;
 		}
-
-    //for( n = 0 ; n < AC_SAMPLE_DOTS; n++ )
-    for( n = a ; n < b; n++ )
+*/
+    for( n = 0 ; n < AC_SAMPLE_DOTS; n++ )
+    //for( n = a ; n < b; n++ )
     {   
 
-        //tAdcData = g_sSampleData.m_gAcAdcData[AdcChannel][(g_sSampleData.m_unAcDataTail - n) & 0x1F];
-        tAdcData = g_sSampleData.m_gAcAdcData[AdcChannel][(n) & 0x1F];
+        tAdcData = g_sSampleData.m_gAcAdcData[AdcChannel][(g_sSampleData.m_unAcDataTail - n) & 0x1F];
+        //tAdcData = g_sSampleData.m_gAcAdcData[AdcChannel][(n) & 0x1F];
 	 	r += ((long)real[2*n]) * tAdcData;
         i += (long)img[2*n] * tAdcData;
     }
     r = r >> 13;
     i = i >> 13;
     result = (r * r + i * i);
-    
+    LED_RUN_TOGG;
     return result;
     
 }
@@ -552,7 +552,7 @@ void CalcuRmtMeas(void)
     }
     //ProtLogic();
     //ProtStart();	
-	
+	//LED_RUN_TOGG;
     for(i = 0; i < 6/*RMT_MEAS_NUM -1*/ ; i++)//添加了UAB,UBC,UCA三线电压，i的上限=PM_UCA
     {
         tDft = (CalcuDft(i) >> 3);
@@ -623,6 +623,7 @@ void CalcuRmtMeas(void)
 		g_gRmtMeasPJ[2][pjno]=g_gRmtMeas[3];
        	pjno++;
 		if(pjno>31)pjno=0;
+	//LED_RUN_TOGG;
 }
 
 	//==============================================================================
