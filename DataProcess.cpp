@@ -363,6 +363,8 @@ void InitDataProc(void)
         {
             g_sSampleData.m_gAcAdcData[i][j] = 0;
         }
+		g_gProcMeas_AC_R[i]=0;
+		g_gProcMeas_AC_I[i]=0;
     } 
    
    /* for(i = 0; i < PROC_MEAS_NUM; i++)
@@ -485,6 +487,7 @@ const int img[32]={ 0,-1598,-3135,-4551,-5793,-6811,-7568,-8035,
 0,1598,3135,4551,5793,6811,7568,8035,
 8192,8035,7568,6811,5793,4551,3135,1598
 } ; 
+static unsigned char TableIndex=0;
 
 //===============================  
 // 功能描述   : 根据傅里叶算法计算获得有效值
@@ -494,6 +497,7 @@ const int img[32]={ 0,-1598,-3135,-4551,-5793,-6811,-7568,-8035,
 //  其他说明   : 
 //  作者       : lzy
 //===============================  
+/*
 unsigned long CalcuDft(unsigned char AdcChannel)
 {LED_RUN_TOGG;
     unsigned char n;
@@ -501,14 +505,7 @@ unsigned long CalcuDft(unsigned char AdcChannel)
     long r = 0;
     long i = 0;
     unsigned long result=0; 
-/*
-	unsigned char a,b;
-	a=0;b=16;
-	if((g_sSampleData.m_unAcDataTail&0x1F)<16)
-		{
-		a=16;b=32;
-		}
-*/
+
     for( n = 0 ; n < AC_SAMPLE_DOTS; n++ )
     //for( n = a ; n < b; n++ )
     {   
@@ -522,6 +519,31 @@ unsigned long CalcuDft(unsigned char AdcChannel)
     i = i >> 13;
     result = (r * r + i * i);
     LED_RUN_TOGG;
+    return result;
+    
+}
+*/
+unsigned long CalcuDft(unsigned char AdcChannel)
+{
+	//LED_RUN_TOGG;
+    //unsigned char n;
+    //int tAdcData,
+    int m,n;
+    long r = 0;
+    long i = 0;
+    unsigned long result=0; 
+	unsigned int tail;
+
+	tail=g_sSampleData.m_unAcDataTail;
+	m = g_sSampleData.m_gAcAdcData[AdcChannel][tail& 0x1F];
+	n = g_sSampleData.m_gAcAdcData[AdcChannel][(tail-AC_SAMPLE_DOTS)& 0x1F];
+	
+	g_gProcMeas_AC_R[AdcChannel] += (long)real[2*TableIndex]*(m-n);		
+	g_gProcMeas_AC_I[AdcChannel] += (long)img[2*TableIndex]*(m-n);
+	r = g_gProcMeas_AC_R[AdcChannel]>>13;//R
+	i = g_gProcMeas_AC_I[AdcChannel]>>13;//I	
+	result = (r * r + i * i);//I平方+ R平方	
+    //LED_RUN_TOGG;
     return result;
     
 }
@@ -571,7 +593,7 @@ void CalcuRmtMeas(void)
 	 if(i == CHAN_Upt)//3
            g_gRmAcFilt[RM_UPt][g_unFilterIndex] = (unsigned long)table_sqrt(tDft) * COEF_AD_U>> 14;
     }
-	 
+	 /*
 	 a=(unsigned long)g_gRmAcFilt[RM_UA][g_unFilterIndex];
          b=(unsigned long)g_gRmAcFilt[RM_UB][g_unFilterIndex];
          c=(unsigned long)g_gRmAcFilt[RM_UC][g_unFilterIndex];
@@ -583,7 +605,7 @@ void CalcuRmtMeas(void)
 
 	  tDft=(a+c)*(a+c)-a*c;
 	 g_gRmAcFilt[RM_UCA][g_unFilterIndex]= table_sqrt(tDft);// * COEF_AD_U>> 14;
-	 
+	 */
     	//}	
     for(i = 0; i < 8;i++)
     	{
@@ -623,6 +645,8 @@ void CalcuRmtMeas(void)
 		g_gRmtMeasPJ[2][pjno]=g_gRmtMeas[3];
        	pjno++;
 		if(pjno>31)pjno=0;
+	TableIndex++;
+	if(TableIndex>=16)TableIndex=0;
 	//LED_RUN_TOGG;
 }
 
@@ -1099,7 +1123,8 @@ void RecActData(void)
               g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][0]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2]; 
 	 else
 	  	g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] =g_unAdcData[CHAN_U0]-g_gAdjAD[CHAN_U0];
-	 //g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3]=g_gRmtMeas[RM_I0];
+	 g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3]=g_gRmtMeas[RM_UA];
+	 g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2]=g_gRmtFilMeas[RM_UA];
 	  g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][4] =g_unAdcData[CHAN_I0]-g_gAdjAD[CHAN_I0];//g_gRmtMeas[RM_I0]
 	  if((g_gKON>0)&&(g_gKON<4))//张弢开关已经闭合//录波增加继电器开关量
 	  	{

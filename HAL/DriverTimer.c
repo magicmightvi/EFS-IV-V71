@@ -925,10 +925,10 @@ __interrupt void TIMER0_A0_ISR(void)
         //ProtStart();//启动元件判断
         //ProtLogic();//张弢 程序放入CalcuRmtMeas(void) 5ms执行1次       
         RecActData();
-		McSecCount++;	
+		McSecCount++;g_unRmCaluFlag = ON; 	
 		if(McSecCount>=16)//每16 采样16*1.25ms=20ms 则计算存储数据// 张弢测试中断嵌套
     		{	
-		 	g_unRmCaluFlag = ON; 
+		 	//g_unRmCaluFlag = ON; 
 			//CalcuRmtMeas();//有效值计算，并更新对应的遥测值
 		 	McSecCount = 0;
     		}		
@@ -971,7 +971,7 @@ __interrupt void TIMER1_A0_ISR(void)    //毫秒中断函数
 {
     unsigned char i = 0;
     //unsigned int unTemp = 0;
-    //LED_RUN_TOGG; 
+    LED_RUN_TOGG; 
     static unsigned int MicSecCount = 0;  //10毫秒计时
     static unsigned int Mic50SecCount = 0;  //50毫秒计时//张弢 遥测越限	
     static unsigned int SecCount = 0;     //秒计时
@@ -1012,6 +1012,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
 			
             g_sRtcManager.m_gRealTimer[RTC_MICROSEC]++;  //系统实时时钟g_sRtcManager.m_gRealTimer的毫秒累加
             ScanDinYX();
+			CalcuRmtMeas();//有效值计算，并更新对应的遥测值
 			ScanPT();
 			ProtStart();//启动元件判断			
 			//ScanLOG();
@@ -1637,6 +1638,6 @@ _EINT();//开总中断// 张弢测试中断嵌套
     }*/
   //UCA1IE |= (UCRXIE + UCTXIE);              // 使能 USCI_A0 RX 中断  // 张弢测试中断嵌套	 
   //UCA2IE |= (UCRXIE + UCTXIE);              // 使能 USCI_A0 RX 中断  // 张弢测试中断嵌套	
-	//LED_RUN_TOGG; 
+	LED_RUN_TOGG; 
 }
 

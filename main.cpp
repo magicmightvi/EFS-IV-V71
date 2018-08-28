@@ -98,7 +98,7 @@ void app(void)@"APPLICATION"
 			CheckCfgERR();
         }
     SaveActRecData();
-        CalcuRmtMeas();//有效值计算，并更新对应的遥测值
+        //CalcuRmtMeas();//有效值计算，并更新对应的遥测值
     SaveActRecData();
         ScanDin();
 	 YCthCross();//遥测越限判断	

@@ -212,7 +212,9 @@ struct sSAMPLE_DATA
   	//IAR会对分配的内存在进入main函数之前进行清0，需要占用较多的时间，导致看门狗启动，因此对占用较大内存的数组用"__no_init"禁止清0，放到程序中注意对它进行初始化
 
 	//unsigned int g_gRmtMeas[RMT_MEAS_NUM];//遥测量，保存需要上传到后台的遥测数据 = 开方(g_gProcMeas/16) * 0.6944
-  	unsigned int g_gRmAcFilt[RMT_MEAS_NUM][RM_FILTER_NUM];//遥测量中的交流测量数据滤波 添加了3个线电压，但AD通道数不变，所以此处AC_AD_CHAN_NUM + 3
+	long g_gProcMeas_AC_R[6];
+	long g_gProcMeas_AC_I[6];
+	unsigned int g_gRmAcFilt[RMT_MEAS_NUM][RM_FILTER_NUM];//遥测量中的交流测量数据滤波 添加了3个线电压，但AD通道数不变，所以此处AC_AD_CHAN_NUM + 3
         unsigned int g_unFilterIndex = 0;   //交流测量数据滤波数据保存的位置
         volatile unsigned int g_unRmCaluFlag;    //遥测运算标志, 在中断中置ON，在大循环中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
         volatile unsigned int g_unTESTFlag;  
