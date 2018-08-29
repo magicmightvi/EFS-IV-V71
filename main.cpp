@@ -11,6 +11,56 @@
  CGB104S mGB104S;
 #endif
 
+//录波结束后，预先清除下个存储空间
+void EraseBlock(void)
+{
+	if(g_sRecData.m_EraseBlock == ON)
+	{
+			g_sRecData.m_EraseBlock = OFF;
+			long ulAddr = FADDR_RECORDER_ACTDATA+(unsigned long)(g_sRecData.m_gACTRecCNum)*0x90000;    
+			Block_Erase(ulAddr);//ERASE 1个BLOCK 
+			delayms(100);WatchDog();
+			Block_Erase(ulAddr+0x10000);//ERASE 1个BLOCK 
+			delayms(100);WatchDog();
+			Block_Erase(ulAddr+0x20000);//ERASE 1个BLOCK 
+			delayms(100);WatchDog();
+			Block_Erase(ulAddr+0x30000);//ERASE 1个BLOCK 
+			delayms(100);WatchDog(); 
+			Block_Erase(ulAddr+0x40000);//ERASE 1个BLOCK 
+			delayms(100);WatchDog();
+			Block_Erase(ulAddr+0x50000);//ERASE 1个BLOCK 
+			delayms(100);WatchDog();
+			Block_Erase(ulAddr+0x60000);//ERASE 1个BLOCK 
+			 delayms(100);WatchDog();
+			Block_Erase(ulAddr+0x70000);//ERASE 1个BLOCK 
+			delayms(100);WatchDog(); 
+			Block_Erase(ulAddr+0x80000);//ERASE 1个BLOCK 
+			delayms(100);WatchDog();   
+	}
+	SaveActRecData();
+	if(g_sRecData.m_EraseBlock == YES)
+	{
+			g_sRecData.m_EraseBlock = OFF;
+			long ulAddr = FADDR_RECORDER_XHDATA+(unsigned long)(g_sRecData.m_gXHRecCNum)*0x8000;	
+			Sector_Erase(ulAddr);//ERASE 1个BLOCK 
+			delayms(100);WatchDog();
+			Sector_Erase(ulAddr+0x1000);//ERASE 1个BLOCK 
+			delayms(100);WatchDog();
+			Sector_Erase(ulAddr+0x2000);//ERASE 1个BLOCK 
+			delayms(100);WatchDog();
+			Sector_Erase(ulAddr+0x3000);//ERASE 1个BLOCK 
+			delayms(100);WatchDog(); 
+			Sector_Erase(ulAddr+0x4000);//ERASE 1个BLOCK 
+			delayms(100);WatchDog();
+			Sector_Erase(ulAddr+0x5000);//ERASE 1个BLOCK 
+			delayms(100);WatchDog();
+			Sector_Erase(ulAddr+0x6000);//ERASE 1个BLOCK 
+			 delayms(100);WatchDog();
+			Sector_Erase(ulAddr+0x7000);//ERASE 1个BLOCK 
+			delayms(100);WatchDog(); 
+	}		
+}
+
 void app(void)@"APPLICATION"
 {
     WDTCTL = WDTPW + WDTHOLD;//禁止芯片自带的看门狗，采用外部看门狗
@@ -62,19 +112,19 @@ void app(void)@"APPLICATION"
     			}					
 			}
 	SaveActRecData();
-	 if(g_NolinkReset>1440)
+	if(g_NolinkReset>1440)//1140minute = 24hour
 	 	{
 	 	g_NolinkReset=0;
 	 	InitCommObj();
 	 	}
-        if(g_sRtcManager.m_ucRtcSynFlag == YES) //每4分钟从时钟芯片读取一次时间，该标志在定时器中断中计数设标志
+	if(g_sRtcManager.m_ucRtcSynFlag == YES) //每4分钟从时钟芯片读取一次时间，该标志在定时器中断中计数设标志
         {
-            ReadRealTime();//从RTC芯片中读取系统时钟，并更新SysTime中的时间
-            g_sRtcManager.m_ucRtcSynFlag = NO;
+		ReadRealTime();//从RTC芯片中读取系统时钟，并更新SysTime中的时间
+		g_sRtcManager.m_ucRtcSynFlag = NO;
 #ifndef YN_101S
 	    if(pGprs!= null) ((CPrtcSms*)pGprs)->SendRCmdToIHD(84,11,null);//读CSQ	
 #endif	
-			CheckCfgERR();
+		CheckCfgERR();
         }
     SaveActRecData();
         //CalcuRmtMeas();//有效值计算，并更新对应的遥测值
@@ -96,11 +146,11 @@ void app(void)@"APPLICATION"
 		}
 	SaveActRecData();
 	FEED_WATCH_DOG();
-        Comm_LED_101(); //液晶通信
-       FEED_WATCH_DOG();
+	Comm_LED_101(); //液晶通信
+	FEED_WATCH_DOG();
         //if(g_ucGPRSState==GPRSState_IDLE)
-        SaveActRecData();
-	 Comm_GPRS_SMS();////张弢0330 如串口在空闲状态，则可以发送SMS
+	SaveActRecData();
+	Comm_GPRS_SMS();////张弢0330 如串口在空闲状态，则可以发送SMS
         
         if(pDbg != null) pDbg->Run();
         if(pGprs != null) pGprs->Run();
@@ -133,62 +183,16 @@ void app(void)@"APPLICATION"
         ClkChange();    //在实际试验过程发现MSP430容易出现由外部晶振自动切换为内部DCO，因此需要及时发现并切回来。
         FEED_WATCH_DOG();
         SaveSoeDataRepeat();
-
-        //RmInfoChk();//张弢 移入主循环，否则栈太大无法中断嵌套
-        g_gRmtInfo[YX_SYSRESET] =0;        
+        //RmInfoChk();//张弢 移入主循环，否则栈太大无法中断嵌套             
         if((g_gSaveload>=g_gRunPara[RP_FLOAD_T] )&&(g_gRunPara[RP_FLOAD_T] !=0))//每隔一段时间存储负荷记录
         	{
         	g_gSaveload=0;
-		SaveLoad();	
-        SaveActRecData();	}
-		SaveFlashLOG();
+			SaveLoad();	
+        	SaveActRecData();	
+			}
+		SaveFlashLOG();//存储LOG和SOE
 		SaveActRecData();
-        if(g_sRecData.m_EraseBlock == ON)
-        	{
-        	g_sRecData.m_EraseBlock = OFF;
-		long ulAddr = FADDR_RECORDER_ACTDATA+(unsigned long)(g_sRecData.m_gACTRecCNum)*0x90000;    
-  		Block_Erase(ulAddr);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog();
-  		Block_Erase(ulAddr+0x10000);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog();
-  		Block_Erase(ulAddr+0x20000);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog();
-  		Block_Erase(ulAddr+0x30000);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog(); 
-  		Block_Erase(ulAddr+0x40000);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog();
-  		Block_Erase(ulAddr+0x50000);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog();
-  		Block_Erase(ulAddr+0x60000);//ERASE 1个BLOCK 
- 		 delayms(100);WatchDog();
-  		Block_Erase(ulAddr+0x70000);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog(); 
-  		Block_Erase(ulAddr+0x80000);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog();   
-        	}
-		SaveActRecData();
-        if(g_sRecData.m_EraseBlock == YES)
-        	{
-        	g_sRecData.m_EraseBlock = OFF;
-		long ulAddr = FADDR_RECORDER_XHDATA+(unsigned long)(g_sRecData.m_gXHRecCNum)*0x8000;    
-  		Sector_Erase(ulAddr);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog();
-  		Sector_Erase(ulAddr+0x1000);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog();
-  		Sector_Erase(ulAddr+0x2000);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog();
-  		Sector_Erase(ulAddr+0x3000);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog(); 
-  		Sector_Erase(ulAddr+0x4000);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog();
-  		Sector_Erase(ulAddr+0x5000);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog();
-  		Sector_Erase(ulAddr+0x6000);//ERASE 1个BLOCK 
- 		 delayms(100);WatchDog();
-  		Sector_Erase(ulAddr+0x7000);//ERASE 1个BLOCK 
-  		delayms(100);WatchDog(); 
-
-        	}		
+        EraseBlock();//录波结束后，预先清除下个存储空间
     }//end of while(1)
     
 

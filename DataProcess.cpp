@@ -607,34 +607,23 @@ void CalcuRmtMeas(void)
 	 g_gRmAcFilt[RM_UCA][g_unFilterIndex]= table_sqrt(tDft);// * COEF_AD_U>> 14;
 	 */
     	//}	
-    for(i = 0; i < 8;i++)
+    for(i = 0; i < 4;i++)
     	{
     	g_gRmtMeas[i] =g_gRmAcFilt[i][g_unFilterIndex];
     	}
-    for(i = 0; i < 8/*RMT_MEAS_NUM-1*/ ; i++)//添加了UAB,UBC,UCA三线电压，i的上限=PM_UCA
+    for(i = 0; i < 4/*RMT_MEAS_NUM-1*/ ; i++)//添加了UAB,UBC,UCA三线电压，i的上限=PM_UCA
     {
         TempRm = AverFilter(g_gRmAcFilt[i]);        //对遥测量的交流量进行滤波        
-        g_gRmtFilMeas[i] = TempRm;
-/*        if((i <= 3)&&(i>=1))
-        {
-            // if(g_gRmtMeas[i]> 25 && g_gRmtMeas[i]< 80)
-            //       g_gRmtMeas[i] -= 20;
-            unsigned long x;
-            if( g_gRmtMeas[i] <2700)
-            	{
-			x=(unsigned long)g_gRmtMeas[i] *1049;
-                        x=x>>10;                        
-			if (x>75)
-                        {
-                          x=x-75;
-			  g_gRmtMeas[i] =(unsigned int)x;//((g_gRmtMeas[i] *1049)>>10)-75;
-                        }
-            	}
-        }     */  
+        g_gRmtFilMeas[i] = TempRm; 
     }
-        TempRm = AverFilter(g_gRmAcFilt[9]);        //对UPt遥测量的交流量进行滤波        
-        g_gRmtFilMeas[9] = TempRm/25;	//Uo to Upt
-        g_gRmtMeas[9] = g_gRmtFilMeas[9];
+	g_gRmtMeas[RM_I0]=g_gRmAcFilt[RM_I0][g_unFilterIndex];
+	TempRm = AverFilter(g_gRmAcFilt[RM_I0]);        //对i0遥测量的交流量进行滤波        
+   	g_gRmtFilMeas[RM_I0] = TempRm;
+	
+  	TempRm = AverFilter(g_gRmAcFilt[RM_UPt]);        //对UPt遥测量的交流量进行滤波        
+ 	g_gRmtFilMeas[RM_UPt] = TempRm/25;	//Uo to Upt
+  	g_gRmtMeas[RM_UPt] = g_gRmtFilMeas[RM_UPt];
+	
     g_unFilterIndex++;
     if(g_unFilterIndex == 10)
     {
