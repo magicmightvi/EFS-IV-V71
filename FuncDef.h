@@ -49,6 +49,7 @@ extern "C"
 #ifdef _DATA_PROCESS
         void InitDataProc(void);
         void CalcuRmtMeas(void);
+		void CalcuUABRmtMeas(void);
 		void ScanPT(void);
 	 void YCthCross(void);	
         void SaveSoeData(void);
@@ -87,6 +88,7 @@ extern "C"
 #else
         extern void InitDataProc(void);
         extern void CalcuRmtMeas(void);
+		extern void CalcuUABRmtMeas(void);
 		extern void ScanPT(void);
 	 extern void YCthCross(void);	
         extern void SaveSoeData(void);

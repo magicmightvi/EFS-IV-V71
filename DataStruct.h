@@ -216,8 +216,9 @@ struct sSAMPLE_DATA
 	long g_gProcMeas_AC_I[6];
 	unsigned int g_gRmAcFilt[RMT_MEAS_NUM][RM_FILTER_NUM];//遥测量中的交流测量数据滤波 添加了3个线电压，但AD通道数不变，所以此处AC_AD_CHAN_NUM + 3
         unsigned int g_unFilterIndex = 0;   //交流测量数据滤波数据保存的位置
-        volatile unsigned int g_unRmCaluFlag;    //遥测运算标志, 在中断中置ON，在大循环中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
-        volatile unsigned int g_unTESTFlag;  
+        volatile unsigned int g_unRmCaluFlag;    //遥测运算标志, 在1.25ms中断中置ON，在1ms中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
+        volatile unsigned int g_unTESTFlag; 
+		volatile unsigned int g_unUABCaluFlag;	//遥测运算标志, 在50ms中断中置ON，在大循环中置OFF，
   	//unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量，为采样值的平方*16 最大值为(2048*2048/2*16)
         //unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量，包括内部遥信量
 
@@ -315,6 +316,7 @@ extern unsigned int g_test;
        // extern unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量，包括内部遥信量   
        extern volatile unsigned int g_unRmCaluFlag;    //遥测运算标志, 在中断中置ON，在大循环中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
        extern volatile unsigned int g_unTESTFlag;
+	   extern volatile unsigned int g_unUABCaluFlag;	//遥测运算标志, 在50ms中断中置ON，在大循环中置OFF，
 	extern unsigned int  g_SendLuboNum;
 	extern unsigned int  g_SendLuboPage;
     extern WORD wCfgTotalNum ;//总长度

@@ -561,8 +561,8 @@ void CalcuRmtMeas(void)
 { 
     unsigned int i;
     unsigned int TempRm = 0;
-	static unsigned char pjno=0;
-    unsigned long tDft,a,b,c;
+	//static unsigned char pjno=0;
+    unsigned long tDft;//,a,b,c;
     //unsigned int unTemp[3];
     if(g_unRmCaluFlag == OFF)   //如果遥测运算标志仍然为OFF，则说明1.25ms的AD中断没有进去过，g_gProcMeas没有更新，不需要运算
     {
@@ -640,14 +640,47 @@ void CalcuRmtMeas(void)
     {
         g_unFilterIndex = 0;
     }
-		g_gRmtMeasPJ[0][pjno]=g_gRmtMeas[1];
-	 	g_gRmtMeasPJ[1][pjno]=g_gRmtMeas[2];
-		g_gRmtMeasPJ[2][pjno]=g_gRmtMeas[3];
-       	pjno++;
-		if(pjno>31)pjno=0;
+		
 	TableIndex++;
 	if(TableIndex>=16)TableIndex=0;
 	//LED_RUN_TOGG;
+}
+void CalcuUABRmtMeas(void)
+{
+	//unsigned int i;
+	//unsigned int TempRm = 0;
+	static unsigned char pjno=0;
+	unsigned long tDft,a,b,c;
+
+	if(g_unUABCaluFlag != ON)
+		{return;}
+	else
+		{g_unUABCaluFlag = OFF;}
+
+	a=(unsigned long)g_gRmtFilMeas[RM_UA];//g_gRmAcFilt[RM_UA][g_unFilterIndex];
+	b=(unsigned long)g_gRmtFilMeas[RM_UB];//g_gRmAcFilt[RM_UB][g_unFilterIndex];
+	c=(unsigned long)g_gRmtFilMeas[RM_UC];//g_gRmAcFilt[RM_UC][g_unFilterIndex];
+	tDft=(a+b)*(a+b)-a*b;
+	//g_gRmAcFilt[RM_UAB][g_unFilterIndex]= (unsigned long)table_sqrt(tDft);// * COEF_AD_U>> 14;
+	g_gRmtFilMeas[RM_UAB] = (unsigned long)table_sqrt(tDft);
+	g_gRmtMeas[RM_UAB] = g_gRmtFilMeas[RM_UAB];
+	
+	 tDft=(c+b)*(c+b)-c*b;
+	//g_gRmAcFilt[RM_UBC][g_unFilterIndex]= (unsigned long)table_sqrt(tDft);// * COEF_AD_U>> 14;
+	g_gRmtFilMeas[RM_UBC] = (unsigned long)table_sqrt(tDft);
+	g_gRmtMeas[RM_UBC] = g_gRmtFilMeas[RM_UBC];
+	
+	 tDft=(a+c)*(a+c)-a*c;
+	//g_gRmAcFilt[RM_UCA][g_unFilterIndex]= table_sqrt(tDft);// * COEF_AD_U>> 14;
+	g_gRmtFilMeas[RM_UCA] = (unsigned long)table_sqrt(tDft);
+	g_gRmtMeas[RM_UCA] = g_gRmtFilMeas[RM_UCA];
+
+	g_gRmtMeasPJ[0][pjno]=g_gRmtFilMeas[1];
+	g_gRmtMeasPJ[1][pjno]=g_gRmtFilMeas[2];
+	g_gRmtMeasPJ[2][pjno]=g_gRmtFilMeas[3];
+	pjno++;
+	if(pjno>31)pjno=0;
+
 }
 
 	//==============================================================================
@@ -1123,8 +1156,8 @@ void RecActData(void)
               g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][0]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2]; 
 	 else
 	  	g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] =g_unAdcData[CHAN_U0]-g_gAdjAD[CHAN_U0];
-	 g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3]=g_gRmtMeas[RM_UA];
-	 g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2]=g_gRmtFilMeas[RM_UA];
+	 //g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3]=g_gRmtMeas[RM_UA];
+	 //g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2]=g_gRmtFilMeas[RM_UA];
 	  g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][4] =g_unAdcData[CHAN_I0]-g_gAdjAD[CHAN_I0];//g_gRmtMeas[RM_I0]
 	  if((g_gKON>0)&&(g_gKON<4))//张弢开关已经闭合//录波增加继电器开关量
 	  	{

@@ -31,27 +31,6 @@ void app(void)@"APPLICATION"
 	//SaveLOG(LOG_RESET,1);
     while(1)
     {    
-        /*WatchDog();
-        HandleTimerEvent();
-        CalcuRmtMeas();//整理AD采集数据     
-        if(g_sRtcManager.m_ucRtcSynFlag == YES) //每4分钟从时钟芯片读取一次时间，该标志在定时器中断中计数设标志
-        {
-            ReadRealTime(1);//从RTC芯片中读取系统时钟，并更新SysTime中的时间
-            g_sRtcManager.m_ucRtcSynFlag = NO;
-        }
-        
-        //OpenBatSmsGprs();
-        SetYxTrans();
-        SetYcTrans(); 
-        SaveSoeData();
-        #ifndef GETSOEFROMRAM
-          CopySoeToFlash();
-        #endif
-        
-        if(pDbg != null) pDbg->Run();
-        if(pGprs != null) pGprs->Run();
-
-        SaveCfgPara();*/
         SaveActRecData();
         FEED_WATCH_DOG();
 		if(g_STimeout == ON)
@@ -99,6 +78,7 @@ void app(void)@"APPLICATION"
         }
     SaveActRecData();
         //CalcuRmtMeas();//有效值计算，并更新对应的遥测值
+    CalcuUABRmtMeas();
     SaveActRecData();
         ScanDin();
 	 YCthCross();//遥测越限判断	

@@ -1394,6 +1394,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
              {
                g_gYCYueXian=0x55;//张弢 遥测越限	
                Mic50SecCount =0;
+			   g_unUABCaluFlag = ON;
 		 //if((g_sRecData.m_ucActRecStart != OFF))	   
 		 	
 		 
