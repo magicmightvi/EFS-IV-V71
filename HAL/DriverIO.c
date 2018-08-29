@@ -316,7 +316,11 @@ void RmInfoChk(void)
 			log_recorded.log_MemNewPtr = 0;
         g_gRmtInfoBak[m] = g_gRmtInfo[m];   
        	}
-    }    
+    } 
+	g_gRmtInfo[YX_SYSRESET]=0;g_gRmtInfoBak[YX_SYSRESET]=0;
+	g_gRmtInfo[YX_PAR_CHAG]=0;g_gRmtInfoBak[YX_PAR_CHAG]=0;
+	g_gRmtInfo[YX_8FULS_I]=0;g_gRmtInfoBak[YX_8FULS_I]=0;
+	g_gRmtInfo[YX_101_LINK]=0;g_gRmtInfoBak[YX_101_LINK]=0;
 }
 void ScanDinYX(void)
 {

@@ -323,17 +323,17 @@ typedef double         FP64;            //双精度浮点数
 #define YX_SBP_OFF        38 //后备电源stand-by power 0：后备电源正常，1：后备电源异常
 #define YX_RH_ACT          39//装置熄弧动作	1：熄弧开关投入，0：熄弧开关投入结束
 #define YX_EFS_ACT        40//装置特征信号投入	1：处于投切工作状态；0：装置开关投切工作状态结束
-#define YX_I0_ACT           41//接地电流反馈	   1：I0>0 ；0：I0=0
+#define YX_41           41//
 #define YX_PHASEA_ERR  42//A相开关位置异常	1：异常状态；0：
 #define YX_PHASEB_ERR  43//B相开关位置异常	1：异常状态；0：
 #define YX_PHASEC_ERR  44//C相开关位置异常	1：异常状态；0：
 #define YX_I0_HIGH         45//I0过流	1：过流状态；0：
 #define YX_KJ_TIMEOVER 46//开关闭合超时	1：超时；0：
 #define YX_I0_TIMEOVER 47//I0超时	1：超时；0：
-#define YX_EARTH_TDELA 48  //接地告警确定
+#define YX_48  48  //
 #define YX_8FULS_STA   49  //8脉冲开始结束
 #define YX_SOFT_LATCH 50	//软闭锁
-#define YX_UCAP       51 //电容报警
+#define YX_51        51 //
 #define YX_101_LINK   52  //101连接
 #define YX_101_ERR    53 //101错误
 #define YX_MEM_ERR    54 //存储器错误

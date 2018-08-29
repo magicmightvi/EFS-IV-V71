@@ -389,7 +389,7 @@ extern unsigned int g_test;
   	unsigned int g_gAdjAD[ADJ_PARA_NUM];//根据校正参数，计算出的AD值的偏移量
   	//unsigned int g_gRunInfo[RUN_INFO_NUM];//运行信息，保存装置运行的部分信息，比如合分闸次数  	
   	unsigned char g_gChangFlag[PARA_NUM];	//参数变化标志，如果发生参数更改，则置位，把参数保存到eeprom中
-        unsigned int g_gYXConformTime[2];       //遥信确认时间，0：信号源断线 1：
+        //unsigned int g_gYXConformTime[2];       //遥信确认时间，0：信号源断线 1：
         unsigned char g_gDebugP[Debug_PARA_NUM];//调试串口波特率
 #else
         extern unsigned int g_gRunParaYxRsdTTBk;//运行参数中遥信重发时间间隔备份
@@ -445,7 +445,7 @@ extern unsigned int g_test;
         extern int g_gAdjParaBuf[ADJ_PARA_NUM];
 	
 	extern unsigned char g_gChangFlag[PARA_NUM];	//参数变化标志，如果发生参数更改，则置位，把参数保存到eeprom中
-	extern unsigned int g_gYXConformTime[2];       //遥信确认时间，0：信号源断线 1：
+	//extern unsigned int g_gYXConformTime[2];       //遥信确认时间，0：信号源断线 1：
 	extern unsigned char g_gDebugP[Debug_PARA_NUM];//调试串口波特率	
 #endif
 
@@ -541,8 +541,8 @@ extern unsigned int g_test;
     unsigned int g_uc232TxNum;         //
     
     unsigned char sign_RSSI_time[6];              ////year month day hour minute second 
-    unsigned char pulse_flag=0;                  ////////八脉冲检测到标志   0x55
-    unsigned char wave_counter=0;                //////// 对发现8脉冲后，采集的周波进行计数
+    //unsigned char pulse_flag=0;                  ////////八脉冲检测到标志   0x55
+    //unsigned char wave_counter=0;                //////// 对发现8脉冲后，采集的周波进行计数
 
     //unsigned char pulse_time_flag;             ////////第一次发现8脉冲后，置标志，为在10秒内完成提供标志
     unsigned char g_ucPara_stime;  //主动上传间隔时间
@@ -634,8 +634,8 @@ extern unsigned int g_test;
     extern unsigned int g_uc232TxNum;         //
     
     extern unsigned char sign_RSSI_time[6];              ////year month day hour minute second
-    extern unsigned char pulse_flag;                  ////////八脉冲检测到标志   0x55
-    extern unsigned char wave_counter;                //////// 对发现8脉冲后，采集的周波进行计数
+    //extern unsigned char pulse_flag;                  ////////八脉冲检测到标志   0x55
+    //extern unsigned char wave_counter;                //////// 对发现8脉冲后，采集的周波进行计数
  
     extern unsigned char g_ucPara_stime;  //主动上传间隔时间
     extern unsigned char pulse_time_flag;             ////////第一次发现8脉冲后，置标志，为在10秒内完成提供标志
@@ -768,7 +768,7 @@ extern unsigned int g_test;
         unsigned char eight_delay_flag=0;              ////////故障后延时8秒发8脉冲标志            
         unsigned char eight_delay_counter=0;           ////////故障后延时2秒发8脉冲计数器
         
-        unsigned char pulse_counter=0;               ////////对采集的脉冲数进行统计，用作数据存储定位
+        //unsigned char pulse_counter=0;               ////////对采集的脉冲数进行统计，用作数据存储定位
 
         unsigned char comm_rec_flag;
 
@@ -835,7 +835,7 @@ extern unsigned int g_test;
        // unsigned char self_chongfa_flag;
         unsigned char uart0_event_flag;
         unsigned char g_ucEarthFlg = 0;  //故障相标示
-        unsigned char g_ucPowerOffFlg = 0;  //掉电标示
+        //unsigned char g_ucPowerOffFlg = 0;  //掉电标示
        // unsigned char g_ucPTabnormal = 0;  //电压异常标示
         unsigned char g_ucDuanxianFlg = 0;
 #else
@@ -893,7 +893,7 @@ extern unsigned int g_test;
         extern unsigned char eight_delay_flag;              ////////故障后延时8秒发8脉冲标志            
         extern unsigned char eight_delay_counter;           ////////故障后延时2秒发8脉冲计数器
         
-        extern unsigned char pulse_counter;               ////////对采集的脉冲数进行统计，用作数据存储定位
+        //extern unsigned char pulse_counter;               ////////对采集的脉冲数进行统计，用作数据存储定位
        
         extern unsigned char comm_rec_flag;
         extern unsigned char phone_perm[4];	//          5        4         3        2       1      0						                    //      故障复归  发生故障 主动上报 有效8脉冲 掉电  状态异						//手机的权限控制字
@@ -960,7 +960,7 @@ extern unsigned int g_test;
       //extern  unsigned char self_chongfa_flag;
        extern  unsigned char uart0_event_flag;
        extern  unsigned char g_ucEarthFlg;  //故障相标示
-       extern  unsigned char g_ucPowerOffFlg;  //掉电标示
+       //extern  unsigned char g_ucPowerOffFlg;  //掉电标示
       // extern  unsigned char g_ucPTabnormal;  //电压异常标示
         extern unsigned char g_ucDuanxianFlg;
 #endif

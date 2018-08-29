@@ -38,17 +38,17 @@ static unsigned char  phasec_off= 0;
 //  作者       ： 
 //==============================================================================
 void ProtStart(void)
-{
+{/*
     unsigned int m;
 
     int tempi,tempi2;
     unsigned int tAcTail,tAcTail2,tAcTailN;
     int *pAcData;
-
+*/
    // unsigned long ulProcCntJdg[8];  //临时保存部分保护定值
-    tAcTail = g_sSampleData.m_unAcDataTail; //最新的位置
-    tAcTail2 = (g_sSampleData.m_unAcDataTail - 8) & 0x1F;   //半个周期前的位置
-    tAcTailN = (g_sSampleData.m_unAcDataTail - 16) & 0x1F;  //一个周期前的位置
+    //tAcTail = g_sSampleData.m_unAcDataTail; //最新的位置
+    //tAcTail2 = (g_sSampleData.m_unAcDataTail - 8) & 0x1F;   //半个周期前的位置
+    //tAcTailN = (g_sSampleData.m_unAcDataTail - 16) & 0x1F;  //一个周期前的位置
   //  for(i = 0; i < 3; i++)  //A相 B相 C相
   /*  if(g_gProcCnt[PC_OVERLOAD_CNT] != 0)   //过流保护投入
     {
@@ -71,7 +71,7 @@ void ProtStart(void)
          g_gOverLoadTimeNum = 0;
          g_gOverLoadFlg = 0; 
     }*/
-    {
+  /*  {
 
         pAcData = g_sSampleData.m_gAcAdcData[4];
         tempi = pAcData[tAcTail] + pAcData[tAcTail2];   //Ik+I(k-2/n)
@@ -125,8 +125,8 @@ void ProtStart(void)
             pulse_flag = 0;
       }     
         
-    }
-    if((P5IN&BIT5)==0x00)    //检测到信号源掉电
+    }*/
+   /* if((P5IN&BIT5)==0x00)    //检测到信号源掉电
     {
         g_gYXConformTime[0]++;
         if(g_gYXConformTime[0] >= DIN_CON_TIME)
@@ -140,7 +140,7 @@ void ProtStart(void)
         if(g_gYXConformTime[0] == 0)
             g_ucPowerOffFlg = 0;
             
-    }
+    }*/
     if(fault_time>0)                           /////////用于故障恢复
     {  
         if((g_gProcCnt[PC_JAG_Z]==0x55)&&(g_gProcCnt[PC_JAG_P]==0))  /////////用于故障恢复zero sequence in effective
@@ -151,7 +151,7 @@ void ProtStart(void)
            	fault_end=0x55;
               g_gRmtInfo[YX_EARTH_FAULT] = 0;
 			g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;
-			g_gRmtInfo[YX_EARTH_TDELA]=0;//SaveLOG(LOG_EARTH_TDELAY,0);
+			//g_gRmtInfo[YX_EARTH_TDELA]=0;//SaveLOG(LOG_EARTH_TDELAY,0);
      	    }
      	} 
         else if((g_gProcCnt[PC_JAG_Z]==0)&&(g_gProcCnt[PC_JAG_P]==0x55))      //////////////////相故障判据  
@@ -162,7 +162,7 @@ void ProtStart(void)
                 fault_end=0x55;
                 g_gRmtInfo[YX_EARTH_FAULT] = 0;
 		  		g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;	
-		  		g_gRmtInfo[YX_EARTH_TDELA]=0;//SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
+		  		//g_gRmtInfo[YX_EARTH_TDELA]=0;//SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
                 //g_gRmtInfo[0] &= ~(YX_PHASEA_FAULT + YX_PHASEB_FAULT + YX_PHASEC_FAULT);
             }     
        	}    
@@ -174,7 +174,7 @@ void ProtStart(void)
                 fault_end=0x55;
                 g_gRmtInfo[YX_EARTH_FAULT] = 0;
 		 		g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;
-		 		g_gRmtInfo[YX_EARTH_TDELA]=0;//SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
+		 		//g_gRmtInfo[YX_EARTH_TDELA]=0;//SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
                 //g_gRmtInfo[0] &= ~(YX_PHASEA_FAULT + YX_PHASEB_FAULT + YX_PHASEC_FAULT);
             }     
        	 }  
@@ -691,7 +691,7 @@ void ProtLogic(void)
        	 }   
        else
            fault_sms_type=4; 
-	   g_gRmtInfo[YX_EARTH_TDELA]=1;//SaveLOG(LOG_EARTH_TDELAY,1);
+	   //g_gRmtInfo[YX_EARTH_TDELA]=1;//SaveLOG(LOG_EARTH_TDELAY,1);
        CreatNewSMS(FAULT_OCCUR);                      //产生故障短信//张弢  
     }
 

@@ -130,10 +130,10 @@ void app(void)@"APPLICATION"
         //CalcuRmtMeas();//有效值计算，并更新对应的遥测值
     CalcuUABRmtMeas();
     SaveActRecData();
-        ScanDin();
+        ScanDin();//断电遥信检测
 	 YCthCross();//遥测越限判断	
 	 SaveActRecData();
-     ProtLogic();   
+     ProtLogic();//PT断线检测
 	if(newsms_8pluse == ON)
 		{	
 		newsms_8pluse = OFF;
