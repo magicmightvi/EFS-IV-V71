@@ -408,7 +408,7 @@ void CBJ101S:: ReadFileDataUlog(WORD FileName,BYTE section_current,BYTE flag)
 {
    unsigned char *pTxPos;
   char *pdat_name;
-  char *log_name;
+  //char *log_name;
   pdat_name="ulog.msg,v1.0";//"AU";
   char ch[60]={0};
   char ch_1[5]={0};
@@ -462,7 +462,7 @@ void CBJ101S:: ReadFileDataUlog(WORD FileName,BYTE section_current,BYTE flag)
           logsum+= ch[n];
         } 
 		log_leng = strlen(ch);
-		//文字说明
+		/*//文字说明
 		switch(byLoadDa[0])
 			{
 			case 1:
@@ -525,7 +525,8 @@ void CBJ101S:: ReadFileDataUlog(WORD FileName,BYTE section_current,BYTE flag)
 			default:
 				log_name="ERR";
 			}
-		sprintf((char *)ch,"%s",log_name);
+		sprintf((char *)ch,"%s",log_name);*/
+		sprintf((char *)ch,"%s",LogName[byLoadDa[0]]);
         for(n = 0; n < strlen(ch); n++)
         {
             

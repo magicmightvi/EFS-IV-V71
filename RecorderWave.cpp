@@ -1245,7 +1245,7 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
 			}
 		sprintf((char *)ch,"%s",log_name);
 		*/
-		//sprintf((char *)ch,"%s",LogName[byLoadDa[0]]);	  
+		sprintf((char *)ch,"%s",LogName[byLoadDa[0]]);	  
         for(n = 0; n < strlen(ch); n++)
         {
             
