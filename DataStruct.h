@@ -99,7 +99,8 @@ struct sSAMPLE_DATA
     unsigned char m_ucRecSavingFlag;//录波数据往Flash保存过程中 //故障延时到fault_save=0x55则  YES 开始存储//存储结束则 OFF 
     unsigned char m_ucFaultRecStart;     //故障录波开始标志//fault_begin 则ON //fault_end 则 OFF//存储结束则 OFF
     unsigned int m_unRecAcTail;//数据缓存的尾部索引,收到一个数据加加
-    unsigned int m_unRecAcLockCnt;//m_ucFaultRecStart=ON，则该变量累加，达到5个周波后，停止继续存数   
+    unsigned int m_unRecAcLockCnt;//m_ucFaultRecStart=ON，则该变量累加，达到5个周波后，停止继续存数 
+    unsigned int m_unRecACNum;//为防止故障录波存储数据不足640
     unsigned int m_gRecANum;          //故障最多存10条 
     unsigned int m_gRecCNum; 	         //故障当前录波位置 
     
@@ -113,7 +114,7 @@ struct sSAMPLE_DATA
     unsigned int m_gActRecANum; 	    //最多存10条    
     unsigned char m_ucActRecStart;     
 	//动作录波开始标志  ON开始 OFF结束录波  NO 存储数据  CLOSE 存储结束，不再录波 
-    unsigned long m_gActRecLen;         //不定长录波，每条录波存的点数，每点5个模拟量，每个模拟量2字节	
+    //unsigned long m_gActRecLen;         //不定长录波，每条录波存的点数，每点5个模拟量，每个模拟量2字节	
     unsigned long m_gActRecAdr;           //动作录波多次存储，FLASH中的地址
     unsigned char m_ucActRecSavingFlag;//录波数据往Flash保存过程中 ?    									//YES存储缓存中前320点 
     									//ON存储缓存中前320点 
@@ -728,7 +729,7 @@ extern unsigned int g_test;
         unsigned char fault_pluse;//故障相位
         unsigned char fault_end;                 //故障恢复延时
         
-        unsigned char fault_begin_first = 0;               //故障启动出现延时
+        unsigned char fault_lubo = 0;               //故障启动出现延时
         
         unsigned char abnormal_counter=0;              //////装置异常计数器，机构5次报异常
         
@@ -849,7 +850,7 @@ extern unsigned int g_test;
         extern unsigned char fault_begin;               //故障出现延时              
         extern unsigned char fault_end;                 //故障恢复延时
         extern unsigned char fault_pluse;//故障相位        
-        extern unsigned char fault_begin_first;
+        extern unsigned char fault_lubo;
         
         extern unsigned char abnormal_counter;              //////装置异常计数器，机构5次报异常
 

@@ -388,9 +388,18 @@ void ScanDinYX(void)
 	if(g_gRmtMeas[RM_I0] >= g_gProcCntJug[PC_PULSE_VALID])
 		{
 		g_gI0OverTimer++;
-		if(g_gI0OverTimer>1000)
+		if(g_gI0OverTimer>g_gProcCnt[PC_OVERLOAD_T])
 			{
-			g_gI0OverTimer=1100;
+			g_gI0OverTimer=g_gProcCnt[PC_OVERLOAD_T];
+			if(g_gRmtInfo[YX_I0_TIMEOVER] == 0)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_I0])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//∆Ù∂Øπ ’œ¬º≤®
+					g_sRecData.m_LuboType = SREC_I0;			
+      				}
+      			}
 			g_gRmtInfo[YX_I0_TIMEOVER]=1;
 			//SaveLOG(LOG_I0T_ERR, 1);
 			}
@@ -399,13 +408,22 @@ void ScanDinYX(void)
 		{
 		if(g_gI0OverTimer==0)
 			{
+			if(g_gRmtInfo[YX_I0_TIMEOVER] == 1)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_I0])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//∆Ù∂Øπ ’œ¬º≤®
+					g_sRecData.m_LuboType = SREC_I0;			
+      				}
+      			}
 			g_gRmtInfo[YX_I0_TIMEOVER]=0;
 			//SaveLOG(LOG_I0T_ERR, 0);
 			}
 		else
 			{
-			if(g_gI0OverTimer>50)
-				g_gI0OverTimer -= 50;
+			if(g_gI0OverTimer>10)
+				g_gI0OverTimer -= 10;
 			else
 				g_gI0OverTimer = 0;
 			}
@@ -1084,6 +1102,7 @@ void ScanSoftLacth(void)
 			if(km_timeout==0)
 				{
 				km_timeout =0;
+				
 				if(g_gRmtInfo[YX_EFS_LATCH] == 0)
 					{
 					KA0_OFF; KB0_OFF;KC0_OFF; g_gKON=OFF;
@@ -1122,6 +1141,15 @@ void ScanSoftLacth(void)
 			if(i0_timeout==0)
 				{
 				i0_timeout =0;
+				if(g_gRmtInfo[YX_I0_HIGH] == 0)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_I0])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//∆Ù∂Øπ ’œ¬º≤®
+					g_sRecData.m_LuboType = SREC_I0;			
+      				}
+      			}
 				if(g_gRmtInfo[YX_EFS_LATCH] == 0)
 					{
 					KA0_OFF; KB0_OFF;KC0_OFF; g_gKON=OFF;
@@ -1144,16 +1172,25 @@ void ScanSoftLacth(void)
 			}
 		else
 			{
-			i0_timeout=g_gProcCnt[PC_OVERLOAD_T];//(g_gRunPara[RP_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK])/3;
+			i0_timeout=2;//(g_gRunPara[RP_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK])/3;
 			if(i0_timeout==0)i0_timeout=1;
 			//if(i0_timeout>g_gRunPara[RP_PLUSE_TIME])i0_timeout=1;
 			}
 		}
 	else
 		{
-		i0_timeout = g_gProcCnt[PC_OVERLOAD_T];//(g_gRunPara[RP_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK])/3;
+		i0_timeout = 2;//(g_gRunPara[RP_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK])/3;
 		if(i0_timeout==0)i0_timeout=1;
 		if(i0_timeout>g_gRunPara[RP_PLUSE_TIME])i0_timeout=1;
+		if(g_gRmtInfo[YX_I0_TIMEOVER] == 1)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_I0])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//∆Ù∂Øπ ’œ¬º≤®
+					g_sRecData.m_LuboType = SREC_I0;			
+      				}
+      			}
 		g_gRmtInfo[YX_I0_HIGH]=0;//SaveLOG(LOG_I0_ERR, 0);
 		}
 	}

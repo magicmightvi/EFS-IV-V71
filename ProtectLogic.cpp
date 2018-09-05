@@ -246,15 +246,22 @@ void ProtStart(void)
             	}          	     	     
        	 }     
       } 
-     if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)) //////故障已经开始
-      {
-		if(fault_begin==0x55)
-			{
-			if(g_sRecData.m_ucFaultRecStart ==OFF)
-				g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-			}
+     if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+	 	&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(fault_begin==0x55)
+	 	&&(fault_lubo==0)) //////故障已经开始
+  		{
+  		fault_lubo=0x55;
+		g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+		g_sRecData.m_LuboType = LuboType_EARTH;			
       	}
-    
+     if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+	 	&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(fault_end==0x55)
+	 	&&(fault_lubo==0x55)) //////故障已经恢复
+  		{
+  		fault_lubo=0;
+		g_sRecData.m_ucFaultRecStart = ON;//启动故障恢复录波
+		g_sRecData.m_LuboType = SREC_EARTH_RST;			
+      	}    
 }
 //==============================================================================
 //  函数名称   : PulseReady

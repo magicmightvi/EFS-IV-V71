@@ -34,6 +34,7 @@
 
 #define         LuboType_XH      0x55
 #define         LuboType_ACT      0xAA
+#define         LuboType_EARTH    0x33
 
 #define  OPERATING_LOGO1 1 //操作标识1 读目录
 #define  OPERATING_LOGO2 2//操作标识2 读目录确认
@@ -83,9 +84,20 @@ typedef double         FP64;            //双精度浮点数
 //==============================调试相关参数======================================
 #define Debug_U1BPS  		0//调试串口波特率 0=9600;1=19200;2=38400;3=57600;4=115200
 #define Debug_ALLREC  		1//全过程录波          0=禁止;85=全过程录波
-#define Debug_CRC           2//crc校验
-#define Debug_PARA_NUM    	3  //IEC运行的参数个数 
+#define Debug_SRECJU1  		2//短录波启动条件1
+#define Debug_SRECJU2  		3//短录波启动条件2
+#define Debug_LRECJU1  		4//长录波启动条件1
+#define Debug_LRECJU2  		5//长录波启动条件2
 
+#define Debug_CRC           6//crc校验
+#define Debug_PARA_NUM    	7  //IEC运行的参数个数 
+
+//短录波启动条件控制字具体定义
+#define SREC_U0         0 //U0过压
+#define SREC_UAB        1 //线电压过压
+#define SREC_U         	2 //相电压过欠压
+#define SREC_EARTH_RST 	3 //接地故障复归
+#define SREC_I0      	4 //io
 
 //==============================IEC 101相关参数======================================
 #define GPRS_SMS      //       0//1  =GPRS;0=SMS

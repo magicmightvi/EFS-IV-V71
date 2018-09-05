@@ -77,7 +77,7 @@ void app(void)@"APPLICATION"
     FEED_WATCH_DOG();
     g_RstartNum++;
     CAT_SpiWriteWords(EEPADD_RSTARTNUM, 1, &g_RstartNum);*/
-    FEED_WATCH_DOG();LED_RUN_TOGG;
+    FEED_WATCH_DOG();//LED_RUN_TOGG;
 	//SaveLOG(LOG_RESET,1);
     while(1)
     {    
@@ -160,9 +160,14 @@ void app(void)@"APPLICATION"
 
             if(g_sRecData.m_ucRecSavingFlag == YES)//如果有新的录波数据则分批次保存到FLASH中
             {
-                SaveRecData();//按照COMTRADE格式整理录波数据，并分批次保存到Flash中
-                g_sRecData.m_ucRecSavingFlag = OFF;
-				if((g_gDebugP[Debug_ALLREC]==0x55)&&(g_sRecData.m_ucActRecStart == CLOSE))//正常录波模式
+                SaveRecData();//按照COMTRADE格式整理录波数据，并分批次保存到Flash中                
+				g_sRecData.m_unRecAcLockCnt = 0;
+				g_sRecData.m_unRecAcTail=0;
+				g_sRecData.m_unRecACNum =640;
+				g_sRecData.m_ucRecSavingFlag = OFF;
+				g_sRecData.m_ucFaultRecStart = OFF;
+				if((g_gDebugP[Debug_ALLREC]==0x55)&&(g_sRecData.m_ucActRecStart == CLOSE)
+					&&(g_sRecData.m_LuboType == LuboType_EARTH))//正常录波模式
 		      			{
 						unsigned long ulAddr =FADDR_RECORDER_ACTDATA+ (unsigned long)(g_sRecData.m_gACTRecCNum)*0x90000;//flash地址  
   						g_sRecData.m_gActRecAdr = ulAddr;//更新flash地址 	

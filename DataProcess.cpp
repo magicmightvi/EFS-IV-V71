@@ -678,7 +678,7 @@ void CalcuUABRmtMeas(void)
 	//	输入参数   : <无>
 	//	输出参数   : <无>
 	//	返回值	  : <无>
-	//	其他说明   : 100ms执行一次，500ms确认
+	//	其他说明   : 1ms执行一次，g_gRunPara[YC_delay]=500ms确认
 	//	作者		 : 张弢
 	//==============================================================================
 void ScanPT(void)
@@ -688,40 +688,91 @@ void ScanPT(void)
     if(g_gRmtMeas[RM_U0] >= g_gProcCntJug[PC_HIGH_Z])  //零序过压
         {
         g_gVErrTimer[0]++;
-	if(g_gVErrTimer[0]> g_gRunPara[YC_delay])
-		{
+		if(g_gVErrTimer[0]> g_gRunPara[YC_delay])
+			{
+			if(g_gRmtInfo[YX_U0_HIGH] == 0)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U0])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U0;			
+      				}
+				}
         	g_gRmtInfo[YX_U0_HIGH]=1;
 			//SaveLOG(LOG_UPT_ERR,1);
-		 g_gVErrTimer[0]=g_gRunPara[YC_delay];
-		}
-    	  }
+		 	g_gVErrTimer[0]=g_gRunPara[YC_delay];
+			}
+    	}
     else
     	{    	
-	if(g_gVErrTimer[0]==0)
+		if(g_gVErrTimer[0]==0)
       		{
+      		if(g_gRmtInfo[YX_U0_HIGH] == 1)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U0])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U0;			
+      				}
+      			}
       		g_gRmtInfo[YX_U0_HIGH]=0;
 			//SaveLOG(LOG_UPT_ERR,0);
 			}
-	else
-		g_gVErrTimer[0]--;
+		else
+			g_gVErrTimer[0]--;
     	}
 
     unTemp[1] = ComputeMax(g_gRmtMeas[RM_UAB], g_gRmtMeas[RM_UBC], g_gRmtMeas[RM_UCA]);  //求出最大线电压
-    if(unTemp[1] >= g_gProcCntJug[PC_I0_START]) 
-        g_gRmtInfo[YX_UAB_HIGH] =1;
+    if(unTemp[1] >= g_gProcCntJug[PC_I0_START])
+    	{
+    	g_gVErrTimer[1]++;
+		if(g_gVErrTimer[1]> g_gRunPara[YC_delay])
+			{
+			if(g_gRmtInfo[YX_UAB_HIGH] == 0)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_UAB])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_UAB;			
+      				}
+      			}
+        	g_gRmtInfo[YX_UAB_HIGH] =1;
+			g_gVErrTimer[1]=g_gRunPara[YC_delay];
+			}
+    	}
     else
-        g_gRmtInfo[YX_UAB_HIGH] =0;
+    	{
+    	if(g_gVErrTimer[0]==0)
+    		{
+    		if(g_gRmtInfo[YX_UAB_HIGH] == 1)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_UAB])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_UAB;			
+      				}
+      			}
+    		g_gRmtInfo[YX_UAB_HIGH] =0;
+    		}
+		else
+        	g_gVErrTimer[1]--;
+    	}
 	
+	/*
     unTemp[0] = ComputeMax(g_gRmtMeas[RM_UA], g_gRmtMeas[RM_UB], g_gRmtMeas[RM_UC]);      //求出最大相电压
-    if(unTemp[0] >= g_gProcCntJug[PC_HIGH_P]) 
+    if(g_gRmtMeas[RM_I0] >= g_gProcCntJug[PC_PULSE_VALID]) 
     	{
     	g_gVErrTimer[2]++;
-	if(g_gVErrTimer[2]>g_gRunPara[YC_delay])
-		{
+		if(g_gVErrTimer[2]>g_gRunPara[YC_delay])
+			{
         	g_gRmtInfo[YX_U_HIGH]=1;
 			//SaveLOG(LOG_UPT_ERR,1);
-		g_gVErrTimer[2]=g_gRunPara[YC_delay];
-		}
+			g_gVErrTimer[2]=g_gRunPara[YC_delay];
+			}
     	}
     else
     	{
@@ -755,109 +806,232 @@ void ScanPT(void)
 	else
 		g_gVErrTimer[3]--;
         }
-
+*/
     if(g_gRmtMeas[RM_UA]<= g_gProcCntJug[PC_LOW_P]) 
     	{
     	g_gVErrTimer[4]++;
-	if(g_gVErrTimer[4]>g_gRunPara[YC_delay])
-		{
-        	g_gRmtInfo[YX_UA_LOW] =1 ;
-		g_gVErrTimer[4]=g_gRunPara[YC_delay];
-		}
+		if(g_gVErrTimer[4]>g_gRunPara[YC_delay])
+			{
+			if(g_gRmtInfo[YX_UA_LOW] == 0)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U;			
+      				}
+      			}
+       	 	g_gRmtInfo[YX_UA_LOW] =1 ;
+			g_gVErrTimer[4]=g_gRunPara[YC_delay];
+			}
     	}
     else
     	{
     	if(g_gVErrTimer[4]==0)
-    		g_gRmtInfo[YX_UA_LOW] =0 ;	
-	else
-		g_gVErrTimer[4]--;
+    		{
+    		if(g_gRmtInfo[YX_UA_LOW] == 1)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U;			
+      				}
+      			}
+    		g_gRmtInfo[YX_UA_LOW] =0 ;
+    		}
+		else
+			g_gVErrTimer[4]--;
     	}
 	
     if(g_gRmtMeas[RM_UB]<= g_gProcCntJug[PC_LOW_P]) 
     	{
     	g_gVErrTimer[5]++;
-	if(g_gVErrTimer[5]>g_gRunPara[YC_delay])
-		{
+		if(g_gVErrTimer[5]>g_gRunPara[YC_delay])
+			{
+			if(g_gRmtInfo[YX_UB_LOW] == 0)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U;			
+      				}
+      			}
         	g_gRmtInfo[YX_UB_LOW] =1 ;
-		g_gVErrTimer[5]=g_gRunPara[YC_delay];
-		}
+			g_gVErrTimer[5]=g_gRunPara[YC_delay];
+			}
     	}
     else
     	{
     	if(g_gVErrTimer[5]==0)
+    		{
+    		if(g_gRmtInfo[YX_UB_LOW] == 1)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U;			
+      				}
+      			}
     		g_gRmtInfo[YX_UB_LOW] =0 ;	
-	else
-		g_gVErrTimer[5]--;
+    		}
+		else
+			g_gVErrTimer[5]--;
     	}
 	
     if(g_gRmtMeas[RM_UC]<= g_gProcCntJug[PC_LOW_P]) 
     	{
     	g_gVErrTimer[6]++;
-	if(g_gVErrTimer[6]>g_gRunPara[YC_delay])
-		{
+		if(g_gVErrTimer[6]>g_gRunPara[YC_delay])
+			{
+			if(g_gRmtInfo[YX_UC_LOW] == 0)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U;			
+      				}
+      			}
         	g_gRmtInfo[YX_UC_LOW] =1 ;
-		g_gVErrTimer[6]=g_gRunPara[YC_delay];
-		}
+			g_gVErrTimer[6]=g_gRunPara[YC_delay];
+			}
     	}
     else
     	{
     	if(g_gVErrTimer[6]==0)
+    		{
+    		if(g_gRmtInfo[YX_UC_LOW] == 1)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U;			
+      				}
+      			}
     		g_gRmtInfo[YX_UC_LOW] =0 ;	
-	else
-		g_gVErrTimer[6]--;
+			}
+		else
+			g_gVErrTimer[6]--;
     	}	
 	
     if(g_gRmtMeas[RM_UA] > g_gProcCntJug[PC_HIGH_P])
     	{
     	g_gVErrTimer[7]++;
-	if(g_gVErrTimer[7]>g_gRunPara[YC_delay])
-		{
+		if(g_gVErrTimer[7]>g_gRunPara[YC_delay])
+			{
+			if(g_gRmtInfo[YX_UA_HIGH] == 0)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U;			
+      				}
+      			}
         	g_gRmtInfo[YX_UA_HIGH]=1;
-		g_gVErrTimer[7]=g_gRunPara[YC_delay];
-		}
+			g_gVErrTimer[7]=g_gRunPara[YC_delay];
+			}
     	}
     else
     	{
-	if(g_gVErrTimer[7]==0)
-        	g_gRmtInfo[YX_UA_HIGH]=0;	
-	else
-		g_gVErrTimer[7]--;
+		if(g_gVErrTimer[7]==0)
+			{
+			if(g_gRmtInfo[YX_UA_HIGH] == 1)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U;			
+      				}
+      			}
+        	g_gRmtInfo[YX_UA_HIGH]=0;
+			}
+		else
+			g_gVErrTimer[7]--;
     	}
 	
     if(g_gRmtMeas[RM_UB] > g_gProcCntJug[PC_HIGH_P])
     	{
     	g_gVErrTimer[8]++;
-	if(g_gVErrTimer[8]>g_gRunPara[YC_delay])
-		{
+		if(g_gVErrTimer[8]>g_gRunPara[YC_delay])
+			{
+			if(g_gRmtInfo[YX_UB_HIGH] == 0)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U;			
+      				}
+      			}
         	g_gRmtInfo[YX_UB_HIGH]=1;
-		g_gVErrTimer[8]=g_gRunPara[YC_delay];
-		}
+			g_gVErrTimer[8]=g_gRunPara[YC_delay];
+			}
     	}
     else
     	{
-	if(g_gVErrTimer[8]==0)
-        	g_gRmtInfo[YX_UB_HIGH]=0;	
-	else
-		g_gVErrTimer[8]--;
+		if(g_gVErrTimer[8]==0)
+			{
+			if(g_gRmtInfo[YX_UB_HIGH] == 1)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U;			
+      				}
+      			}
+        	g_gRmtInfo[YX_UB_HIGH]=0;
+			}
+		else
+			g_gVErrTimer[8]--;
     	}
 	
     if(g_gRmtMeas[RM_UC] > g_gProcCntJug[PC_HIGH_P])
     	{
     	g_gVErrTimer[9]++;
-	if(g_gVErrTimer[9]>g_gRunPara[YC_delay])
-		{
+		if(g_gVErrTimer[9]>g_gRunPara[YC_delay])
+			{
+			if(g_gRmtInfo[YX_UC_HIGH] == 0)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U;			
+      				}
+      			}
         	g_gRmtInfo[YX_UC_HIGH]=1;
-		g_gVErrTimer[9]=g_gRunPara[YC_delay];
-		}
+			g_gVErrTimer[9]=g_gRunPara[YC_delay];
+			}
     	}
     else
     	{
-	if(g_gVErrTimer[9]==0)
-        	g_gRmtInfo[YX_UC_HIGH]=0;	
-	else
-		g_gVErrTimer[9]--;
-    	}	
+		if(g_gVErrTimer[9]==0)
+			{
+			if(g_gRmtInfo[YX_UC_HIGH] == 1)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_U;			
+      				}
+      			}
+        	g_gRmtInfo[YX_UC_HIGH]=0;
+			}
+		else
+			g_gVErrTimer[9]--;
+    	}
+	g_gRmtInfo[YX_U_HIGH]=(g_gRmtInfo[YX_UA_HIGH]|g_gRmtInfo[YX_UB_HIGH]|g_gRmtInfo[YX_UC_HIGH])&0x01;
+	g_gRmtInfo[YX_U_LOW]=(g_gRmtInfo[YX_UA_LOW]|g_gRmtInfo[YX_UB_LOW]|g_gRmtInfo[YX_UC_LOW])&0x01;
 }
+
 //==============================================================================
 //  函数名称   : YCthCross
 //  功能描述   :判断遥测值的突变
@@ -1083,23 +1257,26 @@ void RecData(void)
 	  	g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2] |= (1<<14);//录波增加继电器开关量
 	  else	
 		g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2] &= NBITE;//录波增加继电器开关量
-		
-        g_sRecData.m_unRecAcTail++;
-        if(g_sRecData.m_unRecAcTail == REC_AC_LEN)
-            g_sRecData.m_unRecAcTail = 0;    
-    
 
+	  	
+        g_sRecData.m_unRecAcTail++;
+        if(g_sRecData.m_unRecAcTail >= REC_AC_LEN)
+        	{
+            g_sRecData.m_unRecAcTail = 0;   
+			g_sRecData.m_unRecACNum =370;
+        	}
+		
     if(g_sRecData.m_ucFaultRecStart == OFF)
     {
 	        g_sRecData.m_unRecAcLockCnt = 0;
     }
     else if(g_sRecData.m_ucFaultRecStart == ON)//开始录波，录1024点结束
     {
-        g_sRecData.m_unRecAcLockCnt++; 
+        g_sRecData.m_unRecAcLockCnt++; 		
 #ifdef YN_101S
-	 if(g_sRecData.m_unRecAcLockCnt >= 10)   //故障发生后的5个周波记录完毕，记录最后时间，
+	 if(g_sRecData.m_unRecAcLockCnt >= g_sRecData.m_unRecACNum)   //故障发生后的5个周波记录完毕，记录最后时间，
 #else
-	 if(g_sRecData.m_unRecAcLockCnt >= 370)   //故障发生后的5个周波记录完毕，记录最后时间，
+	 if(g_sRecData.m_unRecAcLockCnt >= g_sRecData.m_unRecACNum)   //故障发生后的5个周波记录完毕，记录最后时间，
 #endif
         {
             g_sRecData.m_ucFaultRecStart = CLOSE;//录波结束，故障恢复后，恢复OFF

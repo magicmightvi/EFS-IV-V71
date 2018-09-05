@@ -1198,8 +1198,8 @@ void RstRunPara(void)
     g_gRunPara[RP_SEND_TIME2] = 116; 		//控制方式
 #endif	
     g_gRunPara[RP_PLUSE_NUM] = 8; 
-    g_gRunPara[RP_OVERLOAD_I] = 10000; 
-    g_gRunPara[RP_OVERLOAD_T] = 6; 
+    g_gRunPara[RP_OVERLOAD_I] = 500; 
+    g_gRunPara[RP_OVERLOAD_T] = 200; 
     g_gRunPara[RP_YC_INFADDR]=0x4001;//张弢 遥测起始地址修改运行参数	
 #ifdef YN_101S 
     g_gRunPara[RP_YC_INFADDR]=0x4081;//张弢 遥测起始地址修改运行参数		

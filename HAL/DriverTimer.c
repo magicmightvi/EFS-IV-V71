@@ -971,7 +971,7 @@ __interrupt void TIMER1_A0_ISR(void)    //毫秒中断函数
 {
     unsigned char i = 0;
     //unsigned int unTemp = 0;
-    LED_RUN_TOGG; 
+    //LED_RUN_TOGG; 
     static unsigned int MicSecCount = 0;  //10毫秒计时
     static unsigned int Mic50SecCount = 0;  //50毫秒计时//张弢 遥测越限	
     static unsigned int SecCount = 0;     //秒计时
@@ -1112,7 +1112,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
                  if((eight_delay_counter>0)&&(efslatch_flag==0))
                 	{
                     eight_delay_counter--;
-		      		if((eight_delay_counter==80)&&(g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF))	
+		      		if((eight_delay_counter<=80)&&(g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF))	
 		      			{//动作录波要在继电器动作前最少0.5秒开始，现在设定提前0.8s
 		      			if(g_gDebugP[Debug_ALLREC]==0)//正常录波模式
 		      				{
@@ -1262,7 +1262,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
                 	} 
                 else if(fault_end==0x55)      //////////故障复归   	 
                 	{
-                    g_sRecData.m_ucFaultRecStart = OFF;
+                    //g_sRecData.m_ucFaultRecStart = OFF;
                     fault_end=0;
                     fault_begin=0;
                     if(fault_time<=5)
@@ -1543,11 +1543,11 @@ _EINT();//开总中断// 张弢测试中断嵌套
                 if(g_sRtcManager.m_unStartCount > 0)
                 {
                     g_sRtcManager.m_unStartCount--;
-                    //LED_RUN_ON;
+                    LED_RUN_ON;
                 }
                 else
                 {
-                    //LED_RUN_TOGG;    //LED00
+                    LED_RUN_TOGG;    //LED00
                 }
           
                 SecCount = 0;
@@ -1639,6 +1639,6 @@ _EINT();//开总中断// 张弢测试中断嵌套
     }*/
   //UCA1IE |= (UCRXIE + UCTXIE);              // 使能 USCI_A0 RX 中断  // 张弢测试中断嵌套	 
   //UCA2IE |= (UCRXIE + UCTXIE);              // 使能 USCI_A0 RX 中断  // 张弢测试中断嵌套	
-	LED_RUN_TOGG; 
+	//LED_RUN_TOGG; 
 }
 
