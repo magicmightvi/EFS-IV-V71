@@ -85,8 +85,9 @@ void app(void)@"APPLICATION"
         FEED_WATCH_DOG();
 		if(g_STimeout == ON)
 			{
+			TimeOut(0);
 			g_STimeout = OFF;
-			if(pGprs->m_PaWaitflag_lubo == ON)
+			/*if(pGprs->m_PaWaitflag_lubo == ON)
    				{
       			if(pGprs->m_PaWaitCt_lubo > 0)
       				{//ODU写参数重发计时
@@ -109,7 +110,7 @@ void app(void)@"APPLICATION"
             				//return TRUE;
           				}
        				}
-    			}					
+    			}*/					
 			}
 	SaveActRecData();
 	if(g_NolinkReset>1440)//1140minute = 24hour

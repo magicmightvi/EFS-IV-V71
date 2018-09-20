@@ -799,6 +799,10 @@ BOOL CProtocol::RecWriteFile(void)
 		g_gDebugP[Debug_ALLREC]=pData[1];
 		if(g_gDebugP[Debug_U1BPS]>4)g_gDebugP[Debug_U1BPS]=0;
 		if((g_gDebugP[Debug_ALLREC]!=0)&&(g_gDebugP[Debug_ALLREC]!=0x55))g_gDebugP[Debug_ALLREC]=0;
+		g_gDebugP[Debug_SRECJU1]=pData[2];
+		g_gDebugP[Debug_SRECJU2]=pData[3];
+		g_gDebugP[Debug_LRECJU1]=pData[4];
+		g_gDebugP[Debug_LRECJU2]=pData[5];
 		g_gDebugP[Debug_CRC]=AddChar(g_gDebugP,Debug_CRC);				
 		CAT_SpiWriteBytes(EEPADD_DEBUG,Debug_PARA_NUM, g_gDebugP);
 		SendWrPaSuc();
@@ -1190,9 +1194,13 @@ void CProtocol::SendReadPa(WORD FileName,BYTE SecName)
         }
 	else if(SecName==3)//调试串口波特率
 		{
-		wPaTotalNum = 2;
+		wPaTotalNum = 6;
 		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gDebugP[Debug_U1BPS];
 		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gDebugP[Debug_ALLREC];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gDebugP[Debug_SRECJU1];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gDebugP[Debug_SRECJU2];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gDebugP[Debug_LRECJU1];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gDebugP[Debug_LRECJU2];
 		}
            break;
     case 10://读ODU参数

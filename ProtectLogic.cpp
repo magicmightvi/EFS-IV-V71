@@ -189,6 +189,18 @@ void ProtStart(void)
            	 fault_begin=0x55;
            	 fault_end=0;	
 			 //SaveLOG(LOG_EARTH,1);
+			 if((g_gRmtMeas[RM_UA]<g_gRmtMeas[RM_UB])&&(g_gRmtMeas[RM_UA]<g_gRmtMeas[RM_UC]))
+			 	{
+			 	fault_pluse =RM_UA;
+			 	}
+			 else if((g_gRmtMeas[RM_UB]<g_gRmtMeas[RM_UA])&&(g_gRmtMeas[RM_UB]<g_gRmtMeas[RM_UC]))
+			 	{
+			 	fault_pluse =RM_UB;
+			 	}
+			 else if((g_gRmtMeas[RM_UC]<g_gRmtMeas[RM_UA])&&(g_gRmtMeas[RM_UC]<g_gRmtMeas[RM_UB]))
+			 	{
+			 	fault_pluse =RM_UC;
+			 	}
             }              	 		
         }	
     }
@@ -196,22 +208,31 @@ void ProtStart(void)
     {
         if((fault_save==0)&&(fault_time<g_gProcCntJug[PC_T_DELAY]))
         {	
-            if((g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))) /////////A相电压   单相接地判据
-       	    { 	
+            if(((g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))) /////////A相电压   单相接地判据
+				||((g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UA]<g_gRmtMeas[RM_UB])&&(g_gRmtMeas[RM_UA]<g_gRmtMeas[RM_UC])
+					&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_LOW_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_LOW_P]))
+					&&(g_gDebugP[Debug_SRECJU2]==0x55)))
+			{ 	
                 fault_begin=0x55;
 		  		fault_pluse =RM_UA;
            		fault_end=0;
 				//SaveLOG(LOG_EARTH,1);
             }     
-            else if((g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))) ////////B相电压   单相接地判据
-       	    { 	
+            else if(((g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))) ////////B相电压   单相接地判据
+				||((g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UB]<g_gRmtMeas[RM_UA])&&(g_gRmtMeas[RM_UA]<g_gRmtMeas[RM_UC])
+					&&((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_LOW_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_LOW_P]))
+					&&(g_gDebugP[Debug_SRECJU2]==0x55)))
+			{ 	
     	 		fault_begin=0x55;
 				fault_pluse =RM_UB;	
     	 		fault_end=0;
 				//SaveLOG(LOG_EARTH,1);
     	    }    
-	    	else if((g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P]))) /////////C相电压   单相接地判据
-	    		{ 	
+	    	else if(((g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P]))) /////////C相电压   单相接地判据
+					||((g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UC]<g_gRmtMeas[RM_UB])&&(g_gRmtMeas[RM_UC]<g_gRmtMeas[RM_UA])
+						&&((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_LOW_P])||(g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_LOW_P]))
+						&&(g_gDebugP[Debug_SRECJU2]==0x55)))
+				{ 	
     	 		fault_begin=0x55;
 				fault_pluse =RM_UC;	
     	 		fault_end=0;
@@ -223,21 +244,30 @@ void ProtStart(void)
     { 
         if((fault_save==0)&&(fault_time<g_gProcCntJug[PC_T_DELAY]))
         {	         	 	
-            if((g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])) /////////A相电压   单相接地判据
+            if(((g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])) /////////A相电压   单相接地判据
+            	||((g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UA]<g_gRmtMeas[RM_UB])&&(g_gRmtMeas[RM_UA]<g_gRmtMeas[RM_UC])
+					&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_LOW_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_LOW_P]))
+					&&(g_gDebugP[Debug_SRECJU2]==0x55)&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])))
        	    	{ 	
            	 	fault_begin=0x55;
 			 	//SaveLOG(LOG_EARTH,1);
 				fault_pluse =RM_UA;	 
            	 	fault_end=0;
             	}       
-            else if((g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])) /////////A相电压   单相接地判据
+            else if(((g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P]))&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])) /////////A相电压   单相接地判据
+				||((g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UB]<g_gRmtMeas[RM_UA])&&(g_gRmtMeas[RM_UA]<g_gRmtMeas[RM_UC])
+					&&((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_LOW_P])||(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_LOW_P]))
+					&&(g_gDebugP[Debug_SRECJU2]==0x55)&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])))
        	    	{ 	
            	 	fault_begin=0x55;
 				fault_pluse =RM_UB;	 
            	 	fault_end=0;
 				//SaveLOG(LOG_EARTH,1);
             	}      
-            else if((g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P]))&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])) /////////A相电压   单相接地判据
+            else if(((g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_LOW_P])&&((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])||(g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P]))&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])) /////////A相电压   单相接地判据
+					||((g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UC]<g_gRmtMeas[RM_UB])&&(g_gRmtMeas[RM_UC]<g_gRmtMeas[RM_UA])
+						&&((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_LOW_P])||(g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_LOW_P]))
+						&&(g_gDebugP[Debug_SRECJU2]==0x55)&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_HIGH_Z])))
        	    	{ 	
            	 	fault_begin=0x55;
 				fault_pluse =RM_UC;	 

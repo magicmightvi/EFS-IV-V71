@@ -1644,56 +1644,56 @@ void CBJ101S::DoCommSendIdle(void)
 ***************************************************************/
 BOOL CBJ101S::DoTimeOut(WORD wTimerID)
 {
-  CPrtcSms::DoTimeOut(wTimerID);
-   if(m_reSendDelay > 0)
-   {
-      int iTime = 0;
-      if(g_gRunParaYxRsdTTBk != g_gRunPara[RP_YXRSD_T])
-      {//遥信重发时间间隔发送变化
-          iTime = g_gRunPara[RP_YXRSD_T] - (g_gRunParaYxRsdTTBk - m_reSendDelay);
-        if(iTime < 0)  iTime = 1;
-        m_reSendDelay = iTime;
-        g_gRunParaYxRsdTTBk = g_gRunPara[RP_YXRSD_T];
-      }
+	CPrtcSms::DoTimeOut(wTimerID);
+   	if(m_reSendDelay > 0)
+   		{
+      	int iTime = 0;
+      	if(g_gRunParaYxRsdTTBk != g_gRunPara[RP_YXRSD_T])
+      		{//遥信重发时间间隔发送变化
+          	iTime = g_gRunPara[RP_YXRSD_T] - (g_gRunParaYxRsdTTBk - m_reSendDelay);
+        	if(iTime < 0)  iTime = 1;
+        	m_reSendDelay = iTime;
+        	g_gRunParaYxRsdTTBk = g_gRunPara[RP_YXRSD_T];
+      		}
      //去掉下边两句代码是因为，若两个故障间隔时间很短，第一个故障刚发出，
      //还没等到主站回复(与主站通信正常)，此时提前结束了重发计时，会将上次的故障又发一次。
      // if(SearchCos(m_NewFltBit,1) && SearchCos(m_SYxBit,1))
      //  m_reSendDelay = 1;//若有新产生的故障，提前结束重发计时
-      if(m_reSendDelay>0)//增加该部分是因为=0时，程序会跑飞
-        m_reSendDelay--;
-      if(m_reSendDelay == 0)
-      {
-        m_resendflag = 1;
-        return TRUE;
-      }
-   }
-   if(g_gRunParaYxRsdTTBk != g_gRunPara[RP_YXRSD_T]) 
-      g_gRunParaYxRsdTTBk = g_gRunPara[RP_YXRSD_T];
+      	if(m_reSendDelay>0)//增加该部分是因为=0时，程序会跑飞
+        	m_reSendDelay--;
+      	if(m_reSendDelay == 0)
+      		{
+        	m_resendflag = 1;
+        	return TRUE;
+      		}
+   		}
+   	if(g_gRunParaYxRsdTTBk != g_gRunPara[RP_YXRSD_T]) 
+      	g_gRunParaYxRsdTTBk = g_gRunPara[RP_YXRSD_T];
 
 
-  if(m_YkWaitCount > 0)
-  {//遥控计时
-      m_YkWaitCount--;
-      if(g_YkOrderFlag == TRUE ||g_YkOrderFlag == FALSE)
-          m_YkWaitCount = 0;
-      if(m_YkWaitCount <= 0)
-      {
-        m_YKflag=1;
-        return TRUE;
-      }
-   }
-   if(m_PaWaitflag_lubo == ON)
-   {
-      if(m_PaWaitCt_lubo > 0)
-      {//ODU写参数重发计时
-          m_PaWaitCt_lubo--;
-          if(m_PaWaitCt_lubo <= 0)
-          {
-            m_PaWaitflag_lubo = TRUE;
-            return TRUE;
-          }
-       }
-    }
+  	if(m_YkWaitCount > 0)
+  		{//遥控计时
+      	m_YkWaitCount--;
+      	if(g_YkOrderFlag == TRUE ||g_YkOrderFlag == FALSE)
+          	m_YkWaitCount = 0;
+      	if(m_YkWaitCount <= 0)
+      		{
+        	m_YKflag=1;
+       		return TRUE;
+      		}
+   		}
+   	if(m_PaWaitflag_lubo == ON)
+   		{
+      	if(m_PaWaitCt_lubo > 0)
+      		{//ODU写参数重发计时
+         	m_PaWaitCt_lubo--;
+          	if(m_PaWaitCt_lubo <= 0)
+          		{
+            	m_PaWaitflag_lubo = TRUE;
+            	return TRUE;
+          		}
+       		}
+    	}
     if(g_sTimer[TM_SENDYC].m_TmFlag & m_SendYcBit)
     {//启动定时传输遥测
         g_sTimer[TM_SENDYC].m_TmFlag &= ~m_SendYcBit;
@@ -2656,6 +2656,13 @@ BOOL CBJ101S::SendFrameTail(BYTE PRM, BYTE dwCode, BYTE Num,BYTE EncType)
      m_zdflag=1;
 
     m_WaitConfTpId = pSendFrame->Frame68.Data[m_guiyuepara.linkaddrlen];
+    //若发送的报文不需要重发则将重发次数写成最大，重发时间置数是为了让非重发报文发送后也能等待一段时间才发故障报文
+    if(m_WaitConfTpId != M_SP_NA && m_WaitConfTpId != M_DP_NA
+     && m_WaitConfTpId != M_SP_TB && m_WaitConfTpId != M_DP_TB)
+     {
+        //m_retxdnum = g_gRunPara[RP_YXRSD_NUM];
+        m_reSendDelay = g_gRunPara[RP_YXRSD_T];
+     }	
     if(SwitchToAddress(m_dwasdu.LinkAddr))
     {
         if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT]) //启动加密
