@@ -76,9 +76,9 @@ const char LogName[][11]={
 "PHASEA_OFF",//      21  //PT断线告警
 "PHASEB_OFF",//      22  //PT断线告警
 "PHASEC_OFF",//      23  //PT断线告警
-"AEARTH    ",//          24  //接地告警
-"BEARTH    ",//          25 //接地告警
-"CEARTH    ",//        26 //接地告警
+"A_EARTH   ",//          24  //接地告警
+"B_EARTH   ",//          25 //接地告警
+"C_EARTH   ",//        26 //接地告警
 "BACKUP1   ",//27
 "BACKUP2   ",//28
 "BACKUP3   ",//29
@@ -109,7 +109,7 @@ const char LogName[][11]={
 "MEM_ERR   ",//54 //存储器错误
 "SOFT_ERR  ",//55  //软件故障
 "8FULS_I   ",//56
-"PAR_CHAG  ",// 57
+"PAR_CHAG  ",//57
 "BACKUP6   ",//58
 "BACKUP7   ",//59
 "BACKUP8   ",//60
