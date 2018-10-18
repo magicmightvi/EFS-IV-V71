@@ -533,7 +533,11 @@ void CheckCfgPara(void)
     if((g_gRunPara[RP_PLUSE_NUM]<6)||(g_gRunPara[RP_PLUSE_NUM]>8))
     {
         g_gRunPara[RP_PLUSE_NUM]= 8;
-    }		
+    }
+	if(g_gRunPara[RP_RHPLUSE_TIME2]==0)
+		g_gRunPara[RP_OVERLOAD_T]=2*g_gRunPara[RP_PLUSE_TIME]*10;
+	else
+		g_gRunPara[RP_OVERLOAD_T]=2*g_gRunPara[RP_RHPLUSE_TIME2]*10;
     if(g_gRunPara[RP_CNL_MODEL] == 0)
         {
            
