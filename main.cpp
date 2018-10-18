@@ -19,23 +19,23 @@ void EraseBlock(void)
 			g_sRecData.m_EraseBlock = OFF;
 			long ulAddr = FADDR_RECORDER_ACTDATA+(unsigned long)(g_sRecData.m_gACTRecCNum)*0x90000;    
 			Block_Erase(ulAddr);//ERASE 1个BLOCK 
-			delayms(100);WatchDog();
+			delayms(30);WatchDog();
 			Block_Erase(ulAddr+0x10000);//ERASE 1个BLOCK 
-			delayms(100);WatchDog();
+			delayms(30);WatchDog();
 			Block_Erase(ulAddr+0x20000);//ERASE 1个BLOCK 
-			delayms(100);WatchDog();
+			delayms(30);WatchDog();
 			Block_Erase(ulAddr+0x30000);//ERASE 1个BLOCK 
-			delayms(100);WatchDog(); 
+			delayms(30);WatchDog(); 
 			Block_Erase(ulAddr+0x40000);//ERASE 1个BLOCK 
-			delayms(100);WatchDog();
+			delayms(30);WatchDog();
 			Block_Erase(ulAddr+0x50000);//ERASE 1个BLOCK 
-			delayms(100);WatchDog();
+			delayms(30);WatchDog();
 			Block_Erase(ulAddr+0x60000);//ERASE 1个BLOCK 
-			 delayms(100);WatchDog();
+			 delayms(30);WatchDog();
 			Block_Erase(ulAddr+0x70000);//ERASE 1个BLOCK 
-			delayms(100);WatchDog(); 
+			delayms(30);WatchDog(); 
 			Block_Erase(ulAddr+0x80000);//ERASE 1个BLOCK 
-			delayms(100);WatchDog();   
+			delayms(30);WatchDog();   
 	}
 	SaveActRecData();
 	if(g_sRecData.m_EraseBlock == YES)
@@ -43,21 +43,21 @@ void EraseBlock(void)
 			g_sRecData.m_EraseBlock = OFF;
 			long ulAddr = FADDR_RECORDER_XHDATA+(unsigned long)(g_sRecData.m_gXHRecCNum)*0x8000;	
 			Sector_Erase(ulAddr);//ERASE 1个BLOCK 
-			delayms(100);WatchDog();
+			delayms(30);WatchDog();
 			Sector_Erase(ulAddr+0x1000);//ERASE 1个BLOCK 
-			delayms(100);WatchDog();
+			delayms(30);WatchDog();
 			Sector_Erase(ulAddr+0x2000);//ERASE 1个BLOCK 
-			delayms(100);WatchDog();
+			delayms(30);WatchDog();
 			Sector_Erase(ulAddr+0x3000);//ERASE 1个BLOCK 
-			delayms(100);WatchDog(); 
+			delayms(30);WatchDog(); 
 			Sector_Erase(ulAddr+0x4000);//ERASE 1个BLOCK 
-			delayms(100);WatchDog();
+			delayms(30);WatchDog();
 			Sector_Erase(ulAddr+0x5000);//ERASE 1个BLOCK 
-			delayms(100);WatchDog();
+			delayms(30);WatchDog();
 			Sector_Erase(ulAddr+0x6000);//ERASE 1个BLOCK 
-			 delayms(100);WatchDog();
+			 delayms(30);WatchDog();
 			Sector_Erase(ulAddr+0x7000);//ERASE 1个BLOCK 
-			delayms(100);WatchDog(); 
+			delayms(30);WatchDog(); 
 	}		
 }
 

@@ -2163,9 +2163,9 @@ if(pGprs != null)pGprs->m_luok_filename=g_sRecData.m_gRecCNum;
   ulAddr = FADDR_RECORDER_DATA+(unsigned long)(g_sRecData.m_gRecCNum)*0x2000;//flash地址
   //g_sRecData.m_gActRecAdr = ulAddr;//更新flash地址  
   Sector_Erase(ulAddr);//ERASE 1个BLOCK 
-  delayms(100);WatchDog();
+  delayms(30);WatchDog();
   Sector_Erase(ulAddr+0x1000);//ERASE 1个BLOCK 
-  delayms(100);WatchDog();
+  delayms(30);WatchDog();
 
 // 写入EEPROM,总录波条数和将写入的地址
   g_sRecData.m_gRecANum++;
