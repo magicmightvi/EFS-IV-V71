@@ -299,7 +299,7 @@ void RmInfoChk(void)
 		if((m==YX_8FULS_I)||(m==YX_BREAK))
 			{
 			for(i=0;i<8;i++)
-				g_sLogData[log_recorded.log_MemNewPtr].m_gRmtMeas[i]=yc[i];
+				g_sLogData[log_recorded.log_MemNewPtr].m_gRmtMeas[i]=yc[i]* g_gRunPara[RP_CT_TRANS]/100;
 			}
 		else
 			{
