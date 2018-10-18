@@ -2176,10 +2176,10 @@ if(pGprs != null)pGprs->m_luok_filename=g_sRecData.m_gRecCNum;
 //提前擦除下1个使用的SECTOR,文件目录用    
   //ulAddr =FADDR_RECORDER_INFO+ (long)temp[1]*(long)FLINEADDR;  
   //Sector_Erase(ulAddr);//预先擦除下一个sector
-  //g_gRmtInfo[YX_LBOK]=1;//录波完成遥信置位
+  g_gRmtInfo[YX_LBOK]=1;//录波完成遥信置位
   if(pDbg != null) pDbg->m_luok=1;
   if(pGprs != null) pGprs->m_luok=1;  
-  //g_YXLBOKCounter=60;//录波完成遥信持续60s
+  g_YXLBOKCounter=2;//录波完成遥信持续2s
 
 }
 //==============================================================================
