@@ -1233,7 +1233,7 @@ void RecData(void)
         g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1] =g_unAdcData[CHAN_UB]-g_gAdjAD[CHAN_UB];// g_sSampleData.m_gAcAdcData[CHAN_UB][g_sSampleData.m_unAcDataTail];
         g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2] =g_unAdcData[CHAN_UC]-g_gAdjAD[CHAN_UC];// g_sSampleData.m_gAcAdcData[CHAN_UC][g_sSampleData.m_unAcDataTail];
         if(g_gProcCnt[PC_U0_CAL] == 0)  //
-              g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][0]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2]; 
+              g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = (g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][0]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2])/3; 
 	 else
 	  	g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] =g_unAdcData[CHAN_U0]-g_gAdjAD[CHAN_U0];
 	  g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][4] =g_unAdcData[CHAN_I0]-g_gAdjAD[CHAN_I0];
@@ -1319,7 +1319,7 @@ void RecActData(void)
         g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1] =g_unAdcData[CHAN_UB]-g_gAdjAD[CHAN_UB];// g_sSampleData.m_gAcAdcData[CHAN_UB][g_sSampleData.m_unAcDataTail];
         g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2] =g_unAdcData[CHAN_UC]-g_gAdjAD[CHAN_UC];// g_sSampleData.m_gAcAdcData[CHAN_UC][g_sSampleData.m_unAcDataTail];	
 	if(g_gProcCnt[PC_U0_CAL] == 0)  //
-              g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][0]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2]; 
+              g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = (g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][0]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2])/3; 
 	 else
 	  	g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] =g_unAdcData[CHAN_U0]-g_gAdjAD[CHAN_U0];
 	 //g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3]=g_gRmtMeas[RM_UA];
