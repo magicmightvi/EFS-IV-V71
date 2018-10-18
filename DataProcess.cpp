@@ -2342,7 +2342,7 @@ if((g_sRecData.m_ucActRecStart == OFF))
   g_gRmtInfo[YX_LBOK]=1;//录波完成遥信置位
   if(pDbg != null) pDbg->m_luok=1;
   if(pGprs != null) pGprs->m_luok=1; 
-  g_YXLBOKCounter=1;//录波完成遥信持续60s
+  g_YXLBOKCounter=2;//录波完成遥信持续2s
   g_sRecData.m_ucActRecStart = CLOSE;
   
 }
