@@ -1570,10 +1570,11 @@ void CBJ101S::DoCommSendIdle(void)
     }
     if(m_PaWaitflag_lubo == TRUE && m_PaWaitCt_lubo == 0)
      {
-          if(m_TxNum_lubo < 3)
+          if(m_TxNum_lubo < 20)
           {
             
             m_PaWaitCt_lubo =  4;//g_gRunPara[RP_LUBOGPRS_T];
+            if(m_uartId == g_CmIdGPRS)m_PaWaitCt_lubo =  100;
             m_PaWaitflag_lubo = ON;
            //Code_Lubo(gRecorder_flag.pRXBuff,m_SendBuf.pBuf);// 
            SendlbRetry();

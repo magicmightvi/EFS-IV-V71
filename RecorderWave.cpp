@@ -2667,7 +2667,7 @@ void Code_Lubo(unsigned char *pRxBuf,unsigned char *pTXBuff)
   if(g_Cmid == g_CmIdGPRS)
   {
         pGprs->m_PaWaitflag_lubo = ON;
-        pGprs->m_PaWaitCt_lubo =4;
+        pGprs->m_PaWaitCt_lubo =100;//g_gRunPara[RP_LUBOGPRS_T];
         pGprs->m_TxNum_lubo = 0;
        memcpy(&(pGprs->m_gprsSendBuf[0]),pTXBuff,pTXBuff[1]+6);
        pGprs->m_gprsSendLen = pTXBuff[1]+6;
