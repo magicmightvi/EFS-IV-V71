@@ -137,6 +137,7 @@ struct sSAMPLE_DATA
     unsigned char 	g_YXLBOKCounter;
     unsigned char g_TQBSCounter = 0; //投切、闭锁指示灯计数器  =0 是灭 =0x55 闭锁常亮  >=1投切闪烁	
     unsigned char FlashReading;	// 1=正在读flash，不能录波，不能写soe
+    unsigned char PT_LuBo[8];//U0高,u0低，
     unsigned int g_unAdcData[7]; //ADCMEM的数据存放到该数组中
     unsigned int g_test;
     //unsigned char g_gFaF[256];//

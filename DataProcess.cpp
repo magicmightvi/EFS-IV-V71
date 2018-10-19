@@ -671,7 +671,130 @@ void CalcuUABRmtMeas(void)
 	if(pjno>31)pjno=0;
 
 }
+void StartPTLuBo(unsigned char LuboType)
+{
+	if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+		&&(g_sRecData.m_ucFaultRecStart ==OFF)) 
+		{		
+		g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+		g_sRecData.m_LuboType = LuboType;			
+		}
 
+}
+	//==============================================================================
+		//	函数名称   : ScanPTLuBo
+		//	功能描述   : 扫描PT,启动录波，u0 相电压
+		//	输入参数   : <无>
+		//	输出参数   : <无>
+		//	返回值	  : <无>
+		//	其他说明   : 1ms执行一次
+		//	作者		 : 张弢
+		//==============================================================================
+
+void ScanPTLuBo(void)
+{
+	if(g_gDebugP[Debug_SRECJU1]==0)
+		return;	
+	
+	if(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U0])
+		{//
+		if(g_gRmtMeas[RM_U0] >= g_gProcCntJug[PC_HIGH_Z])  //零序过压
+			{
+			if(PT_LuBo[0]==0)
+				{//可以录波
+				StartPTLuBo(SREC_U0);
+				}
+			PT_LuBo[0]=1;
+			}		
+		if(g_gRmtMeas[RM_U0] < g_gProcCntJug[PC_LOW_Z])
+			{			
+			PT_LuBo[0]=0;
+			}
+
+		}
+	
+	if(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])
+		{
+		//--------------A HIGH--------
+		if(g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_HIGH_P])
+			{
+			if(PT_LuBo[1]==0)
+				{//可以录波
+				StartPTLuBo(SREC_U);
+				}
+				PT_LuBo[1]=1;
+				}
+		if(g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_HIGH_P]-200)
+				{
+				PT_LuBo[1]=0;
+				}
+		//--------------B HIGH--------
+		if(g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_HIGH_P])
+			{
+			if(PT_LuBo[2]==0)
+				{//可以录波
+				StartPTLuBo(SREC_U);
+				}
+				PT_LuBo[2]=1;
+				}
+		if(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_HIGH_P]-200)
+				{
+				PT_LuBo[2]=0;
+				}
+		//--------------C HIGH--------
+		if(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_HIGH_P])
+			{
+			if(PT_LuBo[3]==0)
+				{//可以录波
+				StartPTLuBo(SREC_U);
+				}
+				PT_LuBo[3]=1;
+				}
+		if(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_HIGH_P]-200)
+				{
+				PT_LuBo[3]=0;
+				}
+		//--------------A LOW--------
+		if(g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_LOW_P])
+			{
+			if(PT_LuBo[4]==0)
+				{//可以录波
+				StartPTLuBo(SREC_U);
+				}
+				PT_LuBo[4]=1;
+				}
+		if(g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_LOW_P]+200)
+				{
+				PT_LuBo[4]=0;
+				}
+		//--------------B LOW--------
+		if(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_LOW_P])
+			{
+			if(PT_LuBo[5]==0)
+				{//可以录波
+				StartPTLuBo(SREC_U);
+				}
+				PT_LuBo[5]=1;
+				}
+		if(g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_LOW_P]+200)
+				{
+				PT_LuBo[5]=0;
+				}
+		//--------------C LOW--------
+		if(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_LOW_P])
+			{
+			if(PT_LuBo[6]==0)
+				{//可以录波
+				StartPTLuBo(SREC_U);
+				}
+				PT_LuBo[6]=1;
+				}
+		if(g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_LOW_P]+200)
+				{
+				PT_LuBo[6]=0;
+				}		
+		}
+}
 	//==============================================================================
 	//	函数名称   : ScanPT
 	//	功能描述   : 扫描PT断线遥信
@@ -689,18 +812,8 @@ void ScanPT(void)
         {
         g_gVErrTimer[0]++;
 		if(g_gVErrTimer[0]> g_gRunPara[YC_delay])
-			{
-			if(g_gRmtInfo[YX_U0_HIGH] == 0)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U0])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U0;			
-      				}
-				}
+			{			
         	g_gRmtInfo[YX_U0_HIGH]=1;
-			//SaveLOG(LOG_UPT_ERR,1);
 		 	g_gVErrTimer[0]=g_gRunPara[YC_delay];
 			}
     	}
@@ -708,15 +821,6 @@ void ScanPT(void)
     	{    	
 		if(g_gVErrTimer[0]==0)
       		{
-      		if(g_gRmtInfo[YX_U0_HIGH] == 1)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U0])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U0;			
-      				}
-      			}
       		g_gRmtInfo[YX_U0_HIGH]=0;
 			//SaveLOG(LOG_UPT_ERR,0);
 			}
@@ -730,15 +834,6 @@ void ScanPT(void)
     	g_gVErrTimer[1]++;
 		if(g_gVErrTimer[1]> g_gRunPara[YC_delay])
 			{
-			if(g_gRmtInfo[YX_UAB_HIGH] == 0)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_UAB])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_UAB;			
-      				}
-      			}
         	g_gRmtInfo[YX_UAB_HIGH] =1;
 			g_gVErrTimer[1]=g_gRunPara[YC_delay];
 			}
@@ -747,15 +842,6 @@ void ScanPT(void)
     	{
     	if(g_gVErrTimer[0]==0)
     		{
-    		if(g_gRmtInfo[YX_UAB_HIGH] == 1)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_UAB])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_UAB;			
-      				}
-      			}
     		g_gRmtInfo[YX_UAB_HIGH] =0;
     		}
 		else
@@ -812,15 +898,6 @@ void ScanPT(void)
     	g_gVErrTimer[4]++;
 		if(g_gVErrTimer[4]>g_gRunPara[YC_delay])
 			{
-			if(g_gRmtInfo[YX_UA_LOW] == 0)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U;			
-      				}
-      			}
        	 	g_gRmtInfo[YX_UA_LOW] =1 ;
 			g_gVErrTimer[4]=g_gRunPara[YC_delay];
 			}
@@ -829,15 +906,6 @@ void ScanPT(void)
     	{
     	if(g_gVErrTimer[4]==0)
     		{
-    		if(g_gRmtInfo[YX_UA_LOW] == 1)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U;			
-      				}
-      			}
     		g_gRmtInfo[YX_UA_LOW] =0 ;
     		}
 		else
@@ -849,15 +917,6 @@ void ScanPT(void)
     	g_gVErrTimer[5]++;
 		if(g_gVErrTimer[5]>g_gRunPara[YC_delay])
 			{
-			if(g_gRmtInfo[YX_UB_LOW] == 0)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U;			
-      				}
-      			}
         	g_gRmtInfo[YX_UB_LOW] =1 ;
 			g_gVErrTimer[5]=g_gRunPara[YC_delay];
 			}
@@ -866,15 +925,6 @@ void ScanPT(void)
     	{
     	if(g_gVErrTimer[5]==0)
     		{
-    		if(g_gRmtInfo[YX_UB_LOW] == 1)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U;			
-      				}
-      			}
     		g_gRmtInfo[YX_UB_LOW] =0 ;	
     		}
 		else
@@ -886,15 +936,6 @@ void ScanPT(void)
     	g_gVErrTimer[6]++;
 		if(g_gVErrTimer[6]>g_gRunPara[YC_delay])
 			{
-			if(g_gRmtInfo[YX_UC_LOW] == 0)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U;			
-      				}
-      			}
         	g_gRmtInfo[YX_UC_LOW] =1 ;
 			g_gVErrTimer[6]=g_gRunPara[YC_delay];
 			}
@@ -903,15 +944,6 @@ void ScanPT(void)
     	{
     	if(g_gVErrTimer[6]==0)
     		{
-    		if(g_gRmtInfo[YX_UC_LOW] == 1)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U;			
-      				}
-      			}
     		g_gRmtInfo[YX_UC_LOW] =0 ;	
 			}
 		else
@@ -923,15 +955,6 @@ void ScanPT(void)
     	g_gVErrTimer[7]++;
 		if(g_gVErrTimer[7]>g_gRunPara[YC_delay])
 			{
-			if(g_gRmtInfo[YX_UA_HIGH] == 0)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U;			
-      				}
-      			}
         	g_gRmtInfo[YX_UA_HIGH]=1;
 			g_gVErrTimer[7]=g_gRunPara[YC_delay];
 			}
@@ -940,15 +963,6 @@ void ScanPT(void)
     	{
 		if(g_gVErrTimer[7]==0)
 			{
-			if(g_gRmtInfo[YX_UA_HIGH] == 1)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U;			
-      				}
-      			}
         	g_gRmtInfo[YX_UA_HIGH]=0;
 			}
 		else
@@ -960,15 +974,6 @@ void ScanPT(void)
     	g_gVErrTimer[8]++;
 		if(g_gVErrTimer[8]>g_gRunPara[YC_delay])
 			{
-			if(g_gRmtInfo[YX_UB_HIGH] == 0)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U;			
-      				}
-      			}
         	g_gRmtInfo[YX_UB_HIGH]=1;
 			g_gVErrTimer[8]=g_gRunPara[YC_delay];
 			}
@@ -977,15 +982,6 @@ void ScanPT(void)
     	{
 		if(g_gVErrTimer[8]==0)
 			{
-			if(g_gRmtInfo[YX_UB_HIGH] == 1)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U;			
-      				}
-      			}
         	g_gRmtInfo[YX_UB_HIGH]=0;
 			}
 		else
@@ -997,15 +993,6 @@ void ScanPT(void)
     	g_gVErrTimer[9]++;
 		if(g_gVErrTimer[9]>g_gRunPara[YC_delay])
 			{
-			if(g_gRmtInfo[YX_UC_HIGH] == 0)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U;			
-      				}
-      			}
         	g_gRmtInfo[YX_UC_HIGH]=1;
 			g_gVErrTimer[9]=g_gRunPara[YC_delay];
 			}
@@ -1014,15 +1001,6 @@ void ScanPT(void)
     	{
 		if(g_gVErrTimer[9]==0)
 			{
-			if(g_gRmtInfo[YX_UC_HIGH] == 1)
-				{
-				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
-					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_U])) 
-    				{		
-					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
-					g_sRecData.m_LuboType = SREC_U;			
-      				}
-      			}
         	g_gRmtInfo[YX_UC_HIGH]=0;
 			}
 		else

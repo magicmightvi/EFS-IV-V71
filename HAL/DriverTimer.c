@@ -1013,7 +1013,8 @@ _EINT();//开总中断// 张弢测试中断嵌套
             g_sRtcManager.m_gRealTimer[RTC_MICROSEC]++;  //系统实时时钟g_sRtcManager.m_gRealTimer的毫秒累加
             ScanDinYX();//开关位置异常检测，I0超时检测
 			CalcuRmtMeas();//有效值计算，并更新对应的遥测值
-			ScanPT();//过压欠压检测
+			ScanPT();//过压欠压检测,遥信置位
+			ScanPTLuBo();//启动录波
 			ProtStart();//启动元件判断			
 			//ScanLOG();
 			 RmInfoChk(); 

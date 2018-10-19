@@ -51,6 +51,7 @@ extern "C"
         void CalcuRmtMeas(void);
 		void CalcuUABRmtMeas(void);
 		void ScanPT(void);
+		void ScanPTLuBo(void);
 	 void YCthCross(void);	
         void SaveSoeData(void);
         void SaveSoeDataRepeat(void);
@@ -90,6 +91,7 @@ extern "C"
         extern void CalcuRmtMeas(void);
 		extern void CalcuUABRmtMeas(void);
 		extern void ScanPT(void);
+		extern void ScanPTLuBo(void);
 	 extern void YCthCross(void);	
         extern void SaveSoeData(void);
         extern void SaveSoeDataRepeat(void);
