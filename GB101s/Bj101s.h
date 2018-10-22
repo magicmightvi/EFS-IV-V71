@@ -210,7 +210,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		void  DoRecAck(void);//add by lqh 20081103
 		
 		BOOL RecFrame68(void);
-//			BOOL RecFrame69(void);
+		BOOL RecFrame69(void);
 		BOOL RecYKCommand(void);
 		BOOL RecYKSet(void);
 

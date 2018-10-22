@@ -273,7 +273,7 @@ BYTE CProtocol::ChkSum(BYTE *buf, WORD len)
     }
     return LOBYTE(checksum & 0xff);
 }
-//参数查询及设置部分 + 远程升级====================================================================================
+/*//参数查询及设置部分 + 远程升级====================================================================================
 //自定义报文
 BOOL CProtocol::RecFrame69(void)
 {
@@ -281,9 +281,27 @@ BOOL CProtocol::RecFrame69(void)
 
     switch(pReceiveFrame->Frame69.Type)
     {
+    	case 0x79:    
         case 0x7a://读文件
-            RecReadFile();
-            break;
+        case 0x7c:
+            if(m_dwasdu.Info ==26882)
+              RecReadFile();
+            else
+           		{
+            	g_Cmid = m_uartId;
+                m_comtradeflag = 0x55;
+		    	m_comtradeflag_YN = 0;		
+        		m_PaWaitflag_lubo = OFF;
+                m_TxNum_lubo = 0;
+                m_PaWaitCt_lubo = 0;
+                wSendLISTNum = 0;
+        		BK_FRecorder_Current_COUNT = g_FRecorder_Current_COUNT;
+                memcpy(gRecorder_flag.pRXBuff,&pReceiveFrame->Frame68.Start1,6+pReceiveFrame->Frame68.Length1);                 
+              	}	
+		break;
+        //case 0x7a://读文件
+        //    RecReadFile();
+        //    break;
         case 0x7d://写文件
             RecWriteFile();
             break;
@@ -295,7 +313,7 @@ BOOL CProtocol::RecFrame69(void)
             break;
     }
     return TRUE;
-}
+}*/
 //******************************************************
 //张弢 0404 短信接收
 //******************************************************

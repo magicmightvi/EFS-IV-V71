@@ -110,7 +110,7 @@ typedef double         FP64;            //双精度浮点数
 #define IECP_AUT_MODE        5//主动上传模式，0=主站发送初始化后方可主动上传和总召
                               //1=收到主站任何命令后方可主动上传，任何时候都响应总召命令。
                               //2=主动上传不受任何约束
-#define IECP_OBJ_COM0        6 
+#define IECP_101_STY         6//0=标准101;1=舟山101 
 #define IECP_OBJ_COM1        7
 #define IECP_OBJ_COM2        8
 #define IECP_OBJ_COM3        9

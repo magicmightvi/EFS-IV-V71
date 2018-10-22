@@ -633,6 +633,57 @@ BOOL CBJ101S::RecFrame68(void)
         RecACK();
     return TRUE;
 }
+//参数查询及设置部分 + 远程升级====================================================================================
+//自定义报文
+BOOL CBJ101S::RecFrame69(void)
+{
+  //pReceiveFrame = (VParaFrame*)m_RecFrame.pBuf;
+	getasdu();
+	m_bReceiveControl = pReceiveFrame->Frame68.Control;
+    m_acdflag=1;
+    m_recfalg=1;
+    if(((m_bReceiveControl&0xf)!=4)&&(SwitchToAddress(m_dwasdu.LinkAddr))&&(m_linkflag))//增加链路初始化完成后再响应短帧确认
+    {    
+        SendAck();
+        delayms(200);
+    } 
+	
+	switch(m_dwasdu.TypeID)
+    //switch(pReceiveFrame->Frame69.Type)
+    {
+    	case 0x79:    
+        case 0x7a://读文件
+        case 0x7c:
+            if(m_dwasdu.Info ==26882)
+              RecReadFile();
+            else
+           		{
+            	g_Cmid = m_uartId;
+                m_comtradeflag = 0x55;
+		    	m_comtradeflag_YN = 0;		
+        		m_PaWaitflag_lubo = OFF;
+                m_TxNum_lubo = 0;
+                m_PaWaitCt_lubo = 0;
+                wSendLISTNum = 0;
+        		BK_FRecorder_Current_COUNT = g_FRecorder_Current_COUNT;
+                memcpy(gRecorder_flag.pRXBuff,&pReceiveFrame->Frame68.Start1,6+pReceiveFrame->Frame68.Length1);                 
+              	}	
+		break;
+        //case 0x7a://读文件
+        //    RecReadFile();
+        //    break;
+        case 0x7d://写文件
+            RecWriteFile();
+            break;
+        case 200://c8
+              g_Cmid = m_uartId;
+              Code_Load(&pReceiveFrame->Frame69.Start1,m_SendBuf.pBuf);
+              break;
+        default:
+            break;
+    }
+    return TRUE;
+}
 
 
 //解析 复位远方链路
