@@ -1553,8 +1553,10 @@ void CBJ101S::DoCommSendIdle(void)
         if(g_SendBeat == 0x55 && m_uartId == 2)
         {
           g_SendBeat = 0; 
-
-          SendBaseFrame(0,0x0c);
+		  if(g_ucPara101[IECP_101_STY]==1)//舟山101
+		  	SendBaseFrame(1,0x02);
+		  else
+          	SendBaseFrame(0,0x0c);
           if(g_SendBeatFailureNum < 4)
               g_SendBeatFailureNum++;
           m_zdflag = 0;
@@ -2841,6 +2843,8 @@ void CBJ101S::Initlink(void)
         SendReqLink();
         return;
     }
+	if(g_ucPara101[IECP_101_STY]==1)//舟山101
+		m_initflag=0x08;
     if(m_initflag&2)  //复位远方链路
     {
         m_initflag&=~2;
