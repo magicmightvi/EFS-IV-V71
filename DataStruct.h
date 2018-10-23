@@ -20,6 +20,10 @@ extern "C"
 // #pragma location=0x0FF00 
  const unsigned char VerNum[]="Ver75.00";
 const unsigned char VerNum_INLCD=75;
+const unsigned char g_gEFSVERLen=16;
+const unsigned char g_gEFSVER[]="EFS-IV-V01.76.zs";
+//"EFS-IV-V0.76.zs";
+//IV型信号源，版本0.76，舟山
 //================================== LOG日志模块 ============================================ 
 struct sLOG_DATA//1条LOG日志的内容
 {
@@ -349,6 +353,10 @@ extern unsigned int g_test;
         unsigned int g_gCnName[CnName_NUM+1];//张弢 汉字站名地址
         unsigned char g_gLBNameLen;
 	 unsigned char  g_gLBName[LBName_NUM+1];//张弢 汉字站名地址
+	 unsigned char g_gEFSIDLen;//产品ID和软件版本
+	 unsigned char  g_gEFSID[32];
+	 //unsigned char g_gEFSVERLen;
+	 //unsigned char  g_gEFSVER[31];
      //   unsigned int g_gRunPara[RUN_PARA_NUM];//运行参数，保存装置的一些配置信息，包括通信参数等
      	unsigned char g_ucPara101[IEC_PARA_NUM];    //IEC运行的运行参数
      	//unsigned char g_ucDebug[Debug_PARA_NUM];    //调试用参数
@@ -412,6 +420,10 @@ extern unsigned int g_test;
 		extern unsigned int g_gCnName[CnName_NUM+1];//张弢 汉字站名地址
 		extern unsigned char g_gLBName[LBName_NUM+1];//张弢 汉字站名地址	
 		extern unsigned char g_gLBNameLen;
+		extern unsigned char g_gEFSIDLen;//产品ID和软件版本
+	 	extern unsigned char  g_gEFSID[32];
+	 	//extern unsigned char g_gEFSVERLen;
+	 	//extern unsigned char  g_gEFSVER[31];
 	//	extern unsigned int g_gRunPara[RUN_PARA_NUM];//运行参数，保存装置的一些配置信息，包括通信参数等
     	extern unsigned char g_ucPara101[IEC_PARA_NUM];    //IEC运行的运行参数
     	//extern unsigned char g_ucDebug[Debug_PARA_NUM];    //调试用参数

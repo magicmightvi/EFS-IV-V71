@@ -581,6 +581,7 @@ BOOL CProtocol::RecReadFile(void)
       case 16:
       case 31:
       case 32:
+	  case 0x7200://读产品ID和软件版本	
         m_wSendPaNum = 0;
         SendReadPa(wFile,bySec);//读终端自身参数
         break;
@@ -629,7 +630,7 @@ BOOL CProtocol::RecReadFile(void)
 
           	break;
       default:
-      break; 
+      break;	  
     }
     return TRUE;
 }
@@ -962,6 +963,21 @@ BOOL CProtocol::RecWriteFile(void)
 	   SendWrPaSuc();	  
         }
         break;
+		case 0x7200://写产品ID和软件版本
+		//if(bySec == 0 )//遥测对点
+        	{
+        	wSecLen= *pData++;//段长度
+        	if(wSecLen<32)g_gEFSIDLen=wSecLen;
+        	for(i = wPaStartId,j = 0; j < wSecLen && i < 31;i++,j++)
+          		{
+            	g_gEFSID[i] = *pData++;
+          		}
+          	if(g_gEFSIDLen == 0)//作为复位产品ID的方式，如果第一个就设置为0，则利用这种方式复位产品ID
+          		RstEFSID();  //产品ID复位 
+          	g_ucParaChang |= BIT6;
+          	SendWrPaSuc();
+			}
+		break;
       default:
       break;    
     }
@@ -1381,6 +1397,20 @@ void CProtocol::SendReadPa(WORD FileName,BYTE SecName)
           m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = HIBYTE(g_unYcTrans[i]);
         }
         break;
+	case 0x7200://读产品ID和软件版本
+		wPaTotalNum = g_gEFSIDLen;
+			m_SendBuf.pBuf[m_SendBuf.wWritePtr++] =g_gEFSIDLen; wPaSendNum++;
+           for(i = 0;i < wPaTotalNum;i++,wPaSendNum++)
+           {
+              m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gEFSID[i];
+           }
+		wPaTotalNum = g_gEFSVERLen;//strlen(EFS_Ver);
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] =g_gEFSVERLen; wPaSendNum++;
+           for(i = 0;i < wPaTotalNum;i++,wPaSendNum++)
+           {
+              m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gEFSVER[i];
+           }   
+		break;
      }
     m_SendBuf.pBuf[wSecLenPtr] = m_SendBuf.wWritePtr - wSecLenPtr -1;
     m_wSendPaNum += wPaSendNum;

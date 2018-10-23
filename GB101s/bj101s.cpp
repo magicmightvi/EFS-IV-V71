@@ -528,6 +528,7 @@ BOOL CBJ101S::RecFrame68(void)
         case 0x79:    
         case 0x7a://读文件
         case 0x7c:
+		case 0x84://离散读参数	
             if(m_dwasdu.Info ==26882)
               RecReadFile();
             else
@@ -610,6 +611,10 @@ BOOL CBJ101S::RecFrame68(void)
             RecYSCommand();
             m_zdflag=0;
             break;
+	   case 0x96://舟山修改密码	
+	   		break;
+	   case 0x97://舟山修改密文	
+	   		break;
 //          case 200://远程升级
 //          case 203:
 //          case 210:
@@ -654,6 +659,7 @@ BOOL CBJ101S::RecFrame69(void)
     	case 0x79:    
         case 0x7a://读文件
         case 0x7c:
+		case 0x84://离散读参数		
             if(m_dwasdu.Info ==26882)
               RecReadFile();
             else
@@ -673,6 +679,7 @@ BOOL CBJ101S::RecFrame69(void)
         //    RecReadFile();
         //    break;
         case 0x7d://写文件
+        case 0x88://离散写参数
             RecWriteFile();
             break;
         case 200://c8
@@ -3241,10 +3248,24 @@ BOOL CBJ101S::RecCallClass2(void)
       return TRUE; //远方链路状态完好或召唤二级用户数据
 }
 
-
-
-
-
+//修改密码处理
+BOOL CBJ101S::RecYSPassWord(void)
+{
+	DWORD PassWord;
+	WORD tempassWord1,tempassWord2;
+	
+	BYTE *pData = &pReceiveFrame->Frame68.Data[m_byReasonShift];//从信息体地址后边开始取数，这里可不关心信息体地址
+        return TRUE;
+}
+//修改密文处理
+BOOL CBJ101S::RecYSCiPHer(void)
+{
+	DWORD PassWord;
+	WORD tempassWord1,tempassWord2;
+	
+	BYTE *pData = &pReceiveFrame->Frame68.Data[m_byReasonShift];//从信息体地址后边开始取数，这里可不关心信息体地址
+        return TRUE;
+}
 //遥控处理
 BOOL CBJ101S::RecYKCommand(void)
 {

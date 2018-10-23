@@ -186,6 +186,8 @@ typedef double         FP64;            //双精度浮点数
 #define MAX_SMS_NUM 16
 #define CnName_NUM   20//张弢 短信用汉字站名地址
 #define LBName_NUM   20//张弢 录波文件用英文站名地址
+#define EFSID_NUM   31//张弢 efsid
+
 //============================  录波数据        =======================================
 #define  REC_AC_CHAN_NUM        5               //录波交流电压电流的通道数，智能永磁驱动器主要是三相电流和零序电流
 
@@ -757,7 +759,8 @@ typedef double         FP64;            //双精度浮点数
 #define EEPADD_LOGP               0x0740   
 #define EEPADDBK_LOGP           0x0750
 
-
+#define EEPADD_EFSID             0x0770
+#define EEPADD_EFSIDLEN       	0x07a0
 //EEPROM中断线、掉电、异常（保护开关跳开）时间记录  分配1K字节的空间
 #define EEPADD_TIME_BK_NUM        0x0800          //断线时间总条数  1
 #define EEPADD_TIME_BK_POS        0x0801          //断线时间位置数  1

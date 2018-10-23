@@ -168,7 +168,8 @@ extern "C"
         void RstIEC101YcSiqu(void);
 		void RstSmsPhoneInfo(void);
 		void RstCnName(void);
-		void RstLBName(void);                
+		void RstLBName(void);      
+		void RstEFSID(void);  
         void InitPara(void);
         void CheckProtCnt(void);
 
@@ -202,6 +203,7 @@ extern "C"
 		extern void RstSmsPhoneInfo(void);
 		extern void RstCnName(void);
               extern void RstLBName(void);  
+			  extern void RstEFSID(void);  
         extern void InitPara(void);
         extern void CheckProtCnt(void);
 

@@ -473,6 +473,9 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         g_gLBName[LBName_NUM] = AddChar(g_gLBName, LBName_NUM);      //计算CS
         CAT_SpiWriteBytes(EEPADD_LBNAME   , LBName_NUM+1, g_gLBName);     //保存到EEPROM中
         CAT_SpiWriteBytes(EEPADD_LBNAMELEN, 1, &g_gLBNameLen);    //保存到EEPROM的备份区中
+        g_gEFSID[EFSID_NUM] = AddChar(g_gEFSID, EFSID_NUM);      //计算CS
+        CAT_SpiWriteBytes(EEPADD_EFSID   , EFSID_NUM+1, g_gEFSID);     //保存到EEPROM中
+        CAT_SpiWriteBytes(EEPADD_EFSIDLEN, 1, &g_gEFSIDLen);    //保存到EEPROM的备份区中
         g_gRmtInfo[YX_PAR_CHAG]=1;//SaveLOG(LOG_PAR_CHAG,1);
     }	
     if((g_ucParaChang & BIT7) == BIT7)
@@ -629,10 +632,16 @@ void CheckCfgPara(void)
     }
     CAT_SpiReadBytes(EEPADD_LBNAME   , LBName_NUM+1, g_gLBName);     //保存到EEPROM中
     CAT_SpiReadBytes(EEPADD_LBNAMELEN, 1, &g_gLBNameLen);    //保存到EEPROM的备份区中    //101的遥控点表
-    if ((g_gLBName[CnName_NUM] != AddChar(g_gLBName, LBName_NUM))||(g_gLBNameLen>LBName_NUM))
+    if ((g_gLBName[LBName_NUM] != AddChar(g_gLBName, LBName_NUM))||(g_gLBNameLen>LBName_NUM))
     	{
     	 RstLBName(); 
     	}
+    CAT_SpiReadBytes(EEPADD_EFSID   , EFSID_NUM+1, g_gEFSID);     //保存到EEPROM中
+    CAT_SpiReadBytes(EEPADD_EFSIDLEN, 1, &g_gEFSIDLen);    //保存到EEPROM的备份区中    //101的遥控点表
+    if ((g_gEFSID[EFSID_NUM] != AddChar(g_gEFSID, EFSID_NUM))||(g_gEFSIDLen>EFSID_NUM))
+    	{
+    	 RstEFSID(); 
+    	}	
     if(g_gRunPara[RP_FLOAD_T] !=0)g_gSaveload=g_gRunPara[RP_FLOAD_T]-1;//每隔一段时间存储负荷记录
     
 	CAT_SpiReadBytes(EEPADD_DEBUG,Debug_PARA_NUM, g_gDebugP);
@@ -1339,4 +1348,22 @@ void RstLBName(void)  //站名及地址初始化
     memcpy(g_gLBName,a,11);
     g_gLBNameLen=11;
 }
+void RstEFSID(void)  //产品ID和软件版本初始化 
+{
+	g_gEFSIDLen=31;//产品ID和软件版本
+	char a[32]="2000197720018091801210208950001";
+	memcpy(g_gEFSID,a,31);
+	//g_gEFSVERLen=21;
+	//char b[17]="EFS-IV-V01.76.zs";
+	//memcpy(g_gEFSVER,b,16);
+}
+//"2000197720018091801210208950001";
+//成品SAP    200019772
+//生产商      00
+//生产日期 180918
+//工单号      0121020895
+//流水       0001
+//"EFS-IV-V0.76.zs";
+//IV型信号源，版本0.76，舟山
+
 
