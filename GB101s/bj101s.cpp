@@ -612,8 +612,10 @@ BOOL CBJ101S::RecFrame68(void)
             m_zdflag=0;
             break;
 	   case 0x96://舟山修改密码	
+	   		RecYSPassWord();
 	   		break;
 	   case 0x97://舟山修改密文	
+	   		RecYSCiPHer();
 	   		break;
 //          case 200://远程升级
 //          case 203:
@@ -3247,23 +3249,86 @@ BOOL CBJ101S::RecCallClass2(void)
       SendNoData();
       return TRUE; //远方链路状态完好或召唤二级用户数据
 }
+//发送总召唤结束帧
+BOOL CBJ101S::SendERRPassWord(void)
+{
+    BYTE Style = 0x95;
+    BYTE Reason = 0x07;
+    BYTE PRM = 0;
+    BYTE dwCode = 8;
+    BYTE Num = 1;
+    //m_acdflag=0;
+
+    SendFrameHead(Style, Reason);
+    write_infoadd(0);
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_ztype;
+    SendFrameTail(PRM, dwCode, Num,0);
+    return TRUE;
+}
 
 //修改密码处理
 BOOL CBJ101S::RecYSPassWord(void)
 {
-	DWORD PassWord;
-	WORD tempassWord1,tempassWord2;
-	
 	BYTE *pData = &pReceiveFrame->Frame68.Data[m_byReasonShift];//从信息体地址后边开始取数，这里可不关心信息体地址
-        return TRUE;
+	g_gPassWord_ZS[0]=pData[0];g_gPassWord_ZS[1]=pData[1];
+    g_gPassWord_ZS[2]=pData[2];g_gPassWord_ZS[3]=pData[3];	
+
+	//修改密码，不做密码判断
+	/*if(0)
+		{//密码错误
+		SendERRPassWord();
+		return TRUE;
+		}
+	else
+		{//密码正确
+		tempassWord1 = MAKEWORD(pData[6],pData[7]);
+    	tempassWord2 = MAKEWORD(pData[8],pData[9]);
+		PassWord= MAKEDWORD(tempassWord2,tempassWord2);//新密码
+		}*/
+	SendFrameHead(0x96,7);//类型标识0x97，传输原因7
+ 	//write_infoadd(wInfoAddr);//信息体地址   	
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[0];//pData[i];
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[1];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[2];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[3];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gPassWord_ZS[0];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gPassWord_ZS[1];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gPassWord_ZS[2];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gPassWord_ZS[3];
+    SendFrameTail(0, 0, 1,0);//控制字，asdu长度
+	return TRUE;
 }
 //修改密文处理
 BOOL CBJ101S::RecYSCiPHer(void)
 {
-	DWORD PassWord;
-	WORD tempassWord1,tempassWord2;
-	
 	BYTE *pData = &pReceiveFrame->Frame68.Data[m_byReasonShift];//从信息体地址后边开始取数，这里可不关心信息体地址
+	
+	if((g_gPassWord_ZS[0]!=pData[0])||(g_gPassWord_ZS[1]!=pData[1])
+    	||(g_gPassWord_ZS[2]!=pData[2])||(g_gPassWord_ZS[3]!=pData[3]))
+		{//密码错误
+		SendERRPassWord();
+		return TRUE;
+		}
+	else
+		{//密码正确		
+		g_gCiPHer_ZS[0]=pData[0];g_gCiPHer_ZS[1]=pData[1];
+    	g_gCiPHer_ZS[2]=pData[2];g_gCiPHer_ZS[3]=pData[3];//新密文
+		}
+	SendFrameHead(0x97,7);//类型标识0x97，传输原因7
+ 	//write_infoadd(wInfoAddr);//信息体地址   	
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[0];//pData[i];
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[1];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[2];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[3];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[0];//pData[i];
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[1];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[2];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[3];
+    SendFrameTail(0, 0, 1,0);//控制字，asdu长度
         return TRUE;
 }
 //遥控处理

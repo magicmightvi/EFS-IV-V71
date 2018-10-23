@@ -355,6 +355,8 @@ extern unsigned int g_test;
 	 unsigned char  g_gLBName[LBName_NUM+1];//张弢 汉字站名地址
 	 unsigned char g_gEFSIDLen;//产品ID和软件版本
 	 unsigned char  g_gEFSID[32];
+	 unsigned char  g_gPassWord_ZS[4];
+	 unsigned char  g_gCiPHer_ZS[4];
 	 //unsigned char g_gEFSVERLen;
 	 //unsigned char  g_gEFSVER[31];
      //   unsigned int g_gRunPara[RUN_PARA_NUM];//运行参数，保存装置的一些配置信息，包括通信参数等
@@ -422,6 +424,8 @@ extern unsigned int g_test;
 		extern unsigned char g_gLBNameLen;
 		extern unsigned char g_gEFSIDLen;//产品ID和软件版本
 	 	extern unsigned char  g_gEFSID[32];
+		extern unsigned char  g_gPassWord_ZS[4];
+		extern unsigned char  g_gCiPHer_ZS[4];
 	 	//extern unsigned char g_gEFSVERLen;
 	 	//extern unsigned char  g_gEFSVER[31];
 	//	extern unsigned int g_gRunPara[RUN_PARA_NUM];//运行参数，保存装置的一些配置信息，包括通信参数等
