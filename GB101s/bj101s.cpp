@@ -529,6 +529,9 @@ BOOL CBJ101S::RecFrame68(void)
         case 0x7a://读文件
         case 0x7c:
 		case 0x84://离散读参数	
+			if((m_dwasdu.TypeID==0x7a)&&(g_ucPara101[IECP_101_STY]==1))//舟山101,主站对时
+				{
+				}
             if(m_dwasdu.Info ==26882)
               RecReadFile();
             else
@@ -1559,6 +1562,12 @@ void CBJ101S::DoCommSendIdle(void)
           m_BeatFlag = 0;
           SendBaseFrame(PRM_MASTER,2);
         }*/
+        if(g_SendReqTime == 0 && m_uartId == 2)
+        	{//舟山，请求对时
+        	g_SendReqTime = g_gRunPara[RP_SENDSMS_T]*60;
+			SendReqTime();
+			m_zdflag = 0;
+        	}
         if(g_SendBeat == 0x55 && m_uartId == 2)
         {
           g_SendBeat = 0; 
@@ -3260,10 +3269,91 @@ BOOL CBJ101S::SendERRPassWord(void)
     //m_acdflag=0;
 
     SendFrameHead(Style, Reason);
-    write_infoadd(0);
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_ztype;
+ 	//write_infoadd(wInfoAddr);//信息体地址   	
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[0];//pData[i];
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[1];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[2];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[3];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0xFF;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0xFF;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0xFF;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0xFF;
+
     SendFrameTail(PRM, dwCode, Num,0);
     return TRUE;
+}
+//舟山，请求对时
+BOOL CBJ101S::SendReqTime(void)
+{
+    BYTE Style = 0x7A;
+    BYTE Reason = 0x05;
+    BYTE PRM = 1;
+    BYTE dwCode = 3;
+    BYTE Num = 1;
+
+	SendFrameHead(Style, Reason);
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[0];//pData[i];
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[1];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[2];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[3];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0xa0;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0xba;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0x07;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = (g_sRtcManager.m_gRealTimer[RTC_MICROSEC]+g_sRtcManager.m_gRealTimer[RTC_SEC]*1000)&0xff;;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = (g_sRtcManager.m_gRealTimer[RTC_MICROSEC]+g_sRtcManager.m_gRealTimer[RTC_SEC]*1000)>>8;;
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_sRtcManager.m_gRealTimer[RTC_MINUT];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_sRtcManager.m_gRealTimer[RTC_HOUR];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_sRtcManager.m_gRealTimer[RTC_DATE];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_sRtcManager.m_gRealTimer[RTC_YEAR]-2000;
+	SendFrameTail(PRM, dwCode, Num,0);
+    return TRUE;
+}
+//舟山，主站对时
+BOOL CBJ101S::RecSetClock_zs(void)
+{
+    BYTE * pData = &pReceiveFrame->Frame68.Data[m_guiyuepara.infoaddlen];
+    WORD MSecond;
+    //pData=&pReceiveFrame->Frame68.Data[m_dwasdu.Infooff+m_guiyuepara.infoaddlen];
+	pData=&pReceiveFrame->Frame68.Data[9];//6地址+1类型标识+1SEQ+1传输原因
+	if((g_gPassWord_ZS[0]!=pData[0])||(g_gPassWord_ZS[1]!=pData[1])
+    	||(g_gPassWord_ZS[2]!=pData[2])||(g_gPassWord_ZS[3]!=pData[3]))
+		{//密码错误
+		SendERRPassWord();
+		return TRUE;
+		}
+
+	pData=&pReceiveFrame->Frame68.Data[26];//6地址+1类型标识+1SEQ+1传输原因
+										 //4密码
+										 //2信息体地址+1长度+7时间
+										 //2信息体地址+1长度
+    MSecond = MAKEWORD(pData[0], pData[1]);
+    unsigned int unHYM[7];
+    unHYM[0] = (pData[6] & 0x7F);//YEAR
+    unHYM[1] = pData[5] & 0x0F;//MONTH
+    unHYM[2] = pData[4] & 0x1F;//DAY
+    unHYM[3] = pData[4] >> 5;//WEEK
+    unHYM[4] = pData[3];  //HOUR
+    unHYM[5] = pData[2];//MINUTE
+  
+        
+    g_gWeekNum = unHYM[3];
+    if((60000-MSecond) > time_delay_set)//考虑加入延时传递的时间后是否大于60000ms,如果大于则需要分钟加1
+      MSecond+=time_delay_set;
+    else
+    {
+      MSecond=MSecond+time_delay_set-60000;
+      unHYM[5]+=1;
+    }
+      
+    unHYM[6] = MSecond/1000;//SEC
+    WriteRealTime(unHYM);  //修改时间
+  //SendtimeAck();应先发短帧确认再发长针
+   
+    m_timeflag=1;
+    return true;
 }
 
 //修改密码处理

@@ -165,6 +165,7 @@ struct sSAMPLE_DATA
     unsigned char g_SendYXDingshi = 0;
     unsigned long g_gBeatNum = 0;
     unsigned char g_SendBeat = 0;
+	unsigned int g_SendReqTime=0;
     unsigned char g_SendBeatFailureNum = 0;
     unsigned int g_NolinkReset = 0;	
     unsigned int g_NolinkWifi = 0;		
@@ -302,6 +303,7 @@ extern unsigned int g_test;
     //extern unsigned char g_SendLuboNum;
     extern unsigned long g_gBeatNum;
     extern unsigned char g_SendBeat;
+	extern unsigned int g_SendReqTime;
     extern unsigned char g_SendBeatFailureNum;
     extern unsigned int g_NolinkReset;	    
     extern unsigned int g_NolinkWifi;	

@@ -246,9 +246,11 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		void SendAck(void);//add by lqh 20081103
                 //void RecReadData(void);  //云南
                 BOOL RecYSCommand(void); //云南
+                BOOL RecSetClock_zs(void);//舟山，主站对时
                 BOOL RecYSPassWord(void);//舟山 收到修改密码报文
 				BOOL RecYSCiPHer(void);//舟山 收到修改密文报文
-				BOOL SendERRPassWord(void);//舟山 收到密码错误报文，上报错误
+				BOOL SendERRPassWord(void);//舟山 收到密码错误报文，上报错误				
+				BOOL SendReqTime(void);//舟山，请求对时
                 BOOL SendCallHistLoad(void); //云南
                 BOOL SendHistSOE(void); //云南
                 BOOL SendCallHistLoadStop(void); //云南
