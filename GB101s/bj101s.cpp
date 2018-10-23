@@ -531,6 +531,7 @@ BOOL CBJ101S::RecFrame68(void)
 		case 0x84://离散读参数	
 			if((m_dwasdu.TypeID==0x7a)&&(g_ucPara101[IECP_101_STY]==1))//舟山101,主站对时
 				{
+				RecSetClock_zs();//舟山，主站对时
 				}
             if(m_dwasdu.Info ==26882)
               RecReadFile();
