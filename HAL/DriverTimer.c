@@ -1586,8 +1586,8 @@ _EINT();//开总中断// 张弢测试中断嵌套
                             state_counter--;
 
        	                }
-                    if(g_SendReqTime>0)
-						g_SendReqTime=0;
+                    if((g_SendReqTime>0)&&(g_ucPara101[IECP_101_STY]==1))//舟山，定时请求对时
+						g_SendReqTime--;
 	                if((g_sRtcManager.m_gRealTimer[RTC_MINUT] & 3) == 0)  //为了尽可能减少对时时间上的差错，对时时间由5分钟改为4分钟
 	                {
 	        
