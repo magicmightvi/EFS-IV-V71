@@ -861,7 +861,7 @@ BOOL CBJ101S::SendCallAll(void)
       {
           m_callallflag=0;
           m_acdflag=0;m_wSendZJNum = 0;
-        if(SendAllStop())
+        if(SendAllStop())//总召结束
             return TRUE;
       }
   return FALSE;
@@ -896,7 +896,7 @@ BOOL CBJ101S::RecCallAllStart(void)
 	
     //SendBaseFrame(0,0);//张弢重庆 总召确认报文
    //delayms(100);
-    SendCallAllStartAck();
+    SendCallAllStartAck();//响应总召
     if(m_ztype==20)
     {/*
         if(g_gRunPara[RP_DEVICE_TYPE] == 1)  //二遥设备
