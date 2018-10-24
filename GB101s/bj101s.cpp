@@ -666,7 +666,7 @@ BOOL CBJ101S::RecFrame69(void)
         case 0x7a://读文件
         case 0x7c:
 		case 0x84://离散读参数		
-            if(m_dwasdu.Info ==26882)
+            /*if(m_dwasdu.Info ==26882)
               RecReadFile();
             else
            		{
@@ -679,8 +679,9 @@ BOOL CBJ101S::RecFrame69(void)
                 wSendLISTNum = 0;
         		BK_FRecorder_Current_COUNT = g_FRecorder_Current_COUNT;
                 memcpy(gRecorder_flag.pRXBuff,&pReceiveFrame->Frame68.Start1,6+pReceiveFrame->Frame68.Length1);                 
-              	}	
-		break;
+              	}*/	
+              	RecReadFile();
+				break;
         //case 0x7a://读文件
         //    RecReadFile();
         //    break;

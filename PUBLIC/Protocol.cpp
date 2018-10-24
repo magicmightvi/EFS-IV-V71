@@ -522,6 +522,7 @@ BOOL CProtocol::RecReadFile(void)
 {
     BYTE i;
     BYTE *pData;
+	BYTE byType;
     WORD wFile;
     BYTE bySec;//节名
     BYTE bySCQ;//限定词
@@ -532,7 +533,7 @@ BOOL CProtocol::RecReadFile(void)
 
     pReceiveFrame = (VParaFrame*)m_RecFrame.pBuf;//加这句代码的原因是，若是68报文跳转到此函数，CProtocol中的pReceiveFrame指针未赋值
     pData = &pReceiveFrame->Frame69.Data[0];
-
+    byType = pReceiveFrame->Frame69.Type;
 
     	wFile = MAKEWORD(pData[0],pData[1]);
     	wTemp = MAKEWORD(pData[2],pData[3]);
@@ -630,6 +631,11 @@ BOOL CProtocol::RecReadFile(void)
 
           	break;
       default:
+      	if(byType == 0x84)
+      		{
+      		m_wSendPaNum = 0;
+        	SendReadPa(wFile,bySec);//离散读产品ID和软件版本	
+      		}
       break;	  
     }
     return TRUE;
@@ -646,6 +652,11 @@ BOOL CProtocol::RecWriteFile(void)
     WORD wPaStartId = 0;
     WORD wInfoAddr = 0;
     unsigned int unTemp = 0;
+	//离散写产品ID和软件版本	
+	BYTE byType;//类型标识
+	BYTE byNum;//参数个数
+	WORD byAdr;//参数地址
+	//BYTE *pData2;//
    // WORD wOldValBk;
   //  WORD wOldCfgKeyBk;
   //  BYTE bLine;
@@ -653,14 +664,20 @@ BOOL CProtocol::RecWriteFile(void)
     
     wInfoAddr = MAKEWORD(pReceiveFrame->Frame69.InfoAddr[0],pReceiveFrame->Frame69.InfoAddr[1]);
     wPaStartId = wInfoAddr - 0x6902;
-
     pData = &pReceiveFrame->Frame69.Data[0];
-
-    	wFile = MAKEWORD(pData[0],pData[1]);
-    	pData +=2;
-
+    wFile = MAKEWORD(pData[0],pData[1]);
+    pData +=2;
     bySec = *pData++;
     wSecLen= *pData++;//节长度
+
+	byType = pReceiveFrame->Frame69.Type;
+	byNum = pReceiveFrame->Frame69.InfoAddr[0];
+	byAdr = MAKEWORD(pReceiveFrame->Frame69.InfoAddr[1],pReceiveFrame->Frame69.Data[0]);
+	if((byType==0x88)&&(byAdr>=0x7200))
+		{
+		wFile=0xffff;//离散写产品ID和软件版本	
+		pData = &pReceiveFrame->Frame69.Data[1];
+		}
     
     if(wFile >= 4 && wFile <= 8)
     {
@@ -978,6 +995,33 @@ BOOL CProtocol::RecWriteFile(void)
           	SendWrPaSuc();
 			}
 		break;
+		case 0xffff://离散写产品ID和软件版本		
+        	for(i = 0;i < byNum;i++)
+           		{
+           		switch(byAdr)
+           			{
+           			case 0x7200://离散写产品ID
+           			wSecLen= *pData++;//段长度
+           			if(wSecLen<32)
+           				{
+						g_gEFSIDLen=wSecLen;
+           				for(j = 0; j < wSecLen;j++)          				
+            				g_gEFSID[j] = *pData++;
+						if(g_gEFSIDLen == 0)//作为复位产品ID的方式，如果第一个就设置为0，则利用这种方式复位产品ID
+          					RstEFSID();  //产品ID复位 
+          				g_ucParaChang |= BIT6;
+           				}
+           			break;
+					
+					case 0x7201://离散写软件版本
+					//不允许写
+           			break;
+           			}
+				byAdr = MAKEWORD(pData[0],pData[1]);
+		   		pData +=2;
+        		} 
+          	SendWrPaSuc();			
+		break;
       default:
       break;    
     }
@@ -1102,7 +1146,25 @@ void CProtocol::SendReadPa(WORD FileName,BYTE SecName)
     WORD wPaTotalNum = 0;
     WORD wPaSendNum = 0;
     WORD wInfoAddr = 0;
+	WORD i = 0;
+	//离散读产品ID和软件版本	
+	BYTE byType,k;//类型标识
+	BYTE byNum;//参数个数
+	WORD byAdr;//参数地址
+	BYTE *pData;//
 
+	byType=pReceiveFrame->Frame69.Type;
+	byNum = pReceiveFrame->Frame69.InfoAddr[0];
+	byAdr = MAKEWORD(pReceiveFrame->Frame69.InfoAddr[1],pReceiveFrame->Frame69.Data[0]);
+	pData = &pReceiveFrame->Frame69.Data[1];
+	if((byType == 0x84)&&((byAdr==0x7200)||(byAdr==0x7201)))//离散读产品ID和软件版本
+		{
+		FileName = 0xffff;
+		SendFrameHeadForPa(0x85, 0x0a);
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = byNum;
+		}
+	else
+		{
     SendFrameHeadForPa(Style, Reason);
     //if(FileName==9 ||FileName==10 || FileName ==11)//张弢 读汉字站名
     if(FileName==10 || FileName ==11)//张弢 读汉字站名
@@ -1115,6 +1177,7 @@ void CProtocol::SendReadPa(WORD FileName,BYTE SecName)
       wInfoAddr = MAKEWORD(pReceiveFrame->Frame69.InfoAddr[0],pReceiveFrame->Frame69.InfoAddr[1]);
       wInfoAddr += m_wSendPaNum;
     }
+	
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = LOBYTE(wInfoAddr);//写信息体地址
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++] = HIBYTE(wInfoAddr);
     
@@ -1124,7 +1187,8 @@ void CProtocol::SendReadPa(WORD FileName,BYTE SecName)
     m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = SecName;
     
     wSecLenPtr = m_SendBuf.wWritePtr++;
-    WORD i = 0;
+    
+		}
     switch(FileName)
     {
       case 4://读运行参数
@@ -1411,8 +1475,43 @@ void CProtocol::SendReadPa(WORD FileName,BYTE SecName)
               m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gEFSVER[i];
            }   
 		break;
+	case 0xffff://离散读产品ID和软件版本
+		for(i = 0;i < byNum;i++)
+           {
+           switch(byAdr)
+           	{
+           	case 0x7200://离散读产品ID
+           		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0;
+				m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0x72;
+           		wPaTotalNum = g_gEFSIDLen;
+				m_SendBuf.pBuf[m_SendBuf.wWritePtr++] =g_gEFSIDLen; wPaSendNum++;
+           		for(k = 0;k < wPaTotalNum;k++,wPaSendNum++)
+           			{
+              		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gEFSID[k];
+           			}
+           		break;
+			case 0x7201://离散读软件版本
+				m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 1;
+				m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0x72;
+				wPaTotalNum = g_gEFSVERLen;//strlen(EFS_Ver);
+				m_SendBuf.pBuf[m_SendBuf.wWritePtr++] =g_gEFSVERLen; wPaSendNum++;
+           		for(k = 0;k < wPaTotalNum;k++,wPaSendNum++)
+           			{
+              		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gEFSVER[k];
+           			}   
+				break;
+           	} 
+		   byAdr = MAKEWORD(pData[0],pData[1]);
+		   pData +=2;
+           }
+		break;
+	default:
+		break;
      }
-    m_SendBuf.pBuf[wSecLenPtr] = m_SendBuf.wWritePtr - wSecLenPtr -1;
+	if((byType == 0x84)&&(FileName == 0xffff))
+		{}
+	else
+    	{m_SendBuf.pBuf[wSecLenPtr] = m_SendBuf.wWritePtr - wSecLenPtr -1;}
     m_wSendPaNum += wPaSendNum;
     if ((m_wSendPaNum < wPaTotalNum) && (m_wSendPaNum != 0))
       m_SendBuf.pBuf[4] |= 0x80;//控制域最高位用来表示还有没后续报文
