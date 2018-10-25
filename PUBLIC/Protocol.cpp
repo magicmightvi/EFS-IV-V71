@@ -843,6 +843,26 @@ BOOL CProtocol::RecWriteFile(void)
 		CAT_SpiWriteBytes(EEPADD_DEBUG,Debug_PARA_NUM, g_gDebugP);
 		SendWrPaSuc();
 		}
+	else if(bySec == 6)//
+		{
+		g_gADDR_ZS[0]=pData[0];
+		g_gADDR_ZS[1]=pData[1];
+		g_gADDR_ZS[2]=pData[2];
+		g_gADDR_ZS[3]=pData[3];
+		g_gADDR_ZS[4]=pData[4];
+		g_gADDR_ZS[5]=pData[5];
+		g_gPassWord_ZS[0]=pData[6];
+		g_gPassWord_ZS[1]=pData[7];
+		g_gPassWord_ZS[2]=pData[8];
+		g_gPassWord_ZS[3]=pData[9];
+		g_gCiPHer_ZS[0]=pData[10];
+		g_gCiPHer_ZS[1]=pData[11];
+		g_gCiPHer_ZS[2]=pData[12];
+		g_gCiPHer_ZS[3]=pData[13];
+		//g_gDebugP[Debug_CRC]=AddChar(g_gDebugP,Debug_CRC);				
+		//CAT_SpiWriteBytes(EEPADD_DEBUG,Debug_PARA_NUM, g_gDebugP);
+		SendWrPaSuc();
+		}
       break;
       case 10://张弢 目标校准，上位机下载参数 初始值为电压60V,电流2A
         if(bySec == 0 )
@@ -1020,7 +1040,9 @@ BOOL CProtocol::RecWriteFile(void)
 				byAdr = MAKEWORD(pData[0],pData[1]);
 		   		pData +=2;
         		} 
-          	SendWrPaSuc();			
+          	//SendWrPaSuc();
+          	SendFrameHeadForPa(0x87, 0x0a);
+			SendFrameTailForPa();
 		break;
       default:
       break;    
@@ -1299,6 +1321,24 @@ void CProtocol::SendReadPa(WORD FileName,BYTE SecName)
 		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gDebugP[Debug_SRECJU2];
 		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gDebugP[Debug_LRECJU1];
 		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gDebugP[Debug_LRECJU2];
+		}
+	else if(SecName==6)//舟山采集器地址
+		{
+		wPaTotalNum = 14;
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gADDR_ZS[0];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gADDR_ZS[1];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gADDR_ZS[2];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gADDR_ZS[3];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gADDR_ZS[4];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gADDR_ZS[5];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gPassWord_ZS[0];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gPassWord_ZS[1];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gPassWord_ZS[2];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gPassWord_ZS[3];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gCiPHer_ZS[0];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gCiPHer_ZS[1];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gCiPHer_ZS[2];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gCiPHer_ZS[3];
 		}
            break;
     case 10://读ODU参数

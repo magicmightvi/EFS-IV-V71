@@ -278,7 +278,7 @@ void InitCommObj(void)
 		if(pGprs!= null)
 			pGprs->m_SendSoeAdr=g_unSSoeSaveE2ROMPtr;    
 
-   g_GPRSSendLink = 55;
+   g_GPRSSendLink = 0;
     return;
 }
 

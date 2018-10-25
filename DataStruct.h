@@ -169,7 +169,7 @@ struct sSAMPLE_DATA
     unsigned char g_SendBeatFailureNum = 0;
     unsigned int g_NolinkReset = 0;	
     unsigned int g_NolinkWifi = 0;		
-    unsigned char g_GPRSSendLink = 0;// 1分钟重练一次101
+    unsigned char g_GPRSSendLink = 0;// 1分钟重练一次101,每秒+1，达到60s为ON,不连为OFF
     unsigned char g_RenZLink = 0;	//重庆 认证标志	
     unsigned char g_gRmtInfo[RMT_INFO_NUM];//遥信量 一个遥信信息占1个bit位
     unsigned char g_gRmtInfoBak[RMT_INFO_NUM];//遥信量备份 一个遥信信息占1个bit位
@@ -359,6 +359,7 @@ extern unsigned int g_test;
 	 unsigned char  g_gEFSID[32];
 	 unsigned char  g_gPassWord_ZS[4];
 	 unsigned char  g_gCiPHer_ZS[4];
+	 unsigned char  g_gADDR_ZS[6];
 	 //unsigned char g_gEFSVERLen;
 	 //unsigned char  g_gEFSVER[31];
      //   unsigned int g_gRunPara[RUN_PARA_NUM];//运行参数，保存装置的一些配置信息，包括通信参数等
@@ -428,6 +429,7 @@ extern unsigned int g_test;
 	 	extern unsigned char  g_gEFSID[32];
 		extern unsigned char  g_gPassWord_ZS[4];
 		extern unsigned char  g_gCiPHer_ZS[4];
+		extern unsigned char  g_gADDR_ZS[6];
 	 	//extern unsigned char g_gEFSVERLen;
 	 	//extern unsigned char  g_gEFSVER[31];
 	//	extern unsigned int g_gRunPara[RUN_PARA_NUM];//运行参数，保存装置的一些配置信息，包括通信参数等

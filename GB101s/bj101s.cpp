@@ -533,7 +533,7 @@ BOOL CBJ101S::RecFrame68(void)
 				{
 				RecSetClock_zs();//舟山，主站对时
 				}
-            if(m_dwasdu.Info ==26882)
+            else if(m_dwasdu.Info ==26882)
               RecReadFile();
             else
               {
@@ -666,7 +666,7 @@ BOOL CBJ101S::RecFrame69(void)
         case 0x7a://读文件
         case 0x7c:
 		case 0x84://离散读参数		
-            /*if(m_dwasdu.Info ==26882)
+            if(m_dwasdu.Info ==26882)
               RecReadFile();
             else
            		{
@@ -679,8 +679,8 @@ BOOL CBJ101S::RecFrame69(void)
                 wSendLISTNum = 0;
         		BK_FRecorder_Current_COUNT = g_FRecorder_Current_COUNT;
                 memcpy(gRecorder_flag.pRXBuff,&pReceiveFrame->Frame68.Start1,6+pReceiveFrame->Frame68.Length1);                 
-              	}*/	
-              	RecReadFile();
+              	}	
+              	//RecReadFile();
 				break;
         //case 0x7a://读文件
         //    RecReadFile();
@@ -808,9 +808,17 @@ BOOL CBJ101S::SendCallAll(void)
            m_wSendYxNum=0;
  	    if (SendYXGroup(0,20,30))
                return TRUE;
-#else		
+#else
+		if(g_ucPara101[IECP_101_STY]==1)//舟山101
+			{
+			if (SendYXGroup_ZS(j,20,1))
+              return TRUE;
+			}
+		else
+			{
            if (SendYXGroup(j,20,1))
               return TRUE;
+			}
 #endif		   
         }
    }
@@ -836,8 +844,16 @@ BOOL CBJ101S::SendCallAll(void)
            if (SendYCGroup(0,20,35))
                return TRUE;
 #else
+		if(g_ucPara101[IECP_101_STY]==1)//舟山101
+			{
+			if (SendYCGroup_ZS(j,20,9))
+              return TRUE;
+			}
+		else
+			{
             if(SendYCGroup(j,20,9))
               return TRUE;
+			}
 #endif			
         }
    }
@@ -862,8 +878,16 @@ BOOL CBJ101S::SendCallAll(void)
       {
           m_callallflag=0;
           m_acdflag=0;m_wSendZJNum = 0;
+		if(g_ucPara101[IECP_101_STY]==1)//舟山101
+			{
+			if(SendAllStop_ZS())//总召结束
+            	return TRUE;
+			}
+		else
+			{
         if(SendAllStop())//总召结束
             return TRUE;
+			}
       }
   return FALSE;
 }
@@ -897,7 +921,10 @@ BOOL CBJ101S::RecCallAllStart(void)
 	
     //SendBaseFrame(0,0);//张弢重庆 总召确认报文
    //delayms(100);
-    SendCallAllStartAck();//响应总召
+    if(g_ucPara101[IECP_101_STY]==1)//舟山101
+    	SendCallAllStartAck_ZS();//响应总召
+    else
+    	SendCallAllStartAck();//响应总召
     if(m_ztype==20)
     {/*
         if(g_gRunPara[RP_DEVICE_TYPE] == 1)  //二遥设备
@@ -956,16 +983,21 @@ BOOL CBJ101S::RecCallAllStop(void)
 BOOL CBJ101S::SendCallAllStartAck(void)
 {
     BYTE PRM = 0, dwCode = 3,Num = 1;
-        SendFrameHead(C_IC_NA, 7);      /*广西测试组召插遥控出现重复遥控确认*/
-
+    SendFrameHead(C_IC_NA, 7);      /*广西测试组召插遥控出现重复遥控确认*/
     write_infoadd(0);
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_ztype;
-#ifdef SD_101S
-    PRM = 0;//0x55;
     SendFrameTail(PRM , dwCode, Num,0);
-#else	
-    SendFrameTail(PRM, dwCode, Num,0);
-#endif
+
+    return TRUE;
+}
+BOOL CBJ101S::SendCallAllStartAck_ZS(void)
+{
+    BYTE PRM = 0, dwCode = 0,Num = 0;
+    SendFrameHead_ZS(C_IC_NA, 7);      /*广西测试组召插遥控出现重复遥控确认*/
+    write_infoadd(0);
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0x14;//m_ztype;
+    SendFrameTail_ZS(PRM , dwCode, Num,0);
+	m_recfalg = 2;
     return TRUE;
 }
 
@@ -984,6 +1016,21 @@ BOOL CBJ101S::SendAllStop(void)
     write_infoadd(0);
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_ztype;
     SendFrameTail(PRM, dwCode, Num,0);
+    return TRUE;
+}
+BOOL CBJ101S::SendAllStop_ZS(void)
+{
+    BYTE Style = 0x64;
+    BYTE Reason = 0x0A;
+    BYTE PRM = 0;
+    BYTE dwCode = 0;
+    BYTE Num = 1;
+    m_acdflag=0;
+
+    SendFrameHead_ZS(Style, Reason);
+    write_infoadd(0);
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = m_ztype;
+    SendFrameTail_ZS(PRM, dwCode, Num,0);
     return TRUE;
 }
 
@@ -1053,6 +1100,45 @@ BOOL CBJ101S::SendYXGroup(WORD GroupNo, BYTE Reason, BYTE bType)
    SendFrameTail(PRM, dwCode, ((i)| VSQ),0);
     return TRUE;
 }
+BOOL CBJ101S::SendYXGroup_ZS(WORD GroupNo, BYTE Reason, BYTE bType)
+{
+	BYTE Style = bType;
+	BYTE PRM = 0, dwCode = 8; 
+	WORD YXNo;
+	WORD YXValue;
+	BYTE VSQ=0x80;//顺序发送    
+		
+	YXNo = GroupNo * GRP_YXNUM;
+	YXNo += m_wSendYxNum;
+	if((m_wSendYxNum+m_wSendDYxNum>=GRP_YXNUM)|| (YXNo >= m_pEqpInfo[m_wEqpNo].wSYXNum))
+		return FALSE;
+
+	SendFrameHead_ZS(Style, Reason);
+	if(VSQ == 0x80)//顺序发送
+		write_infoadd(YXNo + g_gRunPara[RP_SYX_INFADDR]);//0x79=121 遥信起始地址
+	
+	WORD i;
+	for(i=0;i<g_ucYxTransNum; i++, YXNo++)//张弢 遥信点表
+		{
+       	if(VSQ == 0)//离散发送
+			write_infoadd(YXNo + g_gRunPara[RP_SYX_INFADDR]);//ADDR_YX_LO		 
+			
+		YXValue = g_gRmtInfo[(g_ucYXAddr[i]-1)] ;
+		if(YXValue != 0)
+			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 1;
+		else
+			m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
+			
+		if(bType == 30)
+			write_time();			
+		}   
+		m_wSendYxNum+= i;
+	   SendFrameTail_ZS(PRM, dwCode, YXNo,0);
+	   m_recfalg = 2;
+		return TRUE;
+}
+
+
 //继续发送一组遥信 单点
 //  BOOL CBJ101S::SendYXGroupContinue(WORD GroupNo, BYTE Reason)
 //  {
@@ -1229,6 +1315,50 @@ BOOL CBJ101S::SendYCGroup(WORD GroupNo, BYTE Reason ,BYTE bType)
 //      }
      return TRUE;
 }
+BOOL CBJ101S::SendYCGroup_ZS(WORD GroupNo, BYTE Reason ,BYTE bType)
+{
+    //BYTE Style = bType;
+    BYTE PRM = 0;
+    BYTE dwCode = 8;
+    WORD YCNo, YCSendNum;
+    WORD YCValue; 
+    //BYTE VSQ=0x80;//离散发送   
+
+    YCNo = GroupNo * GRP_YCNUM;
+    YCNo+=m_wSendYcNum;
+    if(YCNo >= m_pEqpInfo[m_wEqpNo].wYCNum)
+    {
+      return FALSE;
+    }
+   
+    SendFrameHead_ZS(0x15,Reason);//舟山类型标识0x15    
+   	write_infoadd(YCNo + g_gRunPara[RP_YC_INFADDR]);//0x07ab,遥测起始地址
+    for (YCSendNum = 0;(YCNo < m_pEqpInfo[m_wEqpNo].wYCNum);YCNo++,YCSendNum++)
+    	{ 
+    	YCValue = g_unYcTrans[YCNo];
+	   	if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_YC_FLOAT])
+    		{
+    		FP32 flt;
+			char *pdatachar=null;		
+			flt = (FP32)YCValue;	
+			pdatachar = (char *)&flt;
+			m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = *pdatachar++;//LOBYTE(LOWORD(flt));
+			m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = *pdatachar++;//HIBYTE(LOWORD(flt));
+			m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = *pdatachar++;//LOBYTE(HIWORD(flt));
+			m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = *pdatachar++;//HIBYTE(HIWORD(flt));	
+    		}
+	   else
+	   		{
+          	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = LOBYTE(YCValue);
+          	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = HIBYTE(YCValue);
+	   		}       
+    	}
+    m_wSendYcNum+= YCSendNum;    
+   	SendFrameTail_ZS(PRM,dwCode, YCSendNum,0);//SET ACD//张弢 遥测点表
+	m_recfalg = 2;
+	return TRUE;
+}
+
 BOOL CBJ101S::SendZJGroup(WORD GroupNo, BYTE Reason ,BYTE bType)
 {
     BYTE Style = bType;
@@ -1338,6 +1468,9 @@ void CBJ101S::DoCommSendIdle(void)
 	 if(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_SEND_FTYC])	
 		m_initflag=0x0c;		
         m_initfirstflag = 1;
+	 if(g_ucPara101[IECP_101_STY]==1)//舟山101
+	 	Initlink_ZS();
+	 else
         Initlink();
     }
     if(m_YKflag == 1) 
@@ -1574,7 +1707,7 @@ void CBJ101S::DoCommSendIdle(void)
         {
           g_SendBeat = 0; 
 		  if(g_ucPara101[IECP_101_STY]==1)//舟山101
-		  	SendBaseFrame(1,0x02);
+		  	SendBaseFrame_ZS(1,0x02);
 		  else
           	SendBaseFrame(0,0x0c);
           if(g_SendBeatFailureNum < 4)
@@ -2347,6 +2480,33 @@ BOOL CBJ101S::SendBaseFrame(BYTE PRM,BYTE dwCode)
 
     return TRUE;
 }
+BOOL CBJ101S::SendBaseFrame_ZS(BYTE PRM,BYTE dwCode)
+{
+	WORD wLinkAddress;
+		//BYTE SendData[256];
+		//BYTE SendDataLen;
+		m_SendBuf.wReadPtr = m_SendBuf.wWritePtr = 0;
+	
+		pSendFrame = (VIec101Frame *)m_SendBuf.pBuf;
+	
+		pSendFrame->Frame10.Start = 0x10;
+		pSendFrame->Frame10.Control = 0xc2;
+		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[0];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[1];
+		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[2];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[3];
+		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[4];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[5];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = (BYTE)ChkSum((BYTE *)&pSendFrame->Frame10.Control,7);
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0x16;
+		wLinkAddress = m_dwasdu.LinkAddr;
+		if(pSendFrame->Frame10.Control &0x40)
+		  m_recfalg=0;
+		
+		m_SendBuf.wReadPtr = 0;
+		if(SwitchToAddress(m_dwasdu.LinkAddr))
+		WriteToComm(wLinkAddress);
+		//m_linkflag=1; m_initflag = 0;            
+    return TRUE;
+}
+
 
 BOOL CBJ101S::SendLinktesetFrame(BYTE PRM,BYTE dwCode)
 {
@@ -2650,14 +2810,146 @@ BOOL CBJ101S::SendFrameHead(BYTE Style, BYTE Reason)
       m_SendBuf.wWritePtr+=3;
       m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=0x68;
     }
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=0;
-    write_linkaddr(GetAddress());
-    write_typeid(Style);
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=0;//控制字，SendFrameTail中修改
+    write_linkaddr(GetAddress());//地址
+    write_typeid(Style);//类型标识
     //write_VSQ(int data);
-    write_COT((GetAddress()<<8)|Reason);
-    write_conaddr(GetAddress());
+    write_COT((GetAddress()<<8)|Reason);//传送原因
+    write_conaddr(GetAddress());//地址
 
     return TRUE;
+}
+BOOL CBJ101S::SendFrameHead_ZS(BYTE Style, BYTE Reason)
+{
+    m_SendBuf.wReadPtr = 0;
+    m_SendBuf.wWritePtr=0;
+     if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT]) //启动加密
+    {
+        m_SendBuf.wWritePtr += 2;  //加密预留2字节给应用数据类型和应用数据长度
+        pSendFrame = (VIec101Frame *)&m_SendBuf.pBuf[2];
+    }
+    else
+    {
+        pSendFrame = (VIec101Frame *)m_SendBuf.pBuf;
+    }
+    
+    {
+      //pSendFrame->Frame68.Start1  = pSendFrame->Frame68.Start2 = 0x68;
+      m_SendBuf.pBuf[ m_SendBuf.wWritePtr]=0x68;
+      m_SendBuf.wWritePtr+=3;
+      m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=0x68;
+    }
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=0;//控制字，SendFrameTail中修改
+    //write_linkaddr(GetAddress());//地址
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[0];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[1];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[2];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[3];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[4];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[5];
+    //采集器地址，6字节
+    //write_typeid(Style);//类型标识 1字节
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=Style;//类型标识 1字节
+    //write_COT((GetAddress()<<8)|Reason);//传送原因 1字节
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=1;//舟山SEQ 1 1字节
+    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=Reason;//传送原因 1字节
+    //write_conaddr(GetAddress());//密文4字节
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gCiPHer_ZS[0];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gCiPHer_ZS[1];
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gCiPHer_ZS[2];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gCiPHer_ZS[3];
+    return TRUE;
+}
+BOOL CBJ101S::SendFrameTail_ZS(BYTE PRM, BYTE dwCode, BYTE Num,BYTE EncType)
+{
+    WORD wLinkAddress;
+//    BYTE temp;
+    BYTE SendDataLen;
+    BYTE EncData[256];
+    if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT]) //启动加密    
+        pSendFrame->Frame68.Length1 = pSendFrame->Frame68.Length2 = m_SendBuf.wWritePtr - 6;
+    else
+        pSendFrame->Frame68.Length1 = pSendFrame->Frame68.Length2 = m_SendBuf.wWritePtr - 4;
+    if(PRM==0)
+		pSendFrame->Frame68.Control = dwCode+0x80; //控制字
+	else
+		pSendFrame->Frame68.Control = dwCode+0xc0; //控制字
+    //pSendFrame->Frame68.Data[m_guiyuepara.linkaddrlen+m_guiyuepara.typeidlen] = Num;//ASDU长度,舟山为SEQ
+
+    m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = (BYTE)ChkSum((BYTE *)&pSendFrame->Frame68.Control, pSendFrame->Frame68.Length1);
+    m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0x16;
+    if (m_guiyuepara.linkaddrlen ==1)
+        wLinkAddress = pSendFrame->Frame68.Data[0];
+    else
+        wLinkAddress = MAKEWORD(pSendFrame->Frame68.Data[0],pSendFrame->Frame68.Data[1]);
+    m_recfalg=0;
+    m_zdflag=1;
+    m_WaitConfTpId = pSendFrame->Frame68.Data[m_guiyuepara.linkaddrlen];
+    //若发送的报文不需要重发则将重发次数写成最大，重发时间置数是为了让非重发报文发送后也能等待一段时间才发故障报文
+    if(m_WaitConfTpId != M_SP_NA && m_WaitConfTpId != M_DP_NA
+     && m_WaitConfTpId != M_SP_TB && m_WaitConfTpId != M_DP_TB)
+     {
+        //m_retxdnum = g_gRunPara[RP_YXRSD_NUM];
+        m_reSendDelay = g_gRunPara[RP_YXRSD_T];
+     }	
+    if(SwitchToAddress(m_dwasdu.LinkAddr))
+    {
+        if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_ENCRYPT]) //启动加密
+        {
+            m_SendBuf.pBuf[0] = EncType;  //应用数据 类型
+             //-2的原因是前面预留了1字节应用类型+1字节应用类型长度 ，SendFrameHead函数中
+            m_SendBuf.pBuf[1] = m_SendBuf.wWritePtr - 2; 
+            switch(EncType)
+            {
+            case 0x00:
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0;   //增加2字节信息扩展区长度
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0;
+                SendDataLen = m_SendBuf.wWritePtr ;//- 1;
+                //memcpy(SendData,m_SendBuf.pBuf,SendDataLen);
+                SendDataLen = EncryptData(m_SendBuf.pBuf,SendDataLen,EncData);
+                if(SendDataLen) 
+                {
+                    SendFrameEBHead(0x0008,201); //应用类型大于等于200，不写应用类型，已在加密数据区
+                    SendEncData(SendDataLen,EncData);
+                    SendFrameEBTail();
+                }            
+                break;
+            case 0x02:
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0x00;
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0x08;
+                GetChipRandom(m_bUnitRandom);
+                for(BYTE i = 0; i < 8; i++)
+                {
+                    m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = m_bUnitRandom[i];//zxx
+                }
+                /*m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_sRtcManager.m_gRealTimer[RTC_YEAR];
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_sRtcManager.m_gRealTimer[RTC_DATE];
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_sRtcManager.m_gRealTimer[RTC_HOUR];
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_sRtcManager.m_gRealTimer[RTC_MINUT];
+                m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_sRtcManager.m_gRealTimer[RTC_SEC];*/
+
+                SendDataLen = m_SendBuf.wWritePtr;
+                //memcpy(SendData,m_SendBuf.pBuf,SendDataLen);
+                SendDataLen = EncryptData(m_SendBuf.pBuf,SendDataLen,EncData);
+                //memcpy(SendData,m_SendBuf.pBuf,SendDataLen);
+                if(SendDataLen) 
+                {
+                    SendFrameEBHead(0x0018,201); 
+                    SendEncData(SendDataLen,EncData);
+                    SendFrameEBTail();
+                } 
+                break;
+            case 0x05:
+                break;
+            case 0x07:
+                break;
+            default:
+                break;
+            }
+        }
+        else
+        {
+            WriteToComm(wLinkAddress);//0X69开头的报文不判断链路地址
+        }
+        
+   }
+   return TRUE;
 }
 
 //组织报文尾，并发送整帧报文
@@ -2863,8 +3155,7 @@ void CBJ101S::Initlink(void)
         SendReqLink();
         return;
     }
-	if(g_ucPara101[IECP_101_STY]==1)//舟山101
-		m_initflag=0x08;
+	
     if(m_initflag&2)  //复位远方链路
     {
         m_initflag&=~2;
@@ -2894,6 +3185,34 @@ void CBJ101S::Initlink(void)
        m_linkflag=1;      
     return;
 }
+
+void CBJ101S::Initlink_ZS(void)
+{
+	WORD wLinkAddress;
+		//BYTE SendData[256];
+		//BYTE SendDataLen;
+		m_SendBuf.wReadPtr = m_SendBuf.wWritePtr = 0;
+	
+		pSendFrame = (VIec101Frame *)m_SendBuf.pBuf;
+	
+		pSendFrame->Frame10.Start = 0x10;
+		pSendFrame->Frame10.Control = 0xc9;
+		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[0];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[1];
+		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[2];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[3];
+		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[4];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[5];
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = (BYTE)ChkSum((BYTE *)&pSendFrame->Frame10.Control,7);
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0x16;
+		wLinkAddress = m_dwasdu.LinkAddr;
+		if(pSendFrame->Frame10.Control &0x40)
+		  m_recfalg=0;
+		
+		m_SendBuf.wReadPtr = 0;
+		if(SwitchToAddress(m_dwasdu.LinkAddr))
+		WriteToComm(wLinkAddress);
+		//m_linkflag=1; m_initflag = 0;            
+    return;
+}
+
 void CBJ101S::SendInitFinish(void)
 {
   //if(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_ISSENDINITFIN])
@@ -3377,19 +3696,13 @@ BOOL CBJ101S::RecYSPassWord(void)
     	tempassWord2 = MAKEWORD(pData[8],pData[9]);
 		PassWord= MAKEDWORD(tempassWord2,tempassWord2);//新密码
 		}*/
-	SendFrameHead(0x96,7);//类型标识0x97，传输原因7
- 	//write_infoadd(wInfoAddr);//信息体地址   	
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[0];//pData[i];
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[1];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[2];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[3];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
+	SendFrameHead_ZS(0x96,7);//类型标识0x97，传输原因7
+ 	write_infoadd(0);//信息体地址     
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gPassWord_ZS[0];
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gPassWord_ZS[1];
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gPassWord_ZS[2];
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gPassWord_ZS[3];
-    SendFrameTail(0, 0, 1,0);//控制字，asdu长度
+    SendFrameTail_ZS(0, 8, 1,0);//控制字，asdu长度
 	return TRUE;
 }
 //修改密文处理
@@ -3408,19 +3721,13 @@ BOOL CBJ101S::RecYSCiPHer(void)
 		g_gCiPHer_ZS[0]=pData[0];g_gCiPHer_ZS[1]=pData[1];
     	g_gCiPHer_ZS[2]=pData[2];g_gCiPHer_ZS[3]=pData[3];//新密文
 		}
-	SendFrameHead(0x97,7);//类型标识0x97，传输原因7
- 	//write_infoadd(wInfoAddr);//信息体地址   	
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[0];//pData[i];
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[1];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[2];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[3];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
+	SendFrameHead_ZS(0x97,7);//类型标识0x97，传输原因7
+ 	write_infoadd(0);//信息体地址     
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[0];//pData[i];
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[1];
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[2];
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[3];
-    SendFrameTail(0, 0, 1,0);//控制字，asdu长度
+    SendFrameTail_ZS(0, 0, 1,0);//控制字，asdu长度
         return TRUE;
 }
 //遥控处理

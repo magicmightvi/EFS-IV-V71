@@ -228,9 +228,12 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		
 		BOOL SendCallAll(void);
 		BOOL SendYCGroup(WORD GroupNo, BYTE Reason, BYTE bType);
+		BOOL SendYCGroup_ZS(WORD GroupNo, BYTE Reason, BYTE bType);
 		BOOL SendYCGroupContinue(WORD GroupNo, BYTE Reason);
 		BOOL SendAllStop(void);
+		BOOL SendAllStop_ZS(void);
 		BOOL SendYXGroup(WORD GroupNo, BYTE Reason, BYTE bType);
+		BOOL SendYXGroup_ZS(WORD GroupNo, BYTE Reason, BYTE bType);
 //			BOOL SendYXGroupContinue(WORD GroupNo, BYTE Reason);
 		BOOL SendZJGroup(WORD GroupNo, BYTE Reason, BYTE bType);
 
@@ -247,6 +250,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
                 //void RecReadData(void);  //云南
                 BOOL RecYSCommand(void); //云南
                 BOOL RecSetClock_zs(void);//舟山，主站对时
+                BOOL SendCallAllStartAck_ZS(void);//舟山，总召应答                
                 BOOL RecYSPassWord(void);//舟山 收到修改密码报文
 				BOOL RecYSCiPHer(void);//舟山 收到修改密文报文
 				BOOL SendERRPassWord(void);//舟山 收到密码错误报文，上报错误				
@@ -264,6 +268,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		
 		BYTE GetCtrCode(BYTE PRM, BYTE dwCode,BYTE fcv);
 		BOOL SendBaseFrame(BYTE PRM, BYTE dwCode);
+		BOOL SendBaseFrame_ZS(BYTE PRM, BYTE dwCode);
 		BOOL SendResetLink(BYTE PRM);
 		BOOL SendReqLink(void);
 		BOOL SearchClass1(void);
@@ -272,6 +277,8 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		BOOL SendLBML(void);		
 		BOOL SendFrameHead(BYTE Style, BYTE Reason);
 		BOOL SendFrameTail(BYTE PRM, BYTE dwCode, BYTE Num,BYTE EncType);
+		BOOL SendFrameHead_ZS(BYTE Style, BYTE Reason);
+		BOOL SendFrameTail_ZS(BYTE PRM, BYTE dwCode, BYTE Num,BYTE EncType);
 		BOOL SendReadYCAck(WORD YCNo);
 		BOOL SendReadYXAck(WORD YXNo);
 		BOOL SendNoData(void);
@@ -292,6 +299,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		BOOL RecACK(void)	;
 		void SendNOAck(void);
 		void Initlink(void) ;
+		void Initlink_ZS(void) ;
 		BYTE QDS(BYTE data);
 		BYTE SIQ(BYTE data);
 		BYTE DIQ(BYTE data1,BYTE data2);
