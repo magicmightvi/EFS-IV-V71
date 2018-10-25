@@ -1516,7 +1516,7 @@ void CBJ101S::DoCommSendIdle(void)
     
        if(m_recfalg==2)
            m_recfalg=0;
-       if(m_initflag)
+       if((m_initflag)&&((g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_AUTOLINK])==0))
        {
            Initlink();
            return ;
@@ -2491,6 +2491,7 @@ BOOL CBJ101S::SendBaseFrame_ZS(BYTE PRM,BYTE dwCode)
 	
 		pSendFrame->Frame10.Start = 0x10;
 		pSendFrame->Frame10.Control = 0xc2;
+		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=0x10;m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]= 0xc2;
 		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[0];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[1];
 		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[2];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[3];
 		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[4];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[5];
@@ -3197,6 +3198,7 @@ void CBJ101S::Initlink_ZS(void)
 	
 		pSendFrame->Frame10.Start = 0x10;
 		pSendFrame->Frame10.Control = 0xc9;
+                m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=0x10;m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=0xc9;
 		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[0];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[1];
 		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[2];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[3];
 		m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[4];m_SendBuf.pBuf[ m_SendBuf.wWritePtr++]=g_gADDR_ZS[5];
