@@ -859,8 +859,9 @@ BOOL CProtocol::RecWriteFile(void)
 		g_gCiPHer_ZS[1]=pData[11];
 		g_gCiPHer_ZS[2]=pData[12];
 		g_gCiPHer_ZS[3]=pData[13];
-		//g_gDebugP[Debug_CRC]=AddChar(g_gDebugP,Debug_CRC);				
-		//CAT_SpiWriteBytes(EEPADD_DEBUG,Debug_PARA_NUM, g_gDebugP);
+		pData[14]=AddChar(pData,14);				
+		CAT_SpiWriteBytes(EEPADD_ZS,15, pData);
+		CAT_SpiWriteBytes(EEPADDBK_ZS,15, pData);
 		SendWrPaSuc();
 		}
       break;

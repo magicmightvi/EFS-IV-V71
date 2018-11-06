@@ -724,6 +724,7 @@ typedef double         FP64;            //双精度浮点数
 #define EEPADD_PHONE                0x0040	//张弢 0328 为和林雪琴程序兼容，==EEPADD_PHONE_NUM 
 //N(N最大为8，目前程序定死为4个)个电话号码( 1字节电话号码长度 +15字节电话)，N字节短信发送控制字//张弢 0328 
 //共136字节//张弢 0328 
+#define EEPADD_ZS                0x00f0	//舟山6字节ID，4字节密码4字节密文
 #define EEPADD_SOE_E2ROMADR            0x0100//0x0080//张弢 头4字节，尾4字节 长度2字节
 #define EEPADD_SOESEND_E2ROMADR   0x0110
 #define EEPADD_CNNAME 			 0x0140//张弢 汉字站名42字节
@@ -744,6 +745,7 @@ typedef double         FP64;            //双精度浮点数
 #define EEPADDBK_COM                    0x0410    //站名称、站地址等42字节 占48字节
 #define EEPADDBK_PHONE_NUM       0x0440    //4个手机号码（每个13位）及手机短信属性57字节  占64字节
 #define EEPADDBK_PHONE                0x0440
+#define EEPADDBK_ZS                0x00f0	//舟山6字节ID，4字节密码4字节密文
 #define EEPADDBK_SOE_E2ROMADR         0x0500//0x0080//张弢 头4字节，尾4字节 长度2字节 
 #define EEPADDBK_CNNAME 		  0x540//张弢 汉字站名42字节
 #define EEPADDBK_ADJOBJ               0x0580//张弢 目标校准，上位机下载参数10字节 初始值为电压60V,电流2A

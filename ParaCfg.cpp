@@ -650,7 +650,19 @@ void CheckCfgPara(void)
 		g_gDebugP[Debug_U1BPS]=0;g_gDebugP[Debug_ALLREC]=0;g_gDebugP[Debug_CRC]=0;
 		CAT_SpiWriteBytes(EEPADD_DEBUG,Debug_PARA_NUM, g_gDebugP);
 		}
-    	
+
+	unsigned char datatm[15];
+	CAT_SpiReadBytes(EEPADD_ZS,15, datatm);
+	if(datatm[14]!=AddChar(datatm,14))
+		{
+		CAT_SpiReadBytes(EEPADDBK_ZS,15, datatm);
+		datatm[14] = AddChar(datatm,14);
+		CAT_SpiWriteBytes(EEPADDBK_ZS,15, datatm);
+		}
+	g_gADDR_ZS[0]=datatm[0];g_gADDR_ZS[1]=datatm[1];g_gADDR_ZS[2]=datatm[2];g_gADDR_ZS[3]=datatm[3];
+	g_gADDR_ZS[4]=datatm[4];g_gADDR_ZS[5]=datatm[5];
+	g_gPassWord_ZS[0]=datatm[6];g_gPassWord_ZS[1]=datatm[7];g_gPassWord_ZS[2]=datatm[8];g_gPassWord_ZS[3]=datatm[9];
+	g_gCiPHer_ZS[0]=datatm[10];g_gCiPHer_ZS[1]=datatm[11];g_gCiPHer_ZS[2]=datatm[12];g_gCiPHer_ZS[3]=datatm[13];
    /* CAT_SpiReadBytes(EEPADD_IECYKADDR, IEC_YK_NUM + 1, g_ucYKPa);  //¶Á³ö
     if (g_ucYKPa[IEC_YK_NUM] != AddChar(g_ucYKPa, IEC_YK_NUM))       //CRCÐ£Ñé
     {
