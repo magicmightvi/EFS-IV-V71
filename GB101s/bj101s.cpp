@@ -524,11 +524,14 @@ BOOL CBJ101S::RecFrame68(void)
             //break;
         case 0xD3://远程升级
             //FileRemoteupdata(&pReceiveFrame->Frame68.Start1);
-            break;           
+            break; 
+		case 0x84://离散读参数
+			RecReadFile();
+			break;
         case 0x79:    
         case 0x7a://读文件
         case 0x7c:
-		case 0x84://离散读参数	
+		//case 0x84://离散读参数	
 			if((m_dwasdu.TypeID==0x7a)&&(g_ucPara101[IECP_101_STY]==1))//舟山101,主站对时
 				{
 				RecSetClock_zs();//舟山，主站对时
@@ -662,10 +665,13 @@ BOOL CBJ101S::RecFrame69(void)
 	switch(m_dwasdu.TypeID)
     //switch(pReceiveFrame->Frame69.Type)
     {
+    	case 0x84://离散读参数		
+            RecReadFile();
+			break;
     	case 0x79:    
         case 0x7a://读文件
         case 0x7c:
-		case 0x84://离散读参数		
+		//case 0x84://离散读参数		
             if(m_dwasdu.Info ==26882)
               RecReadFile();
             else
