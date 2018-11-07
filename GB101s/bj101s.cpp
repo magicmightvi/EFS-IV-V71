@@ -1373,8 +1373,11 @@ BOOL CBJ101S::SendYCGroup_ZS(WORD GroupNo, BYTE Reason ,BYTE bType)
 	   		}       
     	}
 	write_time();
-    m_wSendYcNum+= YCSendNum;    
-   	SendFrameTail_ZS(PRM,dwCode, YCSendNum,0);//SET ACD//张弢 遥测点表
+    m_wSendYcNum+= YCSendNum; 
+	if(VSQ == 0x80)//顺序发送 
+   		SendFrameTail_ZS(PRM,dwCode, YCSendNum,0);//SET ACD//张弢 遥测点表
+   	else
+		SendFrameTail_ZS(1,3, YCSendNum,0);//SET ACD//张弢 遥测点表
 	m_recfalg = 2;
 	return TRUE;
 }
@@ -3719,7 +3722,7 @@ BOOL CBJ101S::SendReqTime(void)
 {
     BYTE Style = 0x7A;
     BYTE Reason = 0x05;
-    BYTE PRM = 0;
+    BYTE PRM = 1;
     BYTE dwCode = 3;
     BYTE Num = 1;
 
