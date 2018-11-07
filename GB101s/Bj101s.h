@@ -288,6 +288,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		DWORD GetAddress(void);
 		virtual void initpara(BYTE flag=0);
 		void getasdu(void);
+		void getasdu_ZS(void);
 		void write_linkaddr(int  data);
 		void write_typeid(int  data);
 		void write_VSQ(int  data);

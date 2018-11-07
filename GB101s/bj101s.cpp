@@ -146,6 +146,7 @@ BOOL CBJ101S::Init(WORD uartId)
     if(m_guiyuepara.mode==1)
     {
        m_initflag=0;//7 modi lxq 主站下发请求链路状态后才将此变量设置为7
+       m_initflag_ZS=0;
     }
     m_initfirstflag=1;
     
@@ -346,6 +347,8 @@ BOOL CBJ101S::RecFrame10(void)
             RecACK();   
             m_retxdnum=0;
             m_reSendDelay=0;
+			if((g_ucPara101[IECP_101_STY]==1)&&(pReceiveFrame->Frame10.Control==0)&&(m_initflag_ZS==ON))
+				{m_initflag_ZS=OFF;m_linkflag=1;}
             g_SendBeatFailureNum = 0;
 #ifndef	YN_101S	
             if(this == pGprs)  g_GPRSSendLink = OFF;
@@ -1497,6 +1500,8 @@ void CBJ101S::DoCommSendIdle(void)
         m_initfirstflag = 1;
         g_GPRSSendLink = 0;//张弢，开启1分钟一次的连接
         m_linkflag = 0;
+		if(g_ucPara101[IECP_101_STY]==1)//舟山101
+			m_initflag_ZS = 0;
     }
     
     //模式2=主动上报不受任何约束,总召不受约束
@@ -3198,6 +3203,7 @@ void CBJ101S::Initlink_ZS(void)
 	WORD wLinkAddress;
 		//BYTE SendData[256];
 		//BYTE SendDataLen;
+		if (m_initflag_ZS==OFF) return;
 		m_SendBuf.wReadPtr = m_SendBuf.wWritePtr = 0;
 	
 		pSendFrame = (VIec101Frame *)m_SendBuf.pBuf;
@@ -3217,7 +3223,8 @@ void CBJ101S::Initlink_ZS(void)
 		m_SendBuf.wReadPtr = 0;
 		if(SwitchToAddress(m_dwasdu.LinkAddr))
 		WriteToComm(wLinkAddress);
-		//m_linkflag=1; m_initflag = 0;            
+		//m_linkflag=1; m_initflag = 0;  
+		m_initflag_ZS = ON;
     return;
 }
 
@@ -3336,22 +3343,32 @@ DWORD CBJ101S::SearchOneFrame(BYTE *Buf, WORD Len)
                 return FRAME_ERR|1;
             return FRAME_OK|FrameLen;
   
-        case 0x10:
+        case 0x10:			
             if (4+m_guiyuepara.linkaddrlen > Len)
                 return FRAME_LESS;
             if(Buf[3+m_guiyuepara.linkaddrlen]!=0x16)
-                return FRAME_ERR|1;
+            	{
+            	if((g_ucPara101[IECP_101_STY]==1)&&(Buf[3+6]==0x16))//舟山101
+            		{}
+				else
+                	return FRAME_ERR|1;
+            	}
             FrameLen=4+m_guiyuepara.linkaddrlen;
             if((Buf[1]&0x4f)!=0x4c)
                 if (Buf[2+m_guiyuepara.linkaddrlen] != (BYTE)ChkSum((BYTE *)&pReceiveFrame->Frame10.Control, m_guiyuepara.linkaddrlen+1))
-                    return FRAME_ERR|1;
+                	{
+                	if((g_ucPara101[IECP_101_STY]==1)&&(Buf[2+6] == (BYTE)ChkSum((BYTE *)&pReceiveFrame->Frame10.Control, 6+1)))//舟山101
+                		{}
+					else
+                    	return FRAME_ERR|1;
+                	}
             if (m_guiyuepara.linkaddrlen==1)
                 wLinkAddress = pReceiveFrame->Frame10.Data[0];
             else
                 wLinkAddress = MAKEWORD(pReceiveFrame->Frame10.Data[0],pReceiveFrame->Frame10.Data[0+1]);
             //if (SwitchToAddress(wLinkAddress) != TRUE)
                 //return FRAME_ERR|FrameLen;
-            m_dwasdu.LinkAddr=wLinkAddress;
+            m_dwasdu.LinkAddr=wLinkAddress;			
             return FRAME_OK|FrameLen;
 
         case 0x68:
@@ -4297,7 +4314,11 @@ DWORD CBJ101S::GetAddress(void)
 {
     return GetOwnAddr();
 }
-
+void CBJ101S::getasdu_ZS(void)
+{   //BYTE off=0;
+	 m_dwasdu.TypeID=pReceiveFrame->Frame68.Data[6];
+	 m_dwasdu.COT=pReceiveFrame->Frame68.Data[8];
+}
 void CBJ101S::getasdu(void)
 {   BYTE off=0;
     if(m_guiyuepara.linkaddrlen==1)

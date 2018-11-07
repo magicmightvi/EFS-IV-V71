@@ -499,7 +499,7 @@ public:
         int m_uartId;
 		CProtocol *m_RWPaSrcObj;//正在读/写rf或ODU参数的上行通道
 
-        
+        BYTE m_initflag_ZS;//初始化=0；10C9后为ON；接收到1000后为OFF，m_linkflag=1 
         BYTE m_SBuf[256];
         BYTE m_RBuf[256];
         BYTE m_initflag;//初始值为0111，请求远方链路状态后变为0110，复位远方链路后变为0100，发初始化结束帧后为0000
