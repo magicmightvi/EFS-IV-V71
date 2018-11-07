@@ -150,7 +150,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
     unsigned int i;      //tPCSele[2],
     unsigned int temp[8];
     unsigned long ulAddr;
-	unsigned char u_dellubo;
+	unsigned char u_dellubo,tData[16];
     //unsigned int ucTemp[2];
     if(g_gChangFlag[CHNG_INFO] == ON)       //定值发生修改
     {
@@ -247,6 +247,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
          g_gSmsPhone[PHONE_CS] = AddChar(g_gSmsPhone, PHONE_CS);      //计算CS//张弢 0328
         CAT_SpiWriteBytes(EEPADD_PHONE , PHONE_PA_NUM, g_gSmsPhone);     //保存到EEPROM中//张弢 0328
     }
+	
     RefreshPara();
  
     //运行参数
@@ -481,7 +482,28 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
     if((g_ucParaChang & BIT7) == BIT7)
     {
         g_ucParaChang &= NBIT7;
-    }	
+    }
+	if((g_ucParaChang & BIT9) == BIT9)
+    {
+        g_ucParaChang &= NBIT9;
+		tData[0]= g_gADDR_ZS[0];
+		tData[1]= g_gADDR_ZS[1];
+		tData[2]= g_gADDR_ZS[2];
+		tData[3]= g_gADDR_ZS[3];
+		tData[4]= g_gADDR_ZS[4];
+		tData[5]= g_gADDR_ZS[5];
+		tData[6]= g_gPassWord_ZS[0];
+		tData[7]= g_gPassWord_ZS[1];
+		tData[8]= g_gPassWord_ZS[2];
+		tData[9]= g_gPassWord_ZS[3];
+		tData[10]= g_gCiPHer_ZS[0];
+		tData[11]= g_gCiPHer_ZS[1];
+		tData[12]= g_gCiPHer_ZS[2];
+		tData[13]= g_gCiPHer_ZS[3];
+		tData[14]=AddChar(tData,14);				
+		CAT_SpiWriteBytes(EEPADD_ZS,15, tData);
+		CAT_SpiWriteBytes(EEPADDBK_ZS,15, tData);
+		}
 
 }
 //==============================================================================

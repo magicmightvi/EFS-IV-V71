@@ -446,7 +446,10 @@ BOOL CBJ101S::RecFrame68(void)
     }
     else
     {
-        getasdu();
+    	if(g_ucPara101[IECP_101_STY]==1)
+			getasdu_ZS();
+		else
+        	getasdu();
     }
     if(pReceiveFrame->Frame68.Control & BITS_DIR)
       m_DIR=1;/*get主站dir*/
@@ -456,9 +459,10 @@ BOOL CBJ101S::RecFrame68(void)
     m_acdflag=1;
     m_recfalg=1;
     if(((m_bReceiveControl&0xf)!=4)&&(SwitchToAddress(m_dwasdu.LinkAddr))&&(m_linkflag))//增加链路初始化完成后再响应短帧确认
-    {    
-        SendAck();
-        delayms(200);
+    {  
+    	if(g_ucPara101[IECP_101_STY]!=1)//舟山不需要回应确认帧
+        	{SendAck();
+       	 	delayms(200);}
     } 	
     switch(m_dwasdu.TypeID)
     {
@@ -3705,7 +3709,7 @@ BOOL CBJ101S::RecSetClock_zs(void)
 //修改密码处理
 BOOL CBJ101S::RecYSPassWord(void)
 {
-	BYTE *pData = &pReceiveFrame->Frame68.Data[m_byReasonShift];//从信息体地址后边开始取数，这里可不关心信息体地址
+	BYTE *pData = &pReceiveFrame->Frame68.Data[15];//从信息体地址后边开始取数，这里可不关心信息体地址
 	g_gPassWord_ZS[0]=pData[0];g_gPassWord_ZS[1]=pData[1];
     g_gPassWord_ZS[2]=pData[2];g_gPassWord_ZS[3]=pData[3];	
 
@@ -3727,13 +3731,14 @@ BOOL CBJ101S::RecYSPassWord(void)
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gPassWord_ZS[1];
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gPassWord_ZS[2];
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gPassWord_ZS[3];
-    SendFrameTail_ZS(0, 8, 1,0);//控制字，asdu长度
+    SendFrameTail_ZS(0, 0, 1,0);//控制字，asdu长度
+    g_ucParaChang |= BIT9;
 	return TRUE;
 }
 //修改密文处理
 BOOL CBJ101S::RecYSCiPHer(void)
 {
-	BYTE *pData = &pReceiveFrame->Frame68.Data[m_byReasonShift];//从信息体地址后边开始取数，这里可不关心信息体地址
+	BYTE *pData = &pReceiveFrame->Frame68.Data[15];//从信息体地址后边开始取数，这里可不关心信息体地址
 	
 	if((g_gPassWord_ZS[0]!=pData[0])||(g_gPassWord_ZS[1]!=pData[1])
     	||(g_gPassWord_ZS[2]!=pData[2])||(g_gPassWord_ZS[3]!=pData[3]))
@@ -3753,6 +3758,7 @@ BOOL CBJ101S::RecYSCiPHer(void)
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[2];
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[3];
     SendFrameTail_ZS(0, 0, 1,0);//控制字，asdu长度
+	g_ucParaChang |= BIT9;
         return TRUE;
 }
 //遥控处理

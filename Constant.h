@@ -238,6 +238,8 @@ typedef double         FP64;            //双精度浮点数
 #define CHNG_TEL        4       //运行参数
 #define CHNG_GPRS       5       //GPRS参数
 #define CHNG_CODE       6       //液晶操作密码
+#define CHNG_ZSPW       7       //舟山密码
+
 
 //=================    信息对象地址定义，参考101协议，兼顾Modbus协议 =============================
 /*#define         EQU_BASE                                0x0001          //状态量信息起始地址

@@ -347,7 +347,7 @@ extern unsigned int g_test;
         unsigned int g_ucSYxTrsStartId;//上传的单点遥信中第一个点的序号(在g_ucYXAddr数组中)
         unsigned int g_ucDYxTrsStartId;//上传的双点遥信中第一个点的序号(在g_ucYXAddr数组中)
         unsigned char g_ucYkTransNum;
-        unsigned char g_ucParaChang = 0; //101参数发生变更标志  BIT0为 101参数，BIT1为遥测点表，BIT2为遥测系数，BIT3为遥测偏移量，BIT4为遥信点表 BIT5为运行参数表//张弢 读汉字站名BIT6//
+        unsigned int g_ucParaChang = 0; //101参数发生变更标志  BIT0为 101参数，BIT1为遥测点表，BIT2为遥测系数，BIT3为遥测偏移量，BIT4为遥信点表 BIT5为运行参数表//张弢 读汉字站名BIT6//
         unsigned char g_ucRefYxYcTs = 0;//遥信遥测数据变化标志 BIT0为遥信 BIT1为遥测
         unsigned char g_ZsqPara = 0;   //zx
         
@@ -418,7 +418,7 @@ extern unsigned int g_test;
         extern unsigned int g_ucDYxTrsStartId;//上传的双点遥信中第一个点的序号(在g_ucYXAddr数组中)
       //  extern unsigned int g_ucDYxTransNum;
         extern unsigned char g_ucYkTransNum;
-        extern unsigned char g_ucParaChang; //101参数发生变更标志  BIT0为 101参数，BIT1为遥测点表，BIT2为遥测系数，BIT3为遥测偏移量，BIT4为遥信点表 BIT5为运行参数表
+        extern unsigned int g_ucParaChang; //101参数发生变更标志  BIT0为 101参数，BIT1为遥测点表，BIT2为遥测系数，BIT3为遥测偏移量，BIT4为遥信点表 BIT5为运行参数表
         extern unsigned char g_ucRefYxYcTs;//遥信遥测数据变化标志 BIT0为遥信 BIT1为遥测
                 
 		extern unsigned char  g_gSmsPhone[PHONE_PA_NUM];//短信中电话号码  //张弢 0328
