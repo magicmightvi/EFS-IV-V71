@@ -238,7 +238,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		BOOL SendZJGroup(WORD GroupNo, BYTE Reason, BYTE bType);
 
 		BOOL SendTsetLinkAck(void);
-
+		BOOL SendSoe_ZS(void);
 		BOOL SendSoe(void);
 		BOOL SendChangeYC(void);
 		BOOL SendCallAllStartAck(void);

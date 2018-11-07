@@ -824,7 +824,8 @@ BOOL CBJ101S::SendCallAll(void)
 #else
 		if(g_ucPara101[IECP_101_STY]==1)//舟山101
 			{
-			if (SendYXGroup_ZS(j,20,1))
+			m_wSendYcNum=0;
+			if (SendYCGroup_ZS(0x80,0x14,0x15))
               return TRUE;
 			}
 		else
@@ -859,7 +860,8 @@ BOOL CBJ101S::SendCallAll(void)
 #else
 		if(g_ucPara101[IECP_101_STY]==1)//舟山101
 			{
-			if (SendYCGroup_ZS(j,20,9))
+			 m_wSendYxNum=0;
+			if (SendYXGroup_ZS(j,20,1))//if (SendYCGroup_ZS(0x80,0x14,0x15))
               return TRUE;
 			}
 		else
@@ -1335,19 +1337,23 @@ BOOL CBJ101S::SendYCGroup_ZS(WORD GroupNo, BYTE Reason ,BYTE bType)
     BYTE dwCode = 8;
     WORD YCNo, YCSendNum;
     WORD YCValue; 
-    //BYTE VSQ=0x80;//离散发送   
+    BYTE VSQ=0x80;//顺序发送	   
 
-    YCNo = GroupNo * GRP_YCNUM;
-    YCNo+=m_wSendYcNum;
+	VSQ = GroupNo;
+    YCNo = 0;
+    //YCNo+=m_wSendYcNum;
     if(YCNo >= m_pEqpInfo[m_wEqpNo].wYCNum)
     {
       return FALSE;
     }
    
-    SendFrameHead_ZS(0x15,Reason);//舟山类型标识0x15    
-   	write_infoadd(YCNo + g_gRunPara[RP_YC_INFADDR]);//0x07ab,遥测起始地址
+    SendFrameHead_ZS(bType,Reason);//舟山类型标识0x15 
+    if(VSQ == 0x80)//顺序发送	
+   		write_infoadd(YCNo + g_gRunPara[RP_YC_INFADDR]);//0x07ab,遥测起始地址
     for (YCSendNum = 0;(YCNo < m_pEqpInfo[m_wEqpNo].wYCNum);YCNo++,YCSendNum++)
-    	{ 
+    	{
+    	if(VSQ == 0)//离散发送 
+   			write_infoadd(YCNo + g_gRunPara[RP_YC_INFADDR]);//0x07ab,遥测起始地址
     	YCValue = g_unYcTrans[YCNo];
 	   	if(g_gRunPara[RP_CFG_KEY] & BIT[RPCFG_YC_FLOAT])
     		{
@@ -1366,6 +1372,7 @@ BOOL CBJ101S::SendYCGroup_ZS(WORD GroupNo, BYTE Reason ,BYTE bType)
           	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = HIBYTE(YCValue);
 	   		}       
     	}
+	write_time();
     m_wSendYcNum+= YCSendNum;    
    	SendFrameTail_ZS(PRM,dwCode, YCSendNum,0);//SET ACD//张弢 遥测点表
 	m_recfalg = 2;
@@ -1663,6 +1670,8 @@ void CBJ101S::DoCommSendIdle(void)
       /* */ 
         if(g_CosSoeDely>6000)
         {
+        if(g_ucPara101[IECP_101_STY]!=1)//舟山101不要COS
+        {
         if(SearchCos(m_SYxBit,0))
         {
            m_acdflag=1;
@@ -1672,6 +1681,7 @@ void CBJ101S::DoCommSendIdle(void)
                return ;
            }
            m_acdflag=0;
+        }
         }
         }
 #endif 
@@ -1699,12 +1709,24 @@ void CBJ101S::DoCommSendIdle(void)
         if(SearchCos(m_SSoeBit,0))
         {
            m_acdflag=1;
+		   if(g_ucPara101[IECP_101_STY]==1)//舟山101
+		    {
+           if(SendSoe_ZS())
+            {SendYCGroup_ZS(0,3,0x0A);
+              m_reSendDelay = g_gRunPara[RP_YXRSD_T];//有报文发出才启动重传
+              return ;
+            }
+            m_acdflag=0;
+		   	}
+		   else
+		   	{
            if(SendSoe())
             {
               m_reSendDelay = g_gRunPara[RP_YXRSD_T];//有报文发出才启动重传
               return ;
             }
             m_acdflag=0;
+		   	}
         }
         }
       /*  if(m_BeatFlag)
@@ -2137,6 +2159,64 @@ BOOL CBJ101S::SendSoe(void)
 }
 */
 #else
+BOOL CBJ101S::SendSoe_ZS(void)
+{
+    //BYTE Style = M_SP_TB, Reason = COT_SPONT;
+    //BYTE PRM = 0;//, dwCode = 3;
+    WORD YXNo = 0;
+    WORD SoeSendNum = 0;
+    DWORD i;
+	unsigned char untemp[12],k;	
+      
+	m_SSoeHeadPtrBk = m_SSoeHeadPtr;//在准实时模式下，如果故障复位，等初始化之后只会上传复位信号
+	SendFrameHead_ZS(0x1E,3);//类型标识0x1E，传输原因3
+	m_SSoeHeadPtr &= 0x3ff0;g_unSSoeSaveE2ROMPtr &= 0x3ff0;
+	for(i =0; (m_SSoeHeadPtr!= g_unSSoeSaveE2ROMPtr)&&(i<13); i++)
+		{		
+		m_SSoeHeadPtr &= 0x3ff0;
+		CAT_SpiReadBytes(m_SSoeHeadPtr, 11, untemp); 
+		m_SSoeHeadPtr += 16;
+		if(m_SSoeHeadPtr>=EEPADD_SOEENDADR) m_SSoeHeadPtr = EEPADD_SOESTARTADR;
+		
+		YXNo = MAKEWORD(untemp[SOE_TYPEL],untemp[SOE_TYPEH]);
+		YXNo=	YXNo - g_gRunPara[RP_SYX_INFADDR] +  1;   //- 1 + TsSoeType - g_ucSYxTrsStartId
+		for(k = 0; k < g_ucYxTransNum;k++)
+			{
+			if(g_ucYXAddr[k]==YXNo+1)
+			  	{
+				YXNo =k+g_gRunPara[RP_SYX_INFADDR]-1;
+			 //YXNo=g_ucYXAddr[YXNo]+g_gRunPara[RP_SYX_INFADDR] -  1;
+				write_infoadd( YXNo + ADDR_YX_LO);
+				m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = untemp[SOE_STVAL];
+				
+				SoeSendNum++;	
+			 	k =g_ucYxTransNum; 
+				  break;
+				}
+			}
+		}
+	m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = untemp[SOE_MSL];
+	m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = untemp[SOE_MSH];
+	m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = untemp[SOE_MINU];
+	m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = untemp[SOE_HOUR] & 0x1F;
+	BYTE week=0;
+	m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = (untemp[SOE_DAY] & 0x1F) | ((week <<5) & 0xE0);
+	m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = untemp[SOE_MONTH];
+	m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = untemp[SOE_YEAR];						
+
+		SendFrameTail_ZS(1, 0x03, SoeSendNum,0);
+	
+		//g_unSoeSendNum=RecSoeNum+1;
+		unsigned int unTTemp[4];
+		m_SendSoeAdr = m_SendSoeAdr&0x3ff0;
+		unTTemp[0]=pDbg->m_SSoeHeadPtr;unTTemp[1]=unTTemp[0];
+		unTTemp[2]=pGprs->m_SSoeHeadPtr;	unTTemp[3]=unTTemp[2];
+		CAT_SpiWriteWords(EEPADD_SOESEND_E2ROMADR,4, unTTemp);	
+		if(m_SSoeHeadPtr!=g_unSSoeSaveE2ROMPtr)
+			g_yxChangeflag |= m_SSoeBit;	
+		return TRUE;
+
+}
 BOOL CBJ101S::SendSoe(void)
 {
     BYTE Style = M_SP_TB, Reason = COT_SPONT;
@@ -2885,7 +2965,7 @@ BOOL CBJ101S::SendFrameTail_ZS(BYTE PRM, BYTE dwCode, BYTE Num,BYTE EncType)
 		pSendFrame->Frame68.Control = dwCode+0x80; //控制字
 	else
 		pSendFrame->Frame68.Control = dwCode+0xc0; //控制字
-    //pSendFrame->Frame68.Data[m_guiyuepara.linkaddrlen+m_guiyuepara.typeidlen] = Num;//ASDU长度,舟山为SEQ
+    pSendFrame->Frame68.Data[7] = Num;//ASDU长度,舟山为SEQ
 
     m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = (BYTE)ChkSum((BYTE *)&pSendFrame->Frame68.Control, pSendFrame->Frame68.Length1);
     m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0x16;
@@ -3639,26 +3719,17 @@ BOOL CBJ101S::SendReqTime(void)
 {
     BYTE Style = 0x7A;
     BYTE Reason = 0x05;
-    BYTE PRM = 1;
+    BYTE PRM = 0;
     BYTE dwCode = 3;
     BYTE Num = 1;
 
-	SendFrameHead(Style, Reason);
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[0];//pData[i];
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[1];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[2];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[3];
+	SendFrameHead_ZS(Style, Reason);
+
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0xa0;
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0xba;
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0x07;
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = (g_sRtcManager.m_gRealTimer[RTC_MICROSEC]+g_sRtcManager.m_gRealTimer[RTC_SEC]*1000)&0xff;;
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = (g_sRtcManager.m_gRealTimer[RTC_MICROSEC]+g_sRtcManager.m_gRealTimer[RTC_SEC]*1000)>>8;;
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_sRtcManager.m_gRealTimer[RTC_MINUT];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_sRtcManager.m_gRealTimer[RTC_HOUR];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_sRtcManager.m_gRealTimer[RTC_DATE];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_sRtcManager.m_gRealTimer[RTC_YEAR]-2000;
-	SendFrameTail(PRM, dwCode, Num,0);
+	write_time();
+	SendFrameTail_ZS(PRM, dwCode, Num,0);
     return TRUE;
 }
 //舟山，主站对时
