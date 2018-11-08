@@ -817,7 +817,7 @@ unsigned int operate14(unsigned int unCommPortIndex)
     else
     {
         g_gRunPara[RP_COMM_ADDR]=(unsigned int)(g_unRX_Buff[unCommPortIndex][2] << 8) + g_unRX_Buff[unCommPortIndex][1];     
-        g_ucParaChang |= BIT0;    //站名称、站地址修改      
+        g_ucParaChang |= BIT0;    //站名称、站地址修改啊      
     } 	 	 	
     g_sTxBuff[0].m_gBuffer[0]=0x68;      ////////信号发送中
     g_sTxBuff[0].m_gBuffer[1]=0x03;
