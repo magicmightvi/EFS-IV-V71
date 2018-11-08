@@ -308,6 +308,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		void write_time3();
 		BOOL RecCallAllStop(void);
 		BOOL SendDYXGroup(WORD GroupNo, BYTE Reason);
+		BOOL SendtimeAck_ZS(void);
 		BOOL SendtimeAck(void);
 		BOOL SendtimeReq(void);
 		BOOL SenddelayeAck(void);

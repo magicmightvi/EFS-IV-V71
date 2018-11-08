@@ -1589,11 +1589,20 @@ void CBJ101S::DoCommSendIdle(void)
       if(m_timeflag)
       {
         m_timeflag=0;
+		if(g_ucPara101[IECP_101_STY]==1)
+			{
+			SendtimeAck_ZS();
+			m_zdflag = 0;
+          	return ;
+			}
+		else
+			{
         if(SendtimeAck())
         {
           m_zdflag = 0;
           return ;
         }
+			}
       }
      if(m_timeREQflag)
       {
@@ -2020,6 +2029,23 @@ BOOL CBJ101S::SendCallgroup(void)
 
     
     
+}
+BOOL CBJ101S::SendtimeAck_ZS(void)
+{
+    BYTE Style = 0x7a, Reason = 6;
+    BYTE PRM = 0, dwCode = 8, Num = 1;
+        m_acdflag=0;
+    SendFrameHead_ZS(Style, Reason);
+    write_infoadd(0xa0ba);
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 7;
+    write_time();
+	write_infoadd(0xa0b9);
+	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 7;
+    write_time();
+    //if(SwitchToAddress(m_dwasdu.LinkAddr))
+      SendFrameTail_ZS(PRM, dwCode, Num,0);
+
+    return TRUE;
 }
 
 //时间同步ACK回复

@@ -587,7 +587,7 @@ extern unsigned int g_test;
 	unsigned char m_bUnitRandom[8];   //终端自身随机数，用于与运维工具通信
 	int g_wEncCerWPtr;				   //Cer证书记录位?
 	char g_bUnitID[1];//终端ID,24字节第一个字是节长度	 
-	unsigned char g_bAppType;//加密报文应用类型
+	unsigned char g_bAppType=0;//加密报文应用类型
 	//char g_pDevId[30]="12345678901234567890123456789";
 #else
     extern struct  sTX_BUFF g_sTxBuff[COMM_PORT_NUM];
