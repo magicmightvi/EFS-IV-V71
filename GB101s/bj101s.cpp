@@ -3783,7 +3783,7 @@ BOOL CBJ101S::RecSetClock_zs(void)
 		SendERRPassWord_ZS();
 		return TRUE;
 		}
-	if((pData[0]!=0xA0)||(pData[1]!=0xBA))
+	if((pData[4]!=0xA0)||(pData[5]!=0xBA))
 		return FALSE;//舟山设置其他参数，不回应
 	pData=&pReceiveFrame->Frame68.Data[26];//6地址+1类型标识+1SEQ+1传输原因
 										 //4密码

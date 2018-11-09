@@ -1483,10 +1483,10 @@ _EINT();//开总中断// 张弢测试中断嵌套
                             }      ///////闭锁时间到，有效8脉冲也要复归
                         }
                 ///////////闭锁17分钟 
-                if((g_GPRSSendLink  < 10)&&(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_AUTOLINK]))
+                if((g_GPRSSendLink  < 60)&&(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_AUTOLINK]))
                 {
                   g_GPRSSendLink ++;
-                  if(g_GPRSSendLink  == 10)
+                  if(g_GPRSSendLink  == 60)
                      g_GPRSSendLink  = ON;
                 } 
 		 if((g_GPRSSendLink  > 60)&&(g_GPRSSendLink  !=ON)&&(g_GPRSSendLink  !=OFF))
