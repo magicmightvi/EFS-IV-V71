@@ -1720,7 +1720,9 @@ void CBJ101S::DoCommSendIdle(void)
         if(g_SendChgYcFlag)
         {
           g_SendChgYcFlag = 0;
-            if(SendChangeYC())
+		  if(g_ucPara101[IECP_101_STY]==1)//舟山101,不发变化遥测
+		  	return;
+          if(SendChangeYC())
             {
                ; 
             }
