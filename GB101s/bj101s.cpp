@@ -626,10 +626,10 @@ BOOL CBJ101S::RecFrame68(void)
             m_zdflag=0;
             break;
 	   case 0x96://舟山修改密码	
-	   		RecYSPassWord();
+	   		RecYSPassWord_ZS();
 	   		break;
 	   case 0x97://舟山修改密文	
-	   		RecYSCiPHer();
+	   		RecYSCiPHer_ZS();
 	   		break;
 //          case 200://远程升级
 //          case 203:
@@ -3718,7 +3718,7 @@ BOOL CBJ101S::RecCallClass2(void)
       return TRUE; //远方链路状态完好或召唤二级用户数据
 }
 //发送总召唤结束帧
-BOOL CBJ101S::SendERRPassWord(void)
+BOOL CBJ101S::SendERRPassWord_ZS(void)
 {
     BYTE Style = 0x95;
     BYTE Reason = 0x07;
@@ -3727,12 +3727,8 @@ BOOL CBJ101S::SendERRPassWord(void)
     BYTE Num = 1;
     //m_acdflag=0;
 
-    SendFrameHead(Style, Reason);
- 	//write_infoadd(wInfoAddr);//信息体地址   	
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[0];//pData[i];
-    m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[1];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[2];
-	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = g_gCiPHer_ZS[3];
+    SendFrameHead_ZS(Style, Reason);
+ 	//write_infoadd(wInfoAddr);//信息体地址     
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0;
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0xFF;
@@ -3740,7 +3736,7 @@ BOOL CBJ101S::SendERRPassWord(void)
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0xFF;
 	m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0xFF;
 
-    SendFrameTail(PRM, dwCode, Num,0);
+    SendFrameTail_ZS(PRM, dwCode, Num,0);
     return TRUE;
 }
 //舟山，请求对时
@@ -3771,7 +3767,7 @@ BOOL CBJ101S::RecSetClock_zs(void)
 	if((g_gPassWord_ZS[0]!=pData[0])||(g_gPassWord_ZS[1]!=pData[1])
     	||(g_gPassWord_ZS[2]!=pData[2])||(g_gPassWord_ZS[3]!=pData[3]))
 		{//密码错误
-		SendERRPassWord();
+		SendERRPassWord_ZS();
 		return TRUE;
 		}
 
@@ -3807,7 +3803,7 @@ BOOL CBJ101S::RecSetClock_zs(void)
 }
 
 //修改密码处理
-BOOL CBJ101S::RecYSPassWord(void)
+BOOL CBJ101S::RecYSPassWord_ZS(void)
 {
 	BYTE *pData = &pReceiveFrame->Frame68.Data[15];//从信息体地址后边开始取数，这里可不关心信息体地址
 	g_gPassWord_ZS[0]=pData[0];g_gPassWord_ZS[1]=pData[1];
@@ -3816,7 +3812,7 @@ BOOL CBJ101S::RecYSPassWord(void)
 	//修改密码，不做密码判断
 	/*if(0)
 		{//密码错误
-		SendERRPassWord();
+		SendERRPassWord_ZS();
 		return TRUE;
 		}
 	else
@@ -3836,14 +3832,14 @@ BOOL CBJ101S::RecYSPassWord(void)
 	return TRUE;
 }
 //修改密文处理
-BOOL CBJ101S::RecYSCiPHer(void)
+BOOL CBJ101S::RecYSCiPHer_ZS(void)
 {
-	BYTE *pData = &pReceiveFrame->Frame68.Data[15];//从信息体地址后边开始取数，这里可不关心信息体地址
+	BYTE *pData = &pReceiveFrame->Frame68.Data[9];//从信息体地址后边开始取数，这里可不关心信息体地址
 	
 	if((g_gPassWord_ZS[0]!=pData[0])||(g_gPassWord_ZS[1]!=pData[1])
     	||(g_gPassWord_ZS[2]!=pData[2])||(g_gPassWord_ZS[3]!=pData[3]))
 		{//密码错误
-		SendERRPassWord();
+		SendERRPassWord_ZS();
 		return TRUE;
 		}
 	else
