@@ -468,6 +468,8 @@ BOOL CBJ101S::RecFrame68(void)
     {
         case 0x2D:
         case 0x2E:
+			if(g_ucPara101[IECP_101_STY]==1)//舟山不遥控
+				break;//舟山不遥控，跳出
 #ifdef YN_101S
 	     if(m_uartId == 2)
 	     	{
@@ -592,6 +594,8 @@ BOOL CBJ101S::RecFrame68(void)
         case 0x88://136 云南录波协议  读目录
         case 0x89://137 云南录波协议  读文件	
         case 0x8a://138 云南录波协议  补包
+        	if(g_ucPara101[IECP_101_STY]==1)//舟山不遥控
+				break;//舟山不遥控，跳出
             if(m_dwasdu.Info ==26882)
               RecReadFile();
             else
@@ -3777,7 +3781,8 @@ BOOL CBJ101S::RecSetClock_zs(void)
 		SendERRPassWord_ZS();
 		return TRUE;
 		}
-
+	if((pData[0]!=0xA0)||(pData[1]!=0xBA))
+		return FALSE;//舟山设置其他参数，不回应
 	pData=&pReceiveFrame->Frame68.Data[26];//6地址+1类型标识+1SEQ+1传输原因
 										 //4密码
 										 //2信息体地址+1长度+7时间
