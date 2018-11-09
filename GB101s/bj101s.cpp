@@ -1008,6 +1008,13 @@ BOOL CBJ101S::SendCallAllStartAck(void)
 BOOL CBJ101S::SendCallAllStartAck_ZS(void)
 {
     BYTE PRM = 0, dwCode = 0,Num = 0;
+	BYTE *pData=&pReceiveFrame->Frame68.Data[9];//6地址+1类型标识+1SEQ+1传输原因
+	if((g_gPassWord_ZS[0]!=pData[0])||(g_gPassWord_ZS[1]!=pData[1])
+    	||(g_gPassWord_ZS[2]!=pData[2])||(g_gPassWord_ZS[3]!=pData[3]))
+		{//密码错误
+		SendERRPassWord_ZS();
+		return TRUE;
+		}
     SendFrameHead_ZS(C_IC_NA, 7);      /*广西测试组召插遥控出现重复遥控确认*/
     write_infoadd(0);
     m_SendBuf.pBuf[ m_SendBuf.wWritePtr++ ] = 0x14;//m_ztype;
