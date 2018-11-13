@@ -284,14 +284,14 @@ void ProtStart(void)
 		g_sRecData.m_ucFaultRecStart = ON;//∆Ù∂Øπ ’œ¬º≤®
 		g_sRecData.m_LuboType = LuboType_EARTH;			
       	}
-     if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+     /*if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
 	 	&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(fault_end==0x55)
 	 	&&(fault_lubo==0x55)) //////π ’œ“—æ≠ª÷∏¥
   		{
   		fault_lubo=0;
 		g_sRecData.m_ucFaultRecStart = ON;//∆Ù∂Øπ ’œª÷∏¥¬º≤®
 		g_sRecData.m_LuboType = SREC_EARTH_RST;			
-      	}    
+      	} */   
 }
 //==============================================================================
 //  ∫Ø ˝√˚≥∆   : PulseReady

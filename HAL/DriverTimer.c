@@ -1264,6 +1264,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
                 else if(fault_end==0x55)      //////////故障复归   	 
                 	{
                     //g_sRecData.m_ucFaultRecStart = OFF;
+                    fault_lubo=0;
                     fault_end=0;
                     fault_begin=0;
                     if(fault_time<=5)

@@ -4032,7 +4032,7 @@ BOOL CBJ101S::ExecuteYKOrder(unsigned int YkNo,unsigned int Val)
     if(chYkPa == 1)
     {
       if(Val) 
-      	{
+      	{/*
       	if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)&&(g_sRecData.m_ucFaultRecStart == OFF))
       		{
       		g_sRecData.m_ucRecSavingFlag = YES; //置标志要求保存到FLASH中
@@ -4045,7 +4045,7 @@ BOOL CBJ101S::ExecuteYKOrder(unsigned int YkNo,unsigned int Val)
             g_sRecData.m_gFaultRecOver[REC_DAY] = g_sRtcManager.m_gRealTimer[RTC_DATE];
             g_sRecData.m_gFaultRecOver[REC_MONTH] = g_sRtcManager.m_gRealTimer[RTC_MONTH];
             g_sRecData.m_gFaultRecOver[REC_YEAR] = (g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000);				
-      		}
+      		}*/
       	}
         //DO00_ON;
       //else 
