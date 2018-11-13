@@ -221,12 +221,13 @@ struct sSAMPLE_DATA
 	//unsigned int g_gRmtMeas[RMT_MEAS_NUM];//遥测量，保存需要上传到后台的遥测数据 = 开方(g_gProcMeas/16) * 0.6944
 	long g_gProcMeas_AC_R[6];
 	long g_gProcMeas_AC_I[6];
+	unsigned long g_gRmtDft[6];
 	unsigned int g_gRmAcFilt[RMT_MEAS_NUM][RM_FILTER_NUM];//遥测量中的交流测量数据滤波 添加了3个线电压，但AD通道数不变，所以此处AC_AD_CHAN_NUM + 3
         unsigned int g_unFilterIndex = 0;   //交流测量数据滤波数据保存的位置
         volatile unsigned int g_unRmCaluFlag;    //遥测运算标志, 在1.25ms中断中置ON，在1ms中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
         volatile unsigned int g_unTESTFlag; 
 		volatile unsigned int g_unUABCaluFlag;	//遥测运算标志, 在50ms中断中置ON，在大循环中置OFF，
-  	//unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量，为采样值的平方*16 最大值为(2048*2048/2*16)
+  	unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量，为采样值的平方*16 最大值为(2048*2048/2*16)
         //unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量，包括内部遥信量
 
 	unsigned int  g_SendLuboNum;
@@ -319,8 +320,9 @@ extern unsigned int g_test;
     extern struct sSOE_DATA g_sSoeData;    
 	extern struct sLOG_DATA g_sLogData[MAX_LOG_NUM];//LOG数据
   	//extern unsigned int g_gRmtMeas[RMT_MEAS_NUM];//遥测量，保存需要上传到后台的遥测数据
+  	extern unsigned long g_gRmtDft[6];
         extern unsigned int g_gRmAcFilt[RMT_MEAS_NUM][RM_FILTER_NUM];//遥测量中的交流测量数据滤波 添加了3个线电压，但AD通道数不变，所以此处AC_AD_CHAN_NUM + 3
-	//extern unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量
+	extern unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量
        // extern unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量，包括内部遥信量   
        extern volatile unsigned int g_unRmCaluFlag;    //遥测运算标志, 在中断中置ON，在大循环中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
        extern volatile unsigned int g_unTESTFlag;
@@ -394,6 +396,7 @@ extern unsigned int g_test;
         unsigned int g_gProcCnt[PROC_CNT_NUM];//保护定值，保存保护动作需要用到的定值
         //unsigned int g_gETHProcCnt[24];
         unsigned int g_gProcCntJug[27];       //用于判断的计算后的保护定值
+        unsigned long g_gProcCntJug1[6];       //用于判断的计算后的保护定值
         //unsigned long g_gProcCntJug_I0[3];       //用于过载判断的计算后的保护定值
         unsigned int g_gOverLoadTimeNum;     //用于过载计时，时间以1.25ms基准
         unsigned int g_gOverLoadFlg;        //过载标志 ON 为过载
@@ -453,6 +456,7 @@ extern unsigned int g_test;
                 extern unsigned int g_gProcCnt[PROC_CNT_NUM];//保护定值，保存保护动作需要用到的定值
         //extern unsigned int g_gETHProcCnt[24];
         extern unsigned int g_gProcCntJug[27];       //用于判断的计算后的保护定值
+        extern unsigned long g_gProcCntJug1[6];       //用于判断的计算后的保护定值
         //extern unsigned long g_gProcCntJug_I0[3];       //用于过载判断的计算后的保护定值
         extern unsigned int g_gOverLoadTimeNum;     //用于过载计时，时间以1.25ms基准
         extern unsigned int g_gOverLoadFlg;        //过载标志 ON 为过载

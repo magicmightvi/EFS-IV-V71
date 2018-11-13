@@ -1120,6 +1120,13 @@ void CalcProtCnt(void)
     for(i = 0; i <= PROC_CNT_NUM; i++)
         g_gProcCnt[i] = g_gRunPara[i + RP_UA_ADJ];
 //#ifdef YN_101S
+    g_gProcCntJug1[PC1_HIGH_P] = g_gProcCnt[PC_HIGH_P] ;                //相电压高定值
+    g_gProcCntJug1[PC1_LOW_P] = g_gProcCnt[PC_LOW_P];                //相电压低定值
+    g_gProcCntJug1[PC1_HIGH_Z] = g_gProcCnt[PC_HIGH_Z];          //零序电压高定值
+    g_gProcCntJug1[PC1_LOW_Z] = g_gProcCnt[PC_LOW_Z];          //零序电压低定值   
+    g_gProcCntJug1[PC1_PULSE_VALID] = g_gProcCnt[PC_PULSE_VALID]/10;//线电压高定值
+
+
     g_gProcCntJug[PC_HIGH_P] = g_gProcCnt[PC_HIGH_P] ;                //相电压高定值
     g_gProcCntJug[PC_LOW_P] = g_gProcCnt[PC_LOW_P];                //相电压低定值
     g_gProcCntJug[PC_HIGH_Z] = g_gProcCnt[PC_HIGH_Z];          //零序电压高定值

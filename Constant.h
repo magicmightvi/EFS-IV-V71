@@ -594,6 +594,12 @@ typedef double         FP64;            //双精度浮点数
 #define PC_OVERLOAD_I           26
 #define PC_OVERLOAD_T           27
 
+#define PC1_HIGH_P           0               //相电压高定值
+#define PC1_LOW_P            1               //相电压低定值
+#define PC1_HIGH_Z           2         //零序电压高定值
+#define PC1_LOW_Z            3          //零序电压低定值
+#define PC1_PULSE_VALID		4
+
 /*
 #define RP_ETH_MODEL            20      //以太网方式 0：SERVER   1：CLIENT
 #define	RP_G_IP_1               21		//网关IP1~4

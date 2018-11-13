@@ -420,6 +420,43 @@ unsigned int ComputeMin(unsigned int x,unsigned int y,unsigned int z)//¼ÆËã×îĞ¡Ö
 
     return result;
 }
+const static int real[32]={ 8192,8035,7568,6811,5793,4551,3135,1598,
+0,-1598,-3135,-4551,-5793,-6811,-7568,-8035,
+-8192,-8035,-7568,-6811,-5793,-4551,-3135,-1598,
+0,1598,3135,4551,5793,6811,7568,8035
+} ; 
+
+const int img[32]={ 0,-1598,-3135,-4551,-5793,-6811,-7568,-8035,
+-8192,-8035,-7568,-6811,-5793,-4551,-3135,-1598,
+0,1598,3135,4551,5793,6811,7568,8035,
+8192,8035,7568,6811,5793,4551,3135,1598
+} ; 
+static unsigned char TableIndex=0;
+unsigned long CalcuDft(unsigned char AdcChannel)
+{
+	//LED_RUN_TOGG;
+    //unsigned char n;
+    //int tAdcData,
+    int m,n;
+    long r = 0;
+    long i = 0;
+    unsigned long result=0; 
+	unsigned int tail;
+
+	tail=g_sSampleData.m_unAcDataTail;
+	m = g_sSampleData.m_gAcAdcData[AdcChannel][tail& 0x1F];
+	n = g_sSampleData.m_gAcAdcData[AdcChannel][(tail-AC_SAMPLE_DOTS)& 0x1F];
+	
+	g_gProcMeas_AC_R[AdcChannel] += (long)real[2*TableIndex]*(m-n);		
+	g_gProcMeas_AC_I[AdcChannel] += (long)img[2*TableIndex]*(m-n);
+	r = g_gProcMeas_AC_R[AdcChannel]>>13;//R
+	i = g_gProcMeas_AC_I[AdcChannel]>>13;//I	
+	result = (r * r + i * i);//IÆ½·½+ RÆ½·½	
+    //LED_RUN_TOGG;
+    return result;
+    
+}
+
 //==============================================================================
 //  º¯ÊıÃû³Æ   : CalcuProtMeas
 //  ¹¦ÄÜÃèÊö   : ¾ù·Ö¸ù¼ÆËã,¼ÆËã½á¹û±£´æµ½±£»¤µçÁ¿ÖĞ(Îª¿ª·½Ö®Ç°µÄÊı¾İ)
@@ -429,11 +466,28 @@ unsigned int ComputeMin(unsigned int x,unsigned int y,unsigned int z)//¼ÆËã×îĞ¡Ö
 //  ÆäËûËµÃ÷   : 
 //  ×÷Õß       : ÁÖÖĞÒ»
 //==============================================================================
-/*
+
 void CalcuProtMeas(void)
 {
-
-   // unsigned int i;
+	unsigned char i;
+	//unsigned long tDft;
+	for(i = 0; i < 6/*RMT_MEAS_NUM -1*/ ; i++)//Ìí¼ÓÁËUAB,UBC,UCAÈıÏßµçÑ¹£¬iµÄÉÏÏŞ=PM_UCA
+	{
+		if(i == CHAN_I0)
+			g_gProcMeas[RM_I0] = (CalcuDft(i) >> 3);
+		if(i == CHAN_U0)
+			g_gProcMeas[RM_U0] = (CalcuDft(i) >> 3);
+		if(i == CHAN_UA)
+			g_gProcMeas[RM_UA] = (CalcuDft(i) >> 3);
+		if(i == CHAN_UB)
+			g_gProcMeas[RM_UB] = (CalcuDft(i) >> 3);
+		if(i == CHAN_UC)
+			g_gProcMeas[RM_UC] = (CalcuDft(i) >> 3);
+		if(i == CHAN_Upt)
+			g_gProcMeas[RM_UPt] = (CalcuDft(i) >> 3);
+	}
+}
+ /*  // unsigned int i;
     long m,n,m1,n1,m2,n2,m3,n3;
    // unsigned long l = 0;
     unsigned int AddIndex, RemoveIndex;
@@ -476,18 +530,7 @@ void CalcuProtMeas(void)
     g_unRmCaluFlag = ON;    //Ò£²âÊı¾İ¸üĞÂÁË£¬¿ÉÒÔ½øĞĞÒ£²âÁ¿µÄÔËËã
 }
 */
-const static int real[32]={ 8192,8035,7568,6811,5793,4551,3135,1598,
-0,-1598,-3135,-4551,-5793,-6811,-7568,-8035,
--8192,-8035,-7568,-6811,-5793,-4551,-3135,-1598,
-0,1598,3135,4551,5793,6811,7568,8035
-} ; 
 
-const int img[32]={ 0,-1598,-3135,-4551,-5793,-6811,-7568,-8035,
--8192,-8035,-7568,-6811,-5793,-4551,-3135,-1598,
-0,1598,3135,4551,5793,6811,7568,8035,
-8192,8035,7568,6811,5793,4551,3135,1598
-} ; 
-static unsigned char TableIndex=0;
 
 //===============================  
 // ¹¦ÄÜÃèÊö   : ¸ù¾İ¸µÀïÒ¶Ëã·¨¼ÆËã»ñµÃÓĞĞ§Öµ
@@ -523,30 +566,7 @@ unsigned long CalcuDft(unsigned char AdcChannel)
     
 }
 */
-unsigned long CalcuDft(unsigned char AdcChannel)
-{
-	//LED_RUN_TOGG;
-    //unsigned char n;
-    //int tAdcData,
-    int m,n;
-    long r = 0;
-    long i = 0;
-    unsigned long result=0; 
-	unsigned int tail;
 
-	tail=g_sSampleData.m_unAcDataTail;
-	m = g_sSampleData.m_gAcAdcData[AdcChannel][tail& 0x1F];
-	n = g_sSampleData.m_gAcAdcData[AdcChannel][(tail-AC_SAMPLE_DOTS)& 0x1F];
-	
-	g_gProcMeas_AC_R[AdcChannel] += (long)real[2*TableIndex]*(m-n);		
-	g_gProcMeas_AC_I[AdcChannel] += (long)img[2*TableIndex]*(m-n);
-	r = g_gProcMeas_AC_R[AdcChannel]>>13;//R
-	i = g_gProcMeas_AC_I[AdcChannel]>>13;//I	
-	result = (r * r + i * i);//IÆ½·½+ RÆ½·½	
-    //LED_RUN_TOGG;
-    return result;
-    
-}
 
 //==============================================================================
 //  º¯ÊıÃû³Æ   : CalcuRmtMeas
