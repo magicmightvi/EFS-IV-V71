@@ -1509,8 +1509,8 @@ void CProtocol::SendReadPa(WORD FileName,BYTE SecName)
            {
               m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gEFSID[i];
            }
-		wPaTotalNum = g_gEFSVERLen;//strlen(EFS_Ver);
-		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] =g_gEFSVERLen; wPaSendNum++;
+		wPaTotalNum = strlen((char *)g_gEFSVER);
+		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] =wPaTotalNum; wPaSendNum++;
            for(i = 0;i < wPaTotalNum;i++,wPaSendNum++)
            {
               m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gEFSVER[i];
@@ -1534,8 +1534,8 @@ void CProtocol::SendReadPa(WORD FileName,BYTE SecName)
 			case 0x7201://ÀëÉ¢¶ÁÈí¼þ°æ±¾
 				m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 1;
 				m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = 0x72;
-				wPaTotalNum = g_gEFSVERLen;//strlen(EFS_Ver);
-				m_SendBuf.pBuf[m_SendBuf.wWritePtr++] =g_gEFSVERLen; wPaSendNum++;
+				wPaTotalNum = strlen((char *)g_gEFSVER);
+				m_SendBuf.pBuf[m_SendBuf.wWritePtr++] =wPaTotalNum; wPaSendNum++;
            		for(k = 0;k < wPaTotalNum;k++,wPaSendNum++)
            			{
               		m_SendBuf.pBuf[m_SendBuf.wWritePtr++] = g_gEFSVER[k];

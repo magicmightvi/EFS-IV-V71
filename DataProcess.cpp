@@ -636,16 +636,21 @@ void CalcuRmtMeas(void)
 }
 void CalcuUABRmtMeas(void)
 {
-	//unsigned int i;
-	//unsigned int TempRm = 0;
-	static unsigned char pjno=0;
-	unsigned long tDft,a,b,c;
+	static unsigned char pjno=0;	
 
 	if(g_unUABCaluFlag != ON)
 		{return;}
 	else
 		{g_unUABCaluFlag = OFF;}
 
+	g_gRmtMeasPJ[0][pjno]=g_gRmtFilMeas[1];
+	g_gRmtMeasPJ[1][pjno]=g_gRmtFilMeas[2];
+	g_gRmtMeasPJ[2][pjno]=g_gRmtFilMeas[3];
+	pjno++;
+	if(pjno>31)pjno=0;
+/* //不计算线电压
+	unsigned long tDft,a,b,c;
+	
 	a=(unsigned long)g_gRmtFilMeas[RM_UA];//g_gRmAcFilt[RM_UA][g_unFilterIndex];
 	b=(unsigned long)g_gRmtFilMeas[RM_UB];//g_gRmAcFilt[RM_UB][g_unFilterIndex];
 	c=(unsigned long)g_gRmtFilMeas[RM_UC];//g_gRmAcFilt[RM_UC][g_unFilterIndex];
@@ -663,14 +668,10 @@ void CalcuUABRmtMeas(void)
 	//g_gRmAcFilt[RM_UCA][g_unFilterIndex]= table_sqrt(tDft);// * COEF_AD_U>> 14;
 	g_gRmtFilMeas[RM_UCA] = (unsigned long)table_sqrt(tDft);
 	g_gRmtMeas[RM_UCA] = g_gRmtFilMeas[RM_UCA];
-
-	g_gRmtMeasPJ[0][pjno]=g_gRmtFilMeas[1];
-	g_gRmtMeasPJ[1][pjno]=g_gRmtFilMeas[2];
-	g_gRmtMeasPJ[2][pjno]=g_gRmtFilMeas[3];
-	pjno++;
-	if(pjno>31)pjno=0;
-
+*/
 }
+
+
 void StartPTLuBo(unsigned char LuboType)
 {
 	if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
