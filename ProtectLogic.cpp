@@ -577,9 +577,9 @@ void ProtLogic(void)
 	  	if(((g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_NO_V]))
                 {
                 	phasea_off++;
-			if(phasea_off>30)
+			if(phasea_off>200)
 				{
-				phasea_off=30;
+				phasea_off=200;
                     phase_off|=BIT0;
                     g_gRmtInfo[YX_PHASE_OFF] = 1;
 		      g_gRmtInfo[YX_PHASEA_OFF] = 1;	
@@ -601,9 +601,9 @@ void ProtLogic(void)
 	  	if(((g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_NO_V]))
                 {
 			phaseb_off++;
-			if(phaseb_off>30)
+			if(phaseb_off>200)
 				{
-				phaseb_off = 30;
+				phaseb_off = 200;
 			phase_off|=BIT1;
                     g_gRmtInfo[YX_PHASE_OFF] = 1;
 		      g_gRmtInfo[YX_PHASEB_OFF] = 1;
@@ -625,9 +625,9 @@ void ProtLogic(void)
 	  	if(((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_NO_V]))
                 {
                 	phasec_off++;
-			if(phasec_off>30)
+			if(phasec_off>200)
 				{
-				phasec_off=30;
+				phasec_off=200;
                    		 phase_off|=BIT2;
                     		g_gRmtInfo[YX_PHASE_OFF] = 1;
 		      		g_gRmtInfo[YX_PHASEC_OFF] = 1;	
