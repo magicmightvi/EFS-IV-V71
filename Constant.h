@@ -376,7 +376,7 @@ typedef double         FP64;            //双精度浮点数
 #define I01A   5//I0=1A=1000mA,二次电流为50mA，
 #define I0JugTime   40//I0判定时间，发接触器信号后400ms
 //============================  保护电量        =======================================
-#define PROC_MEAS_NUM           8
+#define PROC_MEAS_NUM           9
 
 
 #define PM_U0                   0
@@ -387,6 +387,8 @@ typedef double         FP64;            //双精度浮点数
 #define PM_UBC                  5
 #define PM_UCA                  6
 #define PM_I0                   7       //零序电流
+#define PM_UPT                   7       //零序电流
+
 //============================  LOG日志        =======================================
 /*
 #define LOG_INFO_NUM            32

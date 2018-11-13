@@ -37,6 +37,160 @@ static unsigned char  phasec_off= 0;
 //  其他说明   : 
 //  作者       ： 
 //==============================================================================
+void ProtStart1(void)
+{
+    if(fault_time>0)                           /////////用于故障恢复
+    {  
+        if((g_gProcCnt[PC_JAG_Z]==0x55)&&(g_gProcCnt[PC_JAG_P]==0))  /////////用于故障恢复zero sequence in effective
+     	{
+     	    if(g_gProcMeas[RM_U0]<g_gProcCntJug1[PC1_LOW_Z])
+     	    {
+     	 	fault_begin=0;
+           	fault_end=0x55;
+              g_gRmtInfo[YX_EARTH_FAULT] = 0;
+			g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;
+			//g_gRmtInfo[YX_EARTH_TDELA]=0;//SaveLOG(LOG_EARTH_TDELAY,0);
+     	    }
+     	} 
+        else if((g_gProcCnt[PC_JAG_Z]==0)&&(g_gProcCnt[PC_JAG_P]==0x55))      //////////////////相故障判据  
+     	{		                                   
+            if((g_gProcMeas[RM_UA]>g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UA]<g_gProcCntJug1[PC1_HIGH_P])&&(g_gProcMeas[RM_UB]>g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UB]<g_gProcCntJug1[PC1_HIGH_P])&&(g_gProcMeas[RM_UC]>g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UC]<g_gProcCntJug1[PC1_HIGH_P])) /////////复归   单相接地判据
+       	    { 	
+                fault_begin=0;
+                fault_end=0x55;
+                g_gRmtInfo[YX_EARTH_FAULT] = 0;
+		  		g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;	
+		  		//g_gRmtInfo[YX_EARTH_TDELA]=0;//SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
+                //g_gRmtInfo[0] &= ~(YX_PHASEA_FAULT + YX_PHASEB_FAULT + YX_PHASEC_FAULT);
+            }     
+       	}    
+        else if((g_gProcCnt[PC_JAG_Z]==0x55)&&(g_gProcCnt[PC_JAG_P]==0x55))      //////////////////相故障判据  
+        {
+            if(((g_gProcMeas[RM_UA]>g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UA]<g_gProcCntJug1[PC1_HIGH_P])&&(g_gProcMeas[RM_UB]>g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UB]<g_gProcCntJug1[PC1_HIGH_P])&&(g_gProcMeas[RM_UC]>g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UC]<g_gProcCntJug1[PC1_HIGH_P]))||(g_gProcMeas[RM_U0]<g_gProcCntJug1[PC1_LOW_Z])) /////////复归   单相接地判据
+       	    { 	
+                fault_begin=0;
+                fault_end=0x55;
+                g_gRmtInfo[YX_EARTH_FAULT] = 0;
+		 		g_gRmtInfo[YX_AEARTH_FAULT] = 0;g_gRmtInfo[YX_BEARTH_FAULT] = 0;g_gRmtInfo[YX_CEARTH_FAULT] = 0;
+		 		//g_gRmtInfo[YX_EARTH_TDELA]=0;//SaveLOG(LOG_EARTH,0);SaveLOG(LOG_EARTH_TDELAY,0);
+                //g_gRmtInfo[0] &= ~(YX_PHASEA_FAULT + YX_PHASEB_FAULT + YX_PHASEC_FAULT);
+            }     
+       	 }  
+    }
+          
+    if((g_gProcCnt[PC_JAG_Z]==0x55)&&(g_gProcCnt[PC_JAG_P]==0)) 	       ///////////////零序判据 	  	 
+    {
+        if((fault_save==0)&&(fault_time<g_gProcCnt[PC_T_DELAY]))
+        {	
+            if(g_gProcMeas[RM_U0]>g_gProcCntJug1[PC1_HIGH_Z])      //////检测到零序高电压，报故障
+            {
+           	 fault_begin=0x55;
+           	 fault_end=0;	
+			 //SaveLOG(LOG_EARTH,1);
+			 if((g_gProcMeas[RM_UA]<g_gProcMeas[RM_UB])&&(g_gProcMeas[RM_UA]<g_gProcMeas[RM_UC]))
+			 	{
+			 	fault_pluse =RM_UA;
+			 	}
+			 else if((g_gProcMeas[RM_UB]<g_gProcMeas[RM_UA])&&(g_gProcMeas[RM_UB]<g_gProcMeas[RM_UC]))
+			 	{
+			 	fault_pluse =RM_UB;
+			 	}
+			 else if((g_gProcMeas[RM_UC]<g_gProcMeas[RM_UA])&&(g_gProcMeas[RM_UC]<g_gProcMeas[RM_UB]))
+			 	{
+			 	fault_pluse =RM_UC;
+			 	}
+            }              	 		
+        }	
+    }
+    else if((g_gProcCnt[PC_JAG_Z]==0)&&(g_gProcCnt[PC_JAG_P]==0x55))      //////////////////相故障判据  
+    {
+        if((fault_save==0)&&(fault_time<g_gProcCnt[PC_T_DELAY]))
+        {	
+            if(((g_gProcMeas[RM_UA]<g_gProcCntJug1[PC1_LOW_P])&&((g_gProcMeas[RM_UB]>g_gProcCntJug1[PC1_HIGH_P])||(g_gProcMeas[RM_UC]>g_gProcCntJug1[PC1_HIGH_P]))) /////////A相电压   单相接地判据
+				||((g_gProcMeas[RM_UA]<g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UA]<g_gProcMeas[RM_UB])&&(g_gProcMeas[RM_UA]<g_gProcMeas[RM_UC])
+					&&((g_gProcMeas[RM_UB]>g_gProcCntJug1[PC1_LOW_P])||(g_gProcMeas[RM_UC]>g_gProcCntJug1[PC1_LOW_P]))
+					&&(g_gDebugP[Debug_SRECJU2]==0x55)))
+			{ 	
+                fault_begin=0x55;
+		  		fault_pluse =RM_UA;
+           		fault_end=0;
+				//SaveLOG(LOG_EARTH,1);
+            }     
+            else if(((g_gProcMeas[RM_UB]<g_gProcCntJug1[PC1_LOW_P])&&((g_gProcMeas[RM_UA]>g_gProcCntJug1[PC1_HIGH_P])||(g_gProcMeas[RM_UC]>g_gProcCntJug1[PC1_HIGH_P]))) ////////B相电压   单相接地判据
+				||((g_gProcMeas[RM_UB]<g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UB]<g_gProcMeas[RM_UA])&&(g_gProcMeas[RM_UA]<g_gProcMeas[RM_UC])
+					&&((g_gProcMeas[RM_UA]>g_gProcCntJug1[PC1_LOW_P])||(g_gProcMeas[RM_UC]>g_gProcCntJug1[PC1_LOW_P]))
+					&&(g_gDebugP[Debug_SRECJU2]==0x55)))
+			{ 	
+    	 		fault_begin=0x55;
+				fault_pluse =RM_UB;	
+    	 		fault_end=0;
+				//SaveLOG(LOG_EARTH,1);
+    	    }    
+	    	else if(((g_gProcMeas[RM_UC]<g_gProcCntJug1[PC1_LOW_P])&&((g_gProcMeas[RM_UB]>g_gProcCntJug1[PC1_HIGH_P])||(g_gProcMeas[RM_UA]>g_gProcCntJug1[PC1_HIGH_P]))) /////////C相电压   单相接地判据
+					||((g_gProcMeas[RM_UC]<g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UC]<g_gProcMeas[RM_UB])&&(g_gProcMeas[RM_UC]<g_gProcMeas[RM_UA])
+						&&((g_gProcMeas[RM_UA]>g_gProcCntJug1[PC1_LOW_P])||(g_gProcMeas[RM_UB]>g_gProcCntJug1[PC1_LOW_P]))
+						&&(g_gDebugP[Debug_SRECJU2]==0x55)))
+				{ 	
+    	 		fault_begin=0x55;
+				fault_pluse =RM_UC;	
+    	 		fault_end=0;
+				//SaveLOG(LOG_EARTH,1);
+    	  		}     
+        }         
+    }       	
+    else if((g_gProcCnt[PC_JAG_Z]==0x55)&&(g_gProcCnt[PC_JAG_P]==0x55))     /////////相和零序同时做判据	 
+    { 
+        if((fault_save==0)&&(fault_time<g_gProcCnt[PC_T_DELAY]))
+        {	         	 	
+            if(((g_gProcMeas[RM_UA]<g_gProcCntJug1[PC1_LOW_P])&&((g_gProcMeas[RM_UB]>g_gProcCntJug1[PC1_HIGH_P])||(g_gProcMeas[RM_UC]>g_gProcCntJug1[PC1_HIGH_P]))&&(g_gProcMeas[RM_U0]>g_gProcCntJug1[PC1_HIGH_Z])) /////////A相电压   单相接地判据
+            	||((g_gProcMeas[RM_UA]<g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UA]<g_gProcMeas[RM_UB])&&(g_gProcMeas[RM_UA]<g_gProcMeas[RM_UC])
+					&&((g_gProcMeas[RM_UB]>g_gProcCntJug1[PC1_LOW_P])||(g_gProcMeas[RM_UC]>g_gProcCntJug1[PC1_LOW_P]))
+					&&(g_gDebugP[Debug_SRECJU2]==0x55)&&(g_gProcMeas[RM_U0]>g_gProcCntJug1[PC1_HIGH_Z])))
+       	    	{ 	
+           	 	fault_begin=0x55;
+			 	//SaveLOG(LOG_EARTH,1);
+				fault_pluse =RM_UA;	 
+           	 	fault_end=0;
+            	}       
+            else if(((g_gProcMeas[RM_UB]<g_gProcCntJug1[PC1_LOW_P])&&((g_gProcMeas[RM_UA]>g_gProcCntJug1[PC1_HIGH_P])||(g_gProcMeas[RM_UC]>g_gProcCntJug1[PC1_HIGH_P]))&&(g_gProcMeas[RM_U0]>g_gProcCntJug1[PC1_HIGH_Z])) /////////A相电压   单相接地判据
+				||((g_gProcMeas[RM_UB]<g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UB]<g_gProcMeas[RM_UA])&&(g_gProcMeas[RM_UA]<g_gProcMeas[RM_UC])
+					&&((g_gProcMeas[RM_UA]>g_gProcCntJug1[PC1_LOW_P])||(g_gProcMeas[RM_UC]>g_gProcCntJug1[PC1_LOW_P]))
+					&&(g_gDebugP[Debug_SRECJU2]==0x55)&&(g_gProcMeas[RM_U0]>g_gProcCntJug1[PC1_HIGH_Z])))
+       	    	{ 	
+           	 	fault_begin=0x55;
+				fault_pluse =RM_UB;	 
+           	 	fault_end=0;
+				//SaveLOG(LOG_EARTH,1);
+            	}      
+            else if(((g_gProcMeas[RM_UC]<g_gProcCntJug1[PC1_LOW_P])&&((g_gProcMeas[RM_UB]>g_gProcCntJug1[PC1_HIGH_P])||(g_gProcMeas[RM_UA]>g_gProcCntJug1[PC1_HIGH_P]))&&(g_gProcMeas[RM_U0]>g_gProcCntJug1[PC1_HIGH_Z])) /////////A相电压   单相接地判据
+					||((g_gProcMeas[RM_UC]<g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UC]<g_gProcMeas[RM_UB])&&(g_gProcMeas[RM_UC]<g_gProcMeas[RM_UA])
+						&&((g_gProcMeas[RM_UA]>g_gProcCntJug1[PC1_LOW_P])||(g_gProcMeas[RM_UB]>g_gProcCntJug1[PC1_LOW_P]))
+						&&(g_gDebugP[Debug_SRECJU2]==0x55)&&(g_gProcMeas[RM_U0]>g_gProcCntJug1[PC1_HIGH_Z])))
+       	    	{ 	
+           	 	fault_begin=0x55;
+				fault_pluse =RM_UC;	 
+           	 	fault_end=0;
+				//SaveLOG(LOG_EARTH,1);
+            	}          	     	     
+       	 }     
+      } 
+     if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+	 	&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(fault_begin==0x55)
+	 	&&(fault_lubo==0)) //////故障已经开始
+  		{
+  		fault_lubo=0x55;
+		g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+		g_sRecData.m_LuboType = LuboType_EARTH;			
+      	}
+     /*if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+	 	&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(fault_end==0x55)
+	 	&&(fault_lubo==0x55)) //////故障已经恢复
+  		{
+  		fault_lubo=0;
+		g_sRecData.m_ucFaultRecStart = ON;//启动故障恢复录波
+		g_sRecData.m_LuboType = SREC_EARTH_RST;			
+      	} */   
+}
 void ProtStart(void)
 {/*
     unsigned int m;

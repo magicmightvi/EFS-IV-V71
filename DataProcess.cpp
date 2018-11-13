@@ -484,7 +484,7 @@ void CalcuProtMeas(void)
 		if(i == CHAN_UC)
 			g_gProcMeas[RM_UC] = (CalcuDft(i) >> 3);
 		if(i == CHAN_Upt)
-			g_gProcMeas[RM_UPt] = (CalcuDft(i) >> 3);
+			g_gProcMeas[PM_UPT] = (CalcuDft(i) >> 3);
 	}
 }
  /*  // unsigned int i;
