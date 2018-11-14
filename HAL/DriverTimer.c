@@ -118,7 +118,7 @@ void GetAcSamData(void)
             else
                 g_sSampleData.m_gAcAdcData[i][AcSamTail] = (int)(((long)Polarity - g_gAdjPara[i]) * g_gProcCnt[PC_UA_ADJ + i] >> 12);    //* g_gAdjPara[ADJ_DEST_CHNIA + i] >> 10启动一次交流电压电流采集，把交流电压电流采集数据保存到g_sSampleData.m_gAcAdcData
            if(i==CHAN_Upt)//upt to uo//Uo to Upt
-		  g_sSampleData.m_gAcAdcData[i][AcSamTail] = (int)(((long)Polarity - g_gAdjPara[3]) * g_gProcCnt[PC_UA_ADJ + 3] >> 12);    //* g_gAdjPara[ADJ_DEST_CHNIA + i] >> 10启动一次交流电压电流采集，把交流电压电流采集数据保存到g_sSampleData.m_gAcAdcData
+		  		g_sSampleData.m_gAcAdcData[i][AcSamTail] = (int)(((long)Polarity - g_gAdjPara[3]) * g_gProcCnt[PC_UA_ADJ + 3] >> 12);    //* g_gAdjPara[ADJ_DEST_CHNIA + i] >> 10启动一次交流电压电流采集，把交流电压电流采集数据保存到g_sSampleData.m_gAcAdcData
 		  
             Value1 = g_sSampleData.m_gAcAdcData[i][AcSamTail];
             Value2 = g_sSampleData.m_gAcAdcData[i][LastSamTail];
@@ -904,8 +904,11 @@ __interrupt void TIMER0_A0_ISR(void)
     g_unAdcData[4] = ADC12MEM4;//I0
     g_unAdcData[5] = ADC12MEM5;//UPt	
     g_unAdcData[5] = g_unAdcData[3];//Uo to Upt
-    g_unAdcData[6] = ADC12MEM6;//UCap	
-    g_gRmtMeas[RM_UCAP] = g_unAdcData[6];
+   // g_unAdcData[6] = g_unAdcData[0] -g_unAdcData[1];//UAB
+	//g_unAdcData[7] = g_unAdcData[1] -g_unAdcData[2];//UBC
+	//g_unAdcData[8] = g_unAdcData[2] -g_unAdcData[3];//UCA
+    g_gRmtMeas[RM_UCAP] = ADC12MEM6;//UCap	    
+	
     //if(g_unAdcData[6]>2800)g_gRmtInfo[YX_SBP_OFF]=0;//5.87
     //if(g_unAdcData[6]<2600)g_gRmtInfo[YX_SBP_OFF]=1;//5.4v		
     ADC12CTL0 |= ADC12SC;  //LED_RUN_TOGG;    
@@ -1012,7 +1015,8 @@ _EINT();//开总中断// 张弢测试中断嵌套
 			
             g_sRtcManager.m_gRealTimer[RTC_MICROSEC]++;  //系统实时时钟g_sRtcManager.m_gRealTimer的毫秒累加
             ScanDinYX();//开关位置异常检测，I0超时检测
-			CalcuRmtMeas();//有效值计算，并更新对应的遥测值
+			//CalcuRmtMeas();//有效值计算，并更新对应的遥测值
+			CalcuProtMeas();//保护定值计算，并更新对应的遥测值
 			ScanPT();//过压欠压检测,遥信置位
 			ScanPTLuBo();//启动录波
 			ProtStart();//启动元件判断			
@@ -1397,6 +1401,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
                g_gYCYueXian=0x55;//张弢 遥测越限	
                Mic50SecCount =0;
 			   g_unUABCaluFlag = ON;
+			   g_unRmtFlag = ON;
 		 //if((g_sRecData.m_ucActRecStart != OFF))	   
 		 	
 		 
@@ -1545,11 +1550,11 @@ _EINT();//开总中断// 张弢测试中断嵌套
                 if(g_sRtcManager.m_unStartCount > 0)
                 {
                     g_sRtcManager.m_unStartCount--;
-                    LED_RUN_ON;
+                    //LED_RUN_ON;
                 }
                 else
                 {
-                    LED_RUN_TOGG;    //LED00
+                    //LED_RUN_TOGG;    //LED00
                 }
           
                 SecCount = 0;

@@ -1119,13 +1119,15 @@ void CalcProtCnt(void)
     unsigned char i;
     for(i = 0; i <= PROC_CNT_NUM; i++)
         g_gProcCnt[i] = g_gRunPara[i + RP_UA_ADJ];
+	g_gProcCnt[PC_PULSE_VALID]= g_gRunPara[RP_PULSE_VALID]*100/ g_gRunPara[RP_CT_TRANS];
+	g_gProcCnt[PC_OVERLOAD_I]= g_gRunPara[RP_OVERLOAD_I]*100/ g_gRunPara[RP_CT_TRANS];
 //#ifdef YN_101S
     g_gProcCntJug1[PC1_HIGH_P] = ((unsigned long)g_gProcCnt[PC_HIGH_P]<<14)/COEF_AD_U ;                //相电压高定值
     g_gProcCntJug1[PC1_LOW_P] = ((unsigned long)g_gProcCnt[PC_LOW_P]<<14)/COEF_AD_U;                //相电压低定值
     g_gProcCntJug1[PC1_HIGH_Z] = ((unsigned long)g_gProcCnt[PC_HIGH_Z]<<14)/COEF_AD_U;          //零序电压高定值
     g_gProcCntJug1[PC1_LOW_Z] = ((unsigned long)g_gProcCnt[PC_LOW_Z]<<14)/COEF_AD_U;          //零序电压低定值   
-    g_gProcCntJug1[PC1_PULSE_VALID] = ((unsigned long)g_gProcCnt[PC_PULSE_VALID]/10<<14)/COEF_AD_I_0;//线电压高定值
-
+    g_gProcCntJug1[PC1_PULSE_VALID] = ((unsigned long)g_gProcCnt[PC_PULSE_VALID]<<14)/COEF_AD_I_0;//线电压高定值
+	g_gProcCntJug1[PC1_OVERLOAD_I] = ((unsigned long)g_gProcCnt[PC_OVERLOAD_I]<<14)/COEF_AD_I_0;
 
     g_gProcCntJug[PC_HIGH_P] = g_gProcCnt[PC_HIGH_P] ;                //相电压高定值
     g_gProcCntJug[PC_LOW_P] = g_gProcCnt[PC_LOW_P];                //相电压低定值
@@ -1133,7 +1135,7 @@ void CalcProtCnt(void)
     g_gProcCntJug[PC_LOW_Z] = g_gProcCnt[PC_LOW_Z];          //零序电压低定值
     g_gProcCntJug[PC_NO_V] = g_gProcCnt[PC_NO_V];       //无压门槛值
     g_gProcCntJug[PC_I0_START] = g_gProcCnt[PC_I0_START];//线电压高定值
-    g_gProcCntJug[PC_PULSE_VALID] = g_gProcCnt[PC_PULSE_VALID] /10;       //8脉冲有效定值
+    g_gProcCntJug[PC_PULSE_VALID] = g_gProcCnt[PC_PULSE_VALID];       //8脉冲有效定值
 	if(g_gProcCnt[PC_T_DELAY] > 2000)
         g_gProcCntJug[PC_T_DELAY] = g_gProcCnt[PC_T_DELAY] /10 - 200;
     else
@@ -1216,7 +1218,7 @@ void RstRunPara(void)
     g_gRunPara[RP_LOW_Z] = 1000;          //零序电压低定值
     g_gRunPara[RP_NO_V] = 1000;       //无压门槛值
     g_gRunPara[RP_T_DELAY] = 10000;               //故障延时时间
-    g_gRunPara[RP_PULSE_VALID] = 6000;       //8脉冲有效定值		
+    g_gRunPara[RP_PULSE_VALID] = 6;       //8脉冲有效定值		
 /*
 #else
     g_gRunPara[RP_I0_START] = 110;                //零序电流门槛值

@@ -387,7 +387,7 @@ typedef double         FP64;            //双精度浮点数
 #define PM_UBC                  5
 #define PM_UCA                  6
 #define PM_I0                   7       //零序电流
-#define PM_UPT                   7       //零序电流
+#define PM_UPT                   8       //零序电流
 
 //============================  LOG日志        =======================================
 /*
@@ -601,6 +601,8 @@ typedef double         FP64;            //双精度浮点数
 #define PC1_HIGH_Z           2         //零序电压高定值
 #define PC1_LOW_Z            3          //零序电压低定值
 #define PC1_PULSE_VALID		4
+#define PC1_OVERLOAD_I		5
+
 
 /*
 #define RP_ETH_MODEL            20      //以太网方式 0：SERVER   1：CLIENT

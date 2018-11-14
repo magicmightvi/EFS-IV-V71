@@ -1130,10 +1130,10 @@ void ScanSoftLacth(void)
 		g_gRmtInfo[YX_KJ_TIMEOVER]=0;//SaveLOG(LOG_KM_ERR, 0);
 		}
 	}
-
+	/*
 	if(g_gRunPara[RP_CFG_KEY]&BIT[RPCFG_I0_LATCH])	
 	{
-	if(g_gRmtMeas[RM_I0]>g_gRunPara[RP_OVERLOAD_I])		
+	if(g_gRmtMeas[RM_I0]>g_gProcCnt[PC_OVERLOAD_I])		
 		{
 		if(i0_timeout > 0)
 			{
@@ -1193,7 +1193,7 @@ void ScanSoftLacth(void)
       			}
 		g_gRmtInfo[YX_I0_HIGH]=0;//SaveLOG(LOG_I0_ERR, 0);
 		}
-	}
+	}*/
 }
 
 

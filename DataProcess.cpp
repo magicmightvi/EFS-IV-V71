@@ -456,6 +456,103 @@ unsigned long CalcuDft(unsigned char AdcChannel)
     return result;
     
 }
+unsigned long CalcuDft1(unsigned char AdcChannel1,unsigned char AdcChannel2,unsigned char adr)
+{
+	//LED_RUN_TOGG;
+    //unsigned char n;
+    //int tAdcData,
+    int m1,n1,m2,n2;
+    long r = 0;
+    long i = 0;
+    unsigned long result=0; 
+	unsigned int tail;
+
+	tail=g_sSampleData.m_unAcDataTail;
+	m1 = g_sSampleData.m_gAcAdcData[AdcChannel1][tail& 0x1F];
+	n1 = g_sSampleData.m_gAcAdcData[AdcChannel1][(tail-AC_SAMPLE_DOTS)& 0x1F];
+	m2 = g_sSampleData.m_gAcAdcData[AdcChannel2][tail& 0x1F];
+	n2 = g_sSampleData.m_gAcAdcData[AdcChannel2][(tail-AC_SAMPLE_DOTS)& 0x1F];
+	g_gProcMeas_AC_R[adr] += (long)real[2*TableIndex]*(m1-m2-n1+n2);		
+	g_gProcMeas_AC_I[adr] += (long)img[2*TableIndex]*(m1-m2-n1+n2);
+	r = g_gProcMeas_AC_R[adr]>>13;//R
+	i = g_gProcMeas_AC_I[adr]>>13;//I	
+	result = (r * r + i * i);//I平方+ R平方	
+    //LED_RUN_TOGG;
+    return result;
+    
+}
+//==============================================================================
+//  函数名称   : ProtI0
+//  功能描述   : I0保护判断
+//  输入参数   : <无>
+//  输出参数   ：<无>
+//  返回值     : <无>
+//  其他说明   : 
+//  作者       ： 
+//==============================================================================
+void ProtI0(void)
+{
+if(g_gProcMeas[RM_I0]>g_gProcCntJug1[PC1_OVERLOAD_I])		
+		{
+		if(i0_timeout > 0)
+			{
+			i0_timeout--;
+			if(i0_timeout==0)
+				{
+				i0_timeout =0;
+				if(g_gRmtInfo[YX_I0_HIGH] == 0)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_I0])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_I0;			
+      				}
+      			}
+				if(g_gRmtInfo[YX_EFS_LATCH] == 0)
+					{
+					KA0_OFF; KB0_OFF;KC0_OFF; g_gKON=OFF;
+					eight_pulse_flag=0;
+    				pulse_phase_flag=0; 
+    				efslatch_flag= g_gProcCntJug[PC_LACTH_TIME];		 	         ///////闭锁17分钟
+    				latch_upload_flag=0x55;      	
+    				uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
+    				g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位 
+    				//SaveLOG(LOG_LATCH, 1);
+					g_gRmtInfo[YX_I0_HIGH]=1;//SaveLOG(LOG_I0_ERR, 1);
+					g_gRmtInfo[YX_8FULS_STA]=0;//SaveLOG(LOG_8FULS_STA,0);
+    				chongfa=0;	moniguzhang=0;
+    				//g_gRmtMeas[RM_ACT_NUM] = 0;
+					g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0	
+					}
+				g_gRmtInfo[YX_SOFT_LATCH]=1;//SaveLOG(LOG_SOFT_LATCH, 1);
+				g_gRmtInfo[YX_I0_HIGH]=1;//SaveLOG(LOG_I0_ERR, 1);
+				}
+			}
+		else
+			{
+			i0_timeout=2;//(g_gRunPara[RP_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK])/3;
+			if(i0_timeout==0)i0_timeout=1;
+			//if(i0_timeout>g_gRunPara[RP_PLUSE_TIME])i0_timeout=1;
+			}
+		}
+	else
+		{
+		i0_timeout = 2;//(g_gRunPara[RP_PLUSE_TIME]-g_gRunPara[RP_PLUSE_MODFK])/3;
+		if(i0_timeout==0)i0_timeout=1;
+		if(i0_timeout>g_gRunPara[RP_PLUSE_TIME])i0_timeout=1;
+		if(g_gRmtInfo[YX_I0_TIMEOVER] == 1)
+				{
+				if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
+					&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(g_gDebugP[Debug_SRECJU1] & BIT[SREC_I0])) 
+    				{		
+					g_sRecData.m_ucFaultRecStart = ON;//启动故障录波
+					g_sRecData.m_LuboType = SREC_I0;			
+      				}
+      			}
+		g_gRmtInfo[YX_I0_HIGH]=0;//SaveLOG(LOG_I0_ERR, 0);
+		}
+}
 
 //==============================================================================
 //  函数名称   : CalcuProtMeas
@@ -469,9 +566,18 @@ unsigned long CalcuDft(unsigned char AdcChannel)
 
 void CalcuProtMeas(void)
 {
-	unsigned char i;
+	//unsigned char i;
 	//unsigned long tDft;
-	for(i = 0; i < 6/*RMT_MEAS_NUM -1*/ ; i++)//添加了UAB,UBC,UCA三线电压，i的上限=PM_UCA
+	if(g_unRmCaluFlag == OFF)   //如果遥测运算标志仍然为OFF，则说明1.25ms的AD中断没有进去过，g_gProcMeas没有更新，不需要运算
+    {
+        return;
+    }
+    else
+    {
+        g_unRmCaluFlag = OFF;
+    }
+	LED_RUN_TOGG;/*
+	for(i = 0; i < 6 ; i++)//添加了UAB,UBC,UCA三线电压，i的上限=PM_UCA
 	{
 		if(i == CHAN_I0)
 			g_gProcMeas[RM_I0] = (CalcuDft(i) >> 3);
@@ -485,7 +591,23 @@ void CalcuProtMeas(void)
 			g_gProcMeas[RM_UC] = (CalcuDft(i) >> 3);
 		if(i == CHAN_Upt)
 			g_gProcMeas[PM_UPT] = (CalcuDft(i) >> 3);
-	}
+	}*/
+	//for(i = 0; i < AC_BUFF_LEN ; i++)
+	//	g_sSampleData.m_gAcAdcData[1][i]=g_sSampleData.m_gAcAdcData[1][i]-g_sSampleData.m_gAcAdcData[2][i];
+		
+	g_gProcMeas[RM_I0] = (CalcuDft(CHAN_I0) >> 3);
+	g_gProcMeas[RM_U0] = (CalcuDft(CHAN_U0) >> 3);
+	g_gProcMeas[RM_UA] = (CalcuDft(CHAN_UA) >> 3);
+	g_gProcMeas[RM_UB] = (CalcuDft(CHAN_UB) >> 3);
+	g_gProcMeas[RM_UC] = (CalcuDft(CHAN_UC) >> 3);
+	g_gProcMeas[PM_UPT] = (CalcuDft(CHAN_Upt) >> 3);
+	g_gProcMeas[RM_UAB]= (CalcuDft1(CHAN_UA,CHAN_UB,6) >> 3);
+	g_gProcMeas[RM_UBC]= (CalcuDft1(CHAN_UB,CHAN_UC,7) >> 3);
+	g_gProcMeas[RM_UCA]= (CalcuDft1(CHAN_UC,CHAN_UA,8) >> 3);
+	TableIndex++;
+	if(TableIndex>=16)TableIndex=0;
+	ProtI0();
+	LED_RUN_TOGG;
 }
  /*  // unsigned int i;
     long m,n,m1,n1,m2,n2,m3,n3;
@@ -580,10 +702,9 @@ unsigned long CalcuDft(unsigned char AdcChannel)
 void CalcuRmtMeas(void)
 { 
     unsigned int i;
-    unsigned int TempRm = 0;
-	//static unsigned char pjno=0;
-    unsigned long tDft;//,a,b,c;
-    //unsigned int unTemp[3];
+    unsigned int TempRm = 0;	
+    //unsigned long tDft[PROC_MEAS_NUM];
+	/*
     if(g_unRmCaluFlag == OFF)   //如果遥测运算标志仍然为OFF，则说明1.25ms的AD中断没有进去过，g_gProcMeas没有更新，不需要运算
     {
         return;
@@ -591,11 +712,11 @@ void CalcuRmtMeas(void)
     else
     {
         g_unRmCaluFlag = OFF;
-    }
+    }*/
     //ProtLogic();
-    //ProtStart();	
-	//LED_RUN_TOGG;
-    for(i = 0; i < 6/*RMT_MEAS_NUM -1*/ ; i++)//添加了UAB,UBC,UCA三线电压，i的上限=PM_UCA
+    //ProtStart();
+	/*
+    for(i = 0; i < 6 ; i++)//添加了UAB,UBC,UCA三线电压，i的上限=PM_UCA
     {
         tDft = (CalcuDft(i) >> 3);
        
@@ -613,32 +734,33 @@ void CalcuRmtMeas(void)
 	 if(i == CHAN_Upt)//3
            g_gRmAcFilt[RM_UPt][g_unFilterIndex] = (unsigned long)table_sqrt(tDft) * COEF_AD_U>> 14;
     }
-	 /*
-	 a=(unsigned long)g_gRmAcFilt[RM_UA][g_unFilterIndex];
-         b=(unsigned long)g_gRmAcFilt[RM_UB][g_unFilterIndex];
-         c=(unsigned long)g_gRmAcFilt[RM_UC][g_unFilterIndex];
-	 tDft=(a+b)*(a+b)-a*b;
-	 g_gRmAcFilt[RM_UAB][g_unFilterIndex]= (unsigned long)table_sqrt(tDft);// * COEF_AD_U>> 14;
-
-	  tDft=(c+b)*(c+b)-c*b;
-	 g_gRmAcFilt[RM_UBC][g_unFilterIndex]= (unsigned long)table_sqrt(tDft);// * COEF_AD_U>> 14;
-
-	  tDft=(a+c)*(a+c)-a*c;
-	 g_gRmAcFilt[RM_UCA][g_unFilterIndex]= table_sqrt(tDft);// * COEF_AD_U>> 14;
-	 */
-    	//}	
-    for(i = 0; i < 4;i++)
+	*/
+	if(g_unRmtFlag == OFF)   //如果遥测运算标志仍然为OFF，则说明1.25ms的AD中断没有进去过，g_gProcMeas没有更新，不需要运算
+  		return;
+    else
+        g_unRmtFlag = OFF;	
+	//LED_RUN_TOGG;	
+	for(i = 0; i < PROC_MEAS_NUM; i++)
+		g_gRmtDft[i] = g_gProcMeas[i];
+	g_gRmAcFilt[RM_I0][g_unFilterIndex] = (unsigned long)table_sqrt(g_gRmtDft[RM_I0]) * COEF_AD_I_0 >>14; 
+	g_gRmAcFilt[RM_U0][g_unFilterIndex] = (unsigned long)table_sqrt(g_gRmtDft[RM_U0]) * COEF_AD_U >>14;
+	g_gRmAcFilt[RM_UA][g_unFilterIndex] = (unsigned long)table_sqrt(g_gRmtDft[RM_UA]) * COEF_AD_U >>14;
+	g_gRmAcFilt[RM_UB][g_unFilterIndex] = (unsigned long)table_sqrt(g_gRmtDft[RM_UB])* COEF_AD_U >>14;
+	g_gRmAcFilt[RM_UC][g_unFilterIndex] = (unsigned long)table_sqrt(g_gRmtDft[RM_UC])* COEF_AD_U >>14;
+	g_gRmAcFilt[RM_UAB][g_unFilterIndex] = (unsigned long)table_sqrt(g_gRmtDft[RM_UAB]) * COEF_AD_U >>14;
+	g_gRmAcFilt[RM_UBC][g_unFilterIndex] = (unsigned long)table_sqrt(g_gRmtDft[RM_UBC])* COEF_AD_U >>14;
+	g_gRmAcFilt[RM_UCA][g_unFilterIndex] = (unsigned long)table_sqrt(g_gRmtDft[RM_UCA]) * COEF_AD_U >>14;
+	g_gRmAcFilt[RM_UPt][g_unFilterIndex] = (unsigned long)table_sqrt(g_gRmtDft[PM_UPT]) * COEF_AD_U >>14;//注意，下标不一样
+    
+    for(i = 0; i < 8;i++)
     	{
     	g_gRmtMeas[i] =g_gRmAcFilt[i][g_unFilterIndex];
     	}
-    for(i = 0; i < 4/*RMT_MEAS_NUM-1*/ ; i++)//添加了UAB,UBC,UCA三线电压，i的上限=PM_UCA
+    for(i = 0; i < 8/*RMT_MEAS_NUM-1*/ ; i++)//添加了UAB,UBC,UCA三线电压，i的上限=PM_UCA
     {
         TempRm = AverFilter(g_gRmAcFilt[i]);        //对遥测量的交流量进行滤波        
         g_gRmtFilMeas[i] = TempRm; 
-    }
-	g_gRmtMeas[RM_I0]=g_gRmAcFilt[RM_I0][g_unFilterIndex];
-	TempRm = AverFilter(g_gRmAcFilt[RM_I0]);        //对i0遥测量的交流量进行滤波        
-   	g_gRmtFilMeas[RM_I0] = TempRm;
+    }		
 	
   	TempRm = AverFilter(g_gRmAcFilt[RM_UPt]);        //对UPt遥测量的交流量进行滤波        
  	g_gRmtFilMeas[RM_UPt] = TempRm/25;	//Uo to Upt
@@ -648,10 +770,7 @@ void CalcuRmtMeas(void)
     if(g_unFilterIndex == 10)
     {
         g_unFilterIndex = 0;
-    }
-		
-	TableIndex++;
-	if(TableIndex>=16)TableIndex=0;
+    }	
 	//LED_RUN_TOGG;
 }
 void CalcuUABRmtMeas(void)

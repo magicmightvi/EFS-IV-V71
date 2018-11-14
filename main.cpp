@@ -128,8 +128,8 @@ void app(void)@"APPLICATION"
 		CheckCfgERR();
         }
     SaveActRecData();
-        //CalcuRmtMeas();//有效值计算，并更新对应的遥测值
-    CalcuUABRmtMeas();//计算线电压，和相电压平均值
+        CalcuRmtMeas();//有效值计算，并更新对应的遥测值
+    //CalcuUABRmtMeas();//计算线电压，和相电压平均值
     SaveActRecData();
         ScanDin();//断电遥信检测
 	 YCthCross();//遥测越限判断	

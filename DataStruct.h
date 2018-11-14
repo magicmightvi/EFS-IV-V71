@@ -135,14 +135,15 @@ struct sSAMPLE_DATA
 
 #ifdef _DATA_PROCESS
     __no_init struct sREC_DATA g_sRecData;//录波数据
-    __no_init struct sLOG_DATA g_sLogData[MAX_LOG_NUM];//LOG数据
+    __no_init struct sLOG_DATA g_sLogData[MAX_LOG_NUM];//LOG数据    
+    unsigned int   i0_timeout; 	
     unsigned int g_gRmtLockLB;//录波标志位遥信闭锁时间计数
     unsigned char g_SendZJDingshi = 0; 
     unsigned char 	g_YXLBOKCounter;
     unsigned char g_TQBSCounter = 0; //投切、闭锁指示灯计数器  =0 是灭 =0x55 闭锁常亮  >=1投切闪烁	
     unsigned char FlashReading;	// 1=正在读flash，不能录波，不能写soe
     unsigned char PT_LuBo[8];//U0高,u0低，
-    unsigned int g_unAdcData[7]; //ADCMEM的数据存放到该数组中
+    unsigned int g_unAdcData[6]; //ADCMEM的数据存放到该数组中
     unsigned int g_test;
     //unsigned char g_gFaF[256];//
     unsigned char g_gKON;//继电器状态
@@ -219,16 +220,16 @@ struct sSAMPLE_DATA
   	//IAR会对分配的内存在进入main函数之前进行清0，需要占用较多的时间，导致看门狗启动，因此对占用较大内存的数组用"__no_init"禁止清0，放到程序中注意对它进行初始化
 
 	//unsigned int g_gRmtMeas[RMT_MEAS_NUM];//遥测量，保存需要上传到后台的遥测数据 = 开方(g_gProcMeas/16) * 0.6944
-	long g_gProcMeas_AC_R[6];
-	long g_gProcMeas_AC_I[6];
-	unsigned long g_gRmtDft[6];
+	long g_gProcMeas_AC_R[9];
+	long g_gProcMeas_AC_I[9];
 	unsigned int g_gRmAcFilt[RMT_MEAS_NUM][RM_FILTER_NUM];//遥测量中的交流测量数据滤波 添加了3个线电压，但AD通道数不变，所以此处AC_AD_CHAN_NUM + 3
         unsigned int g_unFilterIndex = 0;   //交流测量数据滤波数据保存的位置
-        volatile unsigned int g_unRmCaluFlag;    //遥测运算标志, 在1.25ms中断中置ON，在1ms中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
-        volatile unsigned int g_unTESTFlag; 
+        volatile unsigned char g_unRmCaluFlag;    //遥测运算标志, 在1.25ms中断中置ON，在1ms中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
+        volatile unsigned char g_unRmtFlag; 
 		volatile unsigned int g_unUABCaluFlag;	//遥测运算标志, 在50ms中断中置ON，在大循环中置OFF，
   	unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量，为采样值的平方*16 最大值为(2048*2048/2*16)
-        //unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量，包括内部遥信量
+	unsigned long g_gRmtDft[PROC_MEAS_NUM];
+	//unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量，包括内部遥信量
 
 	unsigned int  g_SendLuboNum;
 	unsigned int  g_SendLuboPage;
@@ -250,7 +251,7 @@ extern unsigned int g_test;
     extern unsigned char g_TQBSCounter; 
     extern unsigned char FlashReading;		
     extern struct sREC_DATA g_sRecData;
-    extern unsigned int g_unAdcData[7]; //ADCMEM的数据存放到该数组中
+    extern unsigned int g_unAdcData[6]; //ADCMEM的数据存放到该数组中
     extern unsigned char g_gKON;//继电器状态
     extern unsigned char g_gKONBK;//继电器状态
     extern unsigned int g_gRmtMeas[IEC_YC_NUM/*RMT_MEAS_NUM + 4*/];//遥测量，保存需要上传到后台的遥测数据 
@@ -319,13 +320,13 @@ extern unsigned int g_test;
    // extern unsigned int  g_JdgPwMode;
     extern struct sSOE_DATA g_sSoeData;    
 	extern struct sLOG_DATA g_sLogData[MAX_LOG_NUM];//LOG数据
-  	//extern unsigned int g_gRmtMeas[RMT_MEAS_NUM];//遥测量，保存需要上传到后台的遥测数据
-  	extern unsigned long g_gRmtDft[6];
+  	//extern unsigned int g_gRmtMeas[RMT_MEAS_NUM];//遥测量，保存需要上传到后台的遥测数据  	
         extern unsigned int g_gRmAcFilt[RMT_MEAS_NUM][RM_FILTER_NUM];//遥测量中的交流测量数据滤波 添加了3个线电压，但AD通道数不变，所以此处AC_AD_CHAN_NUM + 3
 	extern unsigned long g_gProcMeas[PROC_MEAS_NUM];//保护用测量量，用于保护逻辑判断的测量量
+	extern unsigned long g_gRmtDft[PROC_MEAS_NUM];
        // extern unsigned int g_gRmtInfo[RMT_INFO_NUM];//遥信量，包括内部遥信量   
-       extern volatile unsigned int g_unRmCaluFlag;    //遥测运算标志, 在中断中置ON，在大循环中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
-       extern volatile unsigned int g_unTESTFlag;
+       extern volatile unsigned char g_unRmCaluFlag;    //遥测运算标志, 在中断中置ON，在大循环中置OFF，在进行遥测运算，如果该标志为ON，说明遥测数据更新了，可以进行遥测量运算
+       extern volatile unsigned char g_unRmtFlag;
 	   extern volatile unsigned int g_unUABCaluFlag;	//遥测运算标志, 在50ms中断中置ON，在大循环中置OFF，
 	extern unsigned int  g_SendLuboNum;
 	extern unsigned int  g_SendLuboPage;
@@ -763,8 +764,7 @@ extern unsigned int g_test;
 
         unsigned char upload_GPRS;
         unsigned char upload_SMS;              ////每隔60秒钟发送一条短信。
-        unsigned int   km_timeout; 
-        unsigned int   i0_timeout; 		
+        unsigned int   km_timeout; 	
 	 unsigned int   ptoff_timeout; 	
 	 unsigned char soft_latch;	
        // unsigned char SMS_delay;               ////延时短信延时每隔2秒钟发送一条短信。      

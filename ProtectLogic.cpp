@@ -28,16 +28,17 @@ unsigned char g_ucPhase_Chongfa = 0;  //重发参考相别，与发生故障后首次动作相别一
 static unsigned char  phasea_off= 0;
 static unsigned char  phaseb_off= 0;
 static unsigned char  phasec_off= 0;
+
 //==============================================================================
 //  函数名称   : ProtStart
-//  功能描述   : 保护启动元件判断
+//  功能描述   : 保护启动元件判断,使用保护定值g_gProcMeas g_gProcCntJug1
 //  输入参数   : <无>
 //  输出参数   ：<无>
 //  返回值     : <无>
 //  其他说明   : 
 //  作者       ： 
 //==============================================================================
-void ProtStart1(void)
+void ProtStart(void)
 {
     if(fault_time>0)                           /////////用于故障恢复
     {  
@@ -189,9 +190,10 @@ void ProtStart1(void)
   		fault_lubo=0;
 		g_sRecData.m_ucFaultRecStart = ON;//启动故障恢复录波
 		g_sRecData.m_LuboType = SREC_EARTH_RST;			
-      	} */   
+      	} */      	
 }
-void ProtStart(void)
+//使用有效值g_gRmtMeas g_gProcCntJug 
+void ProtStart1(void)
 {/*
     unsigned int m;
 
