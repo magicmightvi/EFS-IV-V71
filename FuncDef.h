@@ -48,7 +48,9 @@ extern "C"
 //======================================================================
 #ifdef _DATA_PROCESS
         void InitDataProc(void);
-        void CalcuRmtMeas(void);
+        void CalcuRmtMeas(void);		
+		unsigned int ComputeMin(unsigned int x,unsigned int y,unsigned int z);//计算最小值
+		unsigned int ComputeMax(unsigned int x,unsigned int y,unsigned int z);//计算最大值
 		void CalcuUABRmtMeas(void);
 		void ScanPT(void);
 		void ScanPTLuBo(void);
@@ -89,6 +91,8 @@ extern "C"
 #else
         extern void InitDataProc(void);
         extern void CalcuRmtMeas(void);
+		extern unsigned int ComputeMax(unsigned int x,unsigned int y,unsigned int z);//计算最大值
+		extern unsigned int ComputeMin(unsigned int x,unsigned int y,unsigned int z);//计算最小值
 		extern void CalcuUABRmtMeas(void);
 		extern void ScanPT(void);
 		extern void ScanPTLuBo(void);

@@ -357,7 +357,7 @@ unsigned int operate02(unsigned int unCommPortIndex)
 //==============================================================================
 unsigned int operate07(unsigned int unCommPortIndex)
 {
-    unsigned char i;
+    unsigned char i,tmp1;
     g_gProcCnt[PC_HIGH_P]=g_unRX_Buff[unCommPortIndex][1];     ////////相高电压
     if((g_gProcCnt[PC_HIGH_P]>99)||(g_gProcCnt[PC_HIGH_P]<10))
         g_gProcCnt[PC_HIGH_P]=70;
@@ -374,9 +374,10 @@ unsigned int operate07(unsigned int unCommPortIndex)
     if((g_gProcCnt[PC_LOW_Z]>99)||(g_gProcCnt[PC_LOW_Z]<3))
         g_gProcCnt[PC_LOW_Z]=10;
     
-    g_gProcCnt[PC_I0_START]=g_unRX_Buff[unCommPortIndex][5]*13;    /////零序电流门槛值 0.5A/50A*0.8*4095/3.3*1.414*0.9*     
-    if((g_gProcCnt[PC_I0_START]>260)||(g_gProcCnt[PC_I0_START]<13))
-        g_gProcCnt[PC_I0_START]=26;
+    tmp1=g_unRX_Buff[unCommPortIndex][5];    /////零序电流门槛值 0.5A/50A*0.8*4095/3.3*1.414*0.9*     
+    if(( tmp1>20)||( tmp1<9))
+        tmp1=12;
+	g_gProcCnt[PC_I0_START]=tmp1*1000;
     
     g_gProcCnt[PC_T_DELAY]=g_unRX_Buff[unCommPortIndex][6];                    //////故障延时
     if((g_gProcCnt[PC_T_DELAY]>60)||(g_gProcCnt[PC_T_DELAY]<4))
@@ -386,9 +387,10 @@ unsigned int operate07(unsigned int unCommPortIndex)
     if((g_gProcCnt[PC_NO_V]>30)||(g_gProcCnt[PC_NO_V]<3)) 
         g_gProcCnt[PC_NO_V]=10;
     
-    g_gProcCnt[PC_PULSE_VALID]=g_unRX_Buff[unCommPortIndex][8];		
-    if((g_gProcCnt[PC_PULSE_VALID]>15)||(g_gProcCnt[PC_PULSE_VALID]<1)) 
-        g_gProcCnt[PC_PULSE_VALID]=1;
+    tmp1=g_unRX_Buff[unCommPortIndex][8];		
+    if((tmp1>15)||(tmp1<1)) 
+        tmp1=30;
+	g_gProcCnt[PC_PULSE_VALID] =tmp1*100/g_gRunPara[RP_CT_TRANS]; 
 			
     if(g_gProcCnt[PC_LOW_P]>=g_gProcCnt[PC_HIGH_P])
     {
@@ -411,20 +413,20 @@ unsigned int operate07(unsigned int unCommPortIndex)
     g_sTxBuff[0].m_gBuffer[6]=g_gProcCnt[PC_LOW_P];
     g_sTxBuff[0].m_gBuffer[7]=g_gProcCnt[PC_HIGH_Z];
     g_sTxBuff[0].m_gBuffer[8]=g_gProcCnt[PC_LOW_Z];
-    g_sTxBuff[0].m_gBuffer[9]=g_gProcCnt[PC_I0_START];
+    g_sTxBuff[0].m_gBuffer[9]=g_gProcCnt[PC_I0_START]/1000;
     g_sTxBuff[0].m_gBuffer[10]=g_gProcCnt[PC_T_DELAY];
     g_sTxBuff[0].m_gBuffer[11]=g_gProcCnt[PC_NO_V];
-    g_sTxBuff[0].m_gBuffer[12]=g_gProcCnt[PC_PULSE_VALID];
+    g_sTxBuff[0].m_gBuffer[12]=g_gProcCnt[PC_PULSE_VALID]*g_gRunPara[RP_CT_TRANS]/100;
     g_sTxBuff[0].m_gBuffer[13]=0;
 //#ifdef YN_101S
 	g_gProcCnt[PC_HIGH_P]=g_gProcCnt[PC_HIGH_P]*100;
 	g_gProcCnt[PC_LOW_P]=g_gProcCnt[PC_LOW_P]*100;
 	g_gProcCnt[PC_HIGH_Z]=g_gProcCnt[PC_HIGH_Z]*100;
 	g_gProcCnt[PC_LOW_Z]=g_gProcCnt[PC_LOW_Z]*100;
-	g_gProcCnt[PC_I0_START]=g_gProcCnt[PC_I0_START]*1000;
+	//g_gProcCnt[PC_I0_START]=g_gProcCnt[PC_I0_START]*1000;
 	g_gProcCnt[PC_NO_V]=g_gProcCnt[PC_NO_V]*100;
 	g_gProcCnt[PC_T_DELAY]=g_gProcCnt[PC_T_DELAY]*1000;
-	g_gProcCnt[PC_PULSE_VALID]=g_gProcCnt[PC_PULSE_VALID]*1000;
+	//g_gProcCnt[PC_PULSE_VALID]=g_gProcCnt[PC_PULSE_VALID]*1000;
 //#endif   
     for(i=4;i<13;i++)
         g_sTxBuff[0].m_gBuffer[13]+=g_sTxBuff[0].m_gBuffer[i];
@@ -560,7 +562,7 @@ unsigned int operate0A(unsigned int unCommPortIndex)
     g_sTxBuff[0].m_gBuffer[9]=g_gProcCnt[PC_I0_START]/1000;
     g_sTxBuff[0].m_gBuffer[10]=g_gProcCnt[PC_T_DELAY]/1000; //temp8[17]
     g_sTxBuff[0].m_gBuffer[11]=g_gProcCnt[PC_NO_V]/100; //temp8[16]
-    g_sTxBuff[0].m_gBuffer[12]=g_gProcCnt[PC_PULSE_VALID]/1000; //temp8[22]
+    g_sTxBuff[0].m_gBuffer[12]=g_gProcCnt[PC_PULSE_VALID]*g_gRunPara[RP_CT_TRANS]/100;
 /*
 #else
     g_sTxBuff[0].m_gBuffer[5]=g_gProcCnt[PC_HIGH_P];  //temp8[12]

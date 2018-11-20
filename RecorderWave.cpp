@@ -1271,7 +1271,7 @@ unsigned char *LogData(unsigned char *pTxBuf,unsigned char leng,int segment_leng
               	}
 			  else
 			  	{
-			  	sprintf((char *)ch," U0=%d UA=%d UB=%d UC=%d Upt=%d UCap=%d CSQ=%d\r\n",
+			  	sprintf((char *)ch," 3U0=%d UA=%d UB=%d UC=%d Upt=%d UCap=%d CSQ=%d\r\n",
 					   MAKEWORD(byLoadDa[10], byLoadDa[11]), MAKEWORD(byLoadDa[12], byLoadDa[13]),MAKEWORD(byLoadDa[14], byLoadDa[15]),
 					   MAKEWORD(byLoadDa[16], byLoadDa[17]), MAKEWORD(byLoadDa[18], byLoadDa[19]),MAKEWORD(byLoadDa[20], byLoadDa[21]),
 			  			MAKEWORD(byLoadDa[22], byLoadDa[23]));							

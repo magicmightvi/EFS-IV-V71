@@ -1783,7 +1783,7 @@ void CBJ101S::DoCommSendIdle(void)
 #ifdef YN_101S     
           if(SendYCGroup(0,1,35) == FALSE)
 #else 		  
-          if(SendYCGroup(0,1,9) == FALSE)
+          if(SendYCGroup(0,3,9) == FALSE)
 #endif		  	
           {
             //m_SendYcFlag = 0;

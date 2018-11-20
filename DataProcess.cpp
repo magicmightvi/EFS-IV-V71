@@ -15,6 +15,7 @@
     #include "sqrttable.h"
 #include "Main.h"
 #endif
+static unsigned char pjno=0;
 
 //==============================================================================
 //  函数名称   : InitDataProc
@@ -523,7 +524,7 @@ if(g_gProcMeas[RM_I0]>g_gProcCntJug1[PC1_OVERLOAD_I])
 					g_gRmtInfo[YX_8FULS_STA]=0;//SaveLOG(LOG_8FULS_STA,0);
     				chongfa=0;	moniguzhang=0;
     				//g_gRmtMeas[RM_ACT_NUM] = 0;
-					g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0	
+					//g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0	
 					}
 				g_gRmtInfo[YX_SOFT_LATCH]=1;//SaveLOG(LOG_SOFT_LATCH, 1);
 				g_gRmtInfo[YX_I0_HIGH]=1;//SaveLOG(LOG_I0_ERR, 1);
@@ -576,8 +577,8 @@ void CalcuProtMeas(void)
     {
         g_unRmCaluFlag = OFF;
     }
-	LED_RUN_TOGG;/*
-	for(i = 0; i < 6 ; i++)//添加了UAB,UBC,UCA三线电压，i的上限=PM_UCA
+	//LED_RUN_TOGG;
+	/*for(i = 0; i < 6 ; i++)//添加了UAB,UBC,UCA三线电压，i的上限=PM_UCA
 	{
 		if(i == CHAN_I0)
 			g_gProcMeas[RM_I0] = (CalcuDft(i) >> 3);
@@ -607,7 +608,7 @@ void CalcuProtMeas(void)
 	TableIndex++;
 	if(TableIndex>=16)TableIndex=0;
 	ProtI0();
-	LED_RUN_TOGG;
+	//LED_RUN_TOGG;
 }
  /*  // unsigned int i;
     long m,n,m1,n1,m2,n2,m3,n3;
@@ -771,11 +772,12 @@ void CalcuRmtMeas(void)
     {
         g_unFilterIndex = 0;
     }	
+	
 	//LED_RUN_TOGG;
 }
 void CalcuUABRmtMeas(void)
 {
-	static unsigned char pjno=0;	
+		
 
 	if(g_unUABCaluFlag != ON)
 		{return;}
@@ -787,27 +789,9 @@ void CalcuUABRmtMeas(void)
 	g_gRmtMeasPJ[2][pjno]=g_gRmtFilMeas[3];
 	pjno++;
 	if(pjno>31)pjno=0;
-/* //不计算线电压
-	unsigned long tDft,a,b,c;
-	
-	a=(unsigned long)g_gRmtFilMeas[RM_UA];//g_gRmAcFilt[RM_UA][g_unFilterIndex];
-	b=(unsigned long)g_gRmtFilMeas[RM_UB];//g_gRmAcFilt[RM_UB][g_unFilterIndex];
-	c=(unsigned long)g_gRmtFilMeas[RM_UC];//g_gRmAcFilt[RM_UC][g_unFilterIndex];
-	tDft=(a+b)*(a+b)-a*b;
-	//g_gRmAcFilt[RM_UAB][g_unFilterIndex]= (unsigned long)table_sqrt(tDft);// * COEF_AD_U>> 14;
-	g_gRmtFilMeas[RM_UAB] = (unsigned long)table_sqrt(tDft);
-	g_gRmtMeas[RM_UAB] = g_gRmtFilMeas[RM_UAB];
-	
-	 tDft=(c+b)*(c+b)-c*b;
-	//g_gRmAcFilt[RM_UBC][g_unFilterIndex]= (unsigned long)table_sqrt(tDft);// * COEF_AD_U>> 14;
-	g_gRmtFilMeas[RM_UBC] = (unsigned long)table_sqrt(tDft);
-	g_gRmtMeas[RM_UBC] = g_gRmtFilMeas[RM_UBC];
-	
-	 tDft=(a+c)*(a+c)-a*c;
-	//g_gRmAcFilt[RM_UCA][g_unFilterIndex]= table_sqrt(tDft);// * COEF_AD_U>> 14;
-	g_gRmtFilMeas[RM_UCA] = (unsigned long)table_sqrt(tDft);
-	g_gRmtMeas[RM_UCA] = g_gRmtFilMeas[RM_UCA];
-*/
+
+	ProtLogic();//PT断线检测，短信判断	
+
 }
 
 
@@ -1351,7 +1335,7 @@ void RecData(void)
         g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1] =g_unAdcData[CHAN_UB]-g_gAdjAD[CHAN_UB];// g_sSampleData.m_gAcAdcData[CHAN_UB][g_sSampleData.m_unAcDataTail];
         g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2] =g_unAdcData[CHAN_UC]-g_gAdjAD[CHAN_UC];// g_sSampleData.m_gAcAdcData[CHAN_UC][g_sSampleData.m_unAcDataTail];
         if(g_gProcCnt[PC_U0_CAL] == 0)  //
-              g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = (g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][0]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2])/3; 
+              g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = (g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][0]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2]); 
 	 else
 	  	g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] =g_unAdcData[CHAN_U0]-g_gAdjAD[CHAN_U0];
 	  g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][4] =g_unAdcData[CHAN_I0]-g_gAdjAD[CHAN_I0];
@@ -1437,7 +1421,7 @@ void RecActData(void)
         g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1] =g_unAdcData[CHAN_UB]-g_gAdjAD[CHAN_UB];// g_sSampleData.m_gAcAdcData[CHAN_UB][g_sSampleData.m_unAcDataTail];
         g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2] =g_unAdcData[CHAN_UC]-g_gAdjAD[CHAN_UC];// g_sSampleData.m_gAcAdcData[CHAN_UC][g_sSampleData.m_unAcDataTail];	
 	if(g_gProcCnt[PC_U0_CAL] == 0)  //
-              g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = (g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][0]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2])/3; 
+              g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] = (g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][0]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][1]+g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][2]); 
 	 else
 	  	g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3] =g_unAdcData[CHAN_U0]-g_gAdjAD[CHAN_U0];
 	 //g_sRecData.m_gRecAc[g_sRecData.m_unRecAcTail][3]=g_gRmtMeas[RM_UA];

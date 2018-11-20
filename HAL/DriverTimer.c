@@ -114,7 +114,7 @@ void GetAcSamData(void)
         if(Polarity < 4097)
         {
             if(i == CHAN_U0 && g_gProcCnt[PC_U0_CAL] == 0)  //
-                g_sSampleData.m_gAcAdcData[i][AcSamTail] = (g_sSampleData.m_gAcAdcData[i - 1][AcSamTail] + g_sSampleData.m_gAcAdcData[i - 2][AcSamTail] + g_sSampleData.m_gAcAdcData[i - 3][AcSamTail])/3; 
+                g_sSampleData.m_gAcAdcData[i][AcSamTail] = (g_sSampleData.m_gAcAdcData[i - 1][AcSamTail] + g_sSampleData.m_gAcAdcData[i - 2][AcSamTail] + g_sSampleData.m_gAcAdcData[i - 3][AcSamTail]); 
             else
                 g_sSampleData.m_gAcAdcData[i][AcSamTail] = (int)(((long)Polarity - g_gAdjPara[i]) * g_gProcCnt[PC_UA_ADJ + i] >> 12);    //* g_gAdjPara[ADJ_DEST_CHNIA + i] >> 10启动一次交流电压电流采集，把交流电压电流采集数据保存到g_sSampleData.m_gAcAdcData
            if(i==CHAN_Upt)//upt to uo//Uo to Upt
@@ -408,7 +408,7 @@ void JAGACT1(void)//动作2次 超前相动作，滞后相动作
     g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位    
     g_gRmtInfo[YX_8FULS_STA]=0;//SaveLOG(LOG_8FULS_STA,0);
     //SaveLOG(LOG_LATCH, 1);
-    g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0
+    //g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0
     chongfa=0;  moniguzhang=0;	
     g_gRmtMeas[RM_ACT_NUM] = 2;
    g_sRecData.m_gACTDelay = 200;//g_sRecData.m_ucActRecStart = OFF;//张弢录波 动作录波结束
@@ -566,7 +566,7 @@ void JAGACT2(void)//动作3次 超前相动作，滞后相动作，故障相动作
     g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位  
     g_gRmtInfo[YX_8FULS_STA]=0;//SaveLOG(LOG_8FULS_STA,0);
     //SaveLOG(LOG_LATCH, 1);
-    g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0    
+    //g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0    
     chongfa=0;moniguzhang=0;	
    g_gRmtMeas[RM_ACT_NUM] = 3;
    g_sRecData.m_gACTDelay = 200;//g_sRecData.m_ucActRecStart = OFF;//张弢录波 动作录波结束	
@@ -701,7 +701,7 @@ void JAGACT3(void)//动作2次 只有AC相有接触器，超前相动作，另一相动作
     g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位  
     g_gRmtInfo[YX_8FULS_STA]=0;//SaveLOG(LOG_8FULS_STA,0);
     //SaveLOG(LOG_LATCH, 1);
-    g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0    
+    //g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0    
     chongfa=0;	moniguzhang=0;
     g_gRmtMeas[RM_ACT_NUM] = 2;
    g_sRecData.m_gACTDelay = 200;//g_sRecData.m_ucActRecStart = OFF;//张弢录波 动作录波结束	
@@ -832,7 +832,7 @@ void JAGACT4(void)//动作1次 只有AC相有接触器，超前相动作
              g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位 
              g_gRmtInfo[YX_8FULS_STA]=0;//SaveLOG(LOG_8FULS_STA,0);
              //SaveLOG(LOG_LATCH, 1);
-             g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0             
+             //g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0             
 	      chongfa=0;moniguzhang=0;
              g_gRmtMeas[RM_ACT_NUM] = 1;
 	      g_sRecData.m_gACTDelay = 200;//g_sRecData.m_ucActRecStart = OFF;//张弢录波 动作录波结束	
@@ -1175,7 +1175,8 @@ _EINT();//开总中断// 张弢测试中断嵌套
                    	Numyc++;
 					} 
 		      	}                    
-            if(g_gRmtMeas[RM_I0] >= g_gProcCntJug[PC_PULSE_VALID])
+            //if(g_gRmtMeas[RM_I0] >= g_gProcCntJug[PC_PULSE_VALID])g_gProcMeas
+            if(g_gProcMeas[RM_I0] >= g_gProcCntJug1[PC1_PULSE_VALID])
             	{
              	g_I0RmtZeroNum=0;
 			   	//g_gRmtInfo[YX_BREAK]=0; 			
@@ -1221,7 +1222,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
     				latch_upload_flag=0x55;      	
     				uart0_event_flag=0;         ///////在这里置0，是为了让状态量最早显示
     				g_gRmtInfo[YX_EFS_LATCH] = 1;   //置闭锁遥信位 
-    				g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0
+    				//g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0
     				g_gRmtInfo[YX_8FULS_STA]=0;//SaveLOG(LOG_8FULS_STA,0);
     				//SaveLOG(LOG_LATCH, 1);
     				chongfa=0;	moniguzhang=0;
@@ -1477,6 +1478,7 @@ _EINT();//开总中断// 张弢测试中断嵌套
 				   g_gRmtInfo[YX_PHASEB_ACT] = 0;
 				   g_gRmtInfo[YX_PHASEC_ACT] = 0;
                                 g_gRmtInfo[YX_EFS_LATCH] = 0;   //置解锁遥信位 
+                                g_gRmtInfo[YX_EFS_ACT] = 0;   //投切状态 遥信置0
                                 if(rh_send_ok == 0x85)rh_send_ok = 0xaa;
                                 //SaveLOG(LOG_LATCH, 0);SaveLOG(LOG_SOFT_LATCH, 0);
                                 g_gRmtInfo[YX_RH_FAIL] = 0;   //燃弧失败遥信复归
@@ -1550,11 +1552,11 @@ _EINT();//开总中断// 张弢测试中断嵌套
                 if(g_sRtcManager.m_unStartCount > 0)
                 {
                     g_sRtcManager.m_unStartCount--;
-                    //LED_RUN_ON;
+                    LED_RUN_ON;
                 }
                 else
                 {
-                    //LED_RUN_TOGG;    //LED00
+                    LED_RUN_TOGG;    //LED00
                 }
           
                 SecCount = 0;

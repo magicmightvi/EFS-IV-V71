@@ -128,23 +128,13 @@ void app(void)@"APPLICATION"
 		CheckCfgERR();
         }
     SaveActRecData();
-        CalcuRmtMeas();//有效值计算，并更新对应的遥测值
-    //CalcuUABRmtMeas();//计算线电压，和相电压平均值
+    CalcuRmtMeas();//有效值计算，并更新对应的遥测值
+    CalcuUABRmtMeas();//计算相电压平均值
     SaveActRecData();
         ScanDin();//断电遥信检测
 	 YCthCross();//遥测越限判断	
 	 SaveActRecData();
-     ProtLogic();//PT断线检测
-	if(newsms_8pluse == ON)
-		{	
-		newsms_8pluse = OFF;
- 		CreatNewSMS(EIGHT_PULSE);
-		}
- 	if(newsms_abn == ON)
-		{	
-		newsms_abn = OFF;
- 		CreatNewSMS(ABN_CHECK);
-		}
+     //ProtLogic();//PT断线检测	
 	SaveActRecData();
 	FEED_WATCH_DOG();
 	Comm_LED_101(); //液晶通信

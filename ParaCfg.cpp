@@ -395,7 +395,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
 	 	g_gRunPara[RP_RHSEND_TIME1]=100;
 	 if(g_gRunPara[RP_CT_TRANS]==0)g_gRunPara[RP_CT_TRANS]=20;
          CalcProtCnt();
-	g_gRmtInfo[YX_PAR_CHAG]=1;//SaveLOG(LOG_PAR_CHAG,1);
+	g_gRmtInfo[YX_PAR_CHAG]=1;//g_gRmtInfo[62]=1;//SaveLOG(LOG_PAR_CHAG,1);
     }
     
     //IEC101参数设置
@@ -405,7 +405,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         g_ucPara101[IECP_CRC] = AddChar(g_ucPara101, IECP_CRC);      //计算CS
         CAT_SpiWriteBytes(EEPADD_IECPARA , IEC_PARA_NUM, g_ucPara101);     //保存到EEPROM中
         CAT_SpiWriteBytes(EEPADDBK_IECPARA, IEC_PARA_NUM, g_ucPara101);    //保存到EEPROM的备份区中
-        //InitSCI();
+        //g_gRmtInfo[58]=1;//InitSCI();
         g_gRmtInfo[YX_PAR_CHAG]=1;//SaveLOG(LOG_PAR_CHAG,1);
     }
     //遥信地址点表
@@ -429,7 +429,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
                 break;
         }
         g_ucYxTransNum = i;
-		g_gRmtInfo[YX_PAR_CHAG]=1;//SaveLOG(LOG_PAR_CHAG,1);
+		g_gRmtInfo[YX_PAR_CHAG]=1;//g_gRmtInfo[59]=1;//SaveLOG(LOG_PAR_CHAG,1);
        /* g_gRMTBitBackCount = 0; //如果遥信点表重新配置，则清空未上传的长时标遥信
         g_gRMTBitBackCount_Aut = 0;
         g_EquInfo[COMM_INDEX_GPRS]  &= NBIT1;//清标识
@@ -443,7 +443,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         g_ucYCAddr[IEC_YC_NUM] = AddChar(g_ucYCAddr, IEC_YC_NUM);      //计算CS
         CAT_SpiWriteBytes(EEPADD_IECYCADDR , IEC_YC_NUM + 1, g_ucYCAddr);     //保存到EEPROM中
         CAT_SpiWriteBytes(EEPADDBK_IECYCADDR, IEC_YC_NUM + 1, g_ucYCAddr);    //保存到EEPROM的备份区中
-        g_gRmtInfo[YX_PAR_CHAG]=1;//SaveLOG(LOG_PAR_CHAG,1);      
+        g_gRmtInfo[YX_PAR_CHAG]=1;//g_gRmtInfo[60]=1;//SaveLOG(LOG_PAR_CHAG,1);      
     }
     //遥控地址点表
  /*   if((g_ucParaChang & BIT4) == BIT4)
@@ -461,7 +461,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         CAT_SpiWriteBytes(EEPADD_PHONE , PHONE_PA_NUM, g_gSmsPhone);     //保存到EEPROM中
         CAT_SpiWriteBytes(EEPADDBK_PHONE, PHONE_PA_NUM, g_gSmsPhone);    //保存到EEPROM的备份区中
         CheckTELNUMPara();//张弢 0328 将g_gSmsPhone转成TEL_NUM g_ucphone_perm 
-        g_gRmtInfo[YX_PAR_CHAG]=1;//SaveLOG(LOG_PAR_CHAG,1);
+        g_gRmtInfo[YX_PAR_CHAG]=1;//g_gRmtInfo[61]=1;//SaveLOG(LOG_PAR_CHAG,1);
     }
  
    	//张弢 读汉字站名
@@ -729,6 +729,7 @@ void CheckCfgERR(void)
       		//CalcProtCnt();      		
     		}
 		g_ucParaChang |= BIT0;   //调用保存函数
+		g_gRmtInfo[YX_MEM_ERR]=1;
     }
 	if(g_gRunPara[YC_delay] == 0)
 		g_gRunPara[YC_delay] = 500;//遥测
@@ -1117,17 +1118,24 @@ void CheckRECPara(void)
 void CalcProtCnt(void)
 {
     unsigned char i;
+	unsigned long tmp;
     for(i = 0; i <= PROC_CNT_NUM; i++)
         g_gProcCnt[i] = g_gRunPara[i + RP_UA_ADJ];
 	g_gProcCnt[PC_PULSE_VALID]= g_gRunPara[RP_PULSE_VALID]*100/ g_gRunPara[RP_CT_TRANS];
 	g_gProcCnt[PC_OVERLOAD_I]= g_gRunPara[RP_OVERLOAD_I]*100/ g_gRunPara[RP_CT_TRANS];
 //#ifdef YN_101S
-    g_gProcCntJug1[PC1_HIGH_P] = ((unsigned long)g_gProcCnt[PC_HIGH_P]<<14)/COEF_AD_U ;                //相电压高定值
-    g_gProcCntJug1[PC1_LOW_P] = ((unsigned long)g_gProcCnt[PC_LOW_P]<<14)/COEF_AD_U;                //相电压低定值
-    g_gProcCntJug1[PC1_HIGH_Z] = ((unsigned long)g_gProcCnt[PC_HIGH_Z]<<14)/COEF_AD_U;          //零序电压高定值
-    g_gProcCntJug1[PC1_LOW_Z] = ((unsigned long)g_gProcCnt[PC_LOW_Z]<<14)/COEF_AD_U;          //零序电压低定值   
-    g_gProcCntJug1[PC1_PULSE_VALID] = ((unsigned long)g_gProcCnt[PC_PULSE_VALID]<<14)/COEF_AD_I_0;//线电压高定值
-	g_gProcCntJug1[PC1_OVERLOAD_I] = ((unsigned long)g_gProcCnt[PC_OVERLOAD_I]<<14)/COEF_AD_I_0;
+	tmp = ((unsigned long)g_gProcCnt[PC_HIGH_P]<<14)/COEF_AD_U;
+    g_gProcCntJug1[PC1_HIGH_P] = tmp*tmp;//相电压高定值
+    tmp = ((unsigned long)g_gProcCnt[PC_LOW_P]<<14)/COEF_AD_U;                
+    g_gProcCntJug1[PC1_LOW_P] = tmp*tmp;//相电压低定值
+    tmp = ((unsigned long)g_gProcCnt[PC_HIGH_Z]<<14)/COEF_AD_U;          
+    g_gProcCntJug1[PC1_HIGH_Z] = tmp*tmp;//零序电压高定值
+	tmp = ((unsigned long)g_gProcCnt[PC_LOW_Z]<<14)/COEF_AD_U;         
+	g_gProcCntJug1[PC1_LOW_Z] = tmp*tmp; //零序电压低定值   
+	tmp = ((unsigned long)g_gProcCnt[PC_PULSE_VALID]<<14)/COEF_AD_I_0;
+	g_gProcCntJug1[PC1_PULSE_VALID] = tmp*tmp;//线电压高定值
+	tmp = ((unsigned long)g_gProcCnt[PC_OVERLOAD_I]<<14)/COEF_AD_I_0;
+	g_gProcCntJug1[PC1_OVERLOAD_I] = tmp*tmp;
 
     g_gProcCntJug[PC_HIGH_P] = g_gProcCnt[PC_HIGH_P] ;                //相电压高定值
     g_gProcCntJug[PC_LOW_P] = g_gProcCnt[PC_LOW_P];                //相电压低定值

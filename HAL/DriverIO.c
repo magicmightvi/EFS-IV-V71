@@ -1066,7 +1066,7 @@ void ScanSoftLacth(void)
     				//SaveLOG(LOG_LATCH, 1);
     				chongfa=0;	moniguzhang=0;
     				//g_gRmtMeas[RM_ACT_NUM] = 0;
-					g_gRmtInfo[YX_EFS_ACT] = 0;   //Í¶ÇÐ×´Ì¬ Ò£ÐÅÖÃ0	
+					//g_gRmtInfo[YX_EFS_ACT] = 0;   //Í¶ÇÐ×´Ì¬ Ò£ÐÅÖÃ0	
 					}
 				g_gRmtInfo[YX_SOFT_LATCH]=1;//SaveLOG(LOG_SOFT_LATCH, 1);
 				}
@@ -1115,7 +1115,7 @@ void ScanSoftLacth(void)
     				g_gRmtInfo[YX_8FULS_STA]=0;//SaveLOG(LOG_8FULS_STA,0);
     				chongfa=0;	moniguzhang=0;
     				//g_gRmtMeas[RM_ACT_NUM] = 0;
-    				g_gRmtInfo[YX_EFS_ACT] = 0;   //Í¶ÇÐ×´Ì¬ Ò£ÐÅÖÃ0	
+    				//g_gRmtInfo[YX_EFS_ACT] = 0;   //Í¶ÇÐ×´Ì¬ Ò£ÐÅÖÃ0	
 					}
 				g_gRmtInfo[YX_SOFT_LATCH]=1;//SaveLOG(LOG_SOFT_LATCH, 1);
 				g_gRmtInfo[YX_KJ_TIMEOVER]=1;//SaveLOG(LOG_KM_ERR, 1);

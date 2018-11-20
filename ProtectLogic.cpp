@@ -142,9 +142,9 @@ void ProtStart(void)
     else if((g_gProcCnt[PC_JAG_Z]==0x55)&&(g_gProcCnt[PC_JAG_P]==0x55))     /////////相和零序同时做判据	 
     { 
         if((fault_save==0)&&(fault_time<g_gProcCnt[PC_T_DELAY]))
-        {	         	 	
+        {
             if(((g_gProcMeas[RM_UA]<g_gProcCntJug1[PC1_LOW_P])&&((g_gProcMeas[RM_UB]>g_gProcCntJug1[PC1_HIGH_P])||(g_gProcMeas[RM_UC]>g_gProcCntJug1[PC1_HIGH_P]))&&(g_gProcMeas[RM_U0]>g_gProcCntJug1[PC1_HIGH_Z])) /////////A相电压   单相接地判据
-            	||((g_gProcMeas[RM_UA]<g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UA]<g_gProcMeas[RM_UB])&&(g_gProcMeas[RM_UA]<g_gProcMeas[RM_UC])
+				  	||((g_gProcMeas[RM_UA]<g_gProcCntJug1[PC1_LOW_P])&&(g_gProcMeas[RM_UA]<g_gProcMeas[RM_UB])&&(g_gProcMeas[RM_UA]<g_gProcMeas[RM_UC])
 					&&((g_gProcMeas[RM_UB]>g_gProcCntJug1[PC1_LOW_P])||(g_gProcMeas[RM_UC]>g_gProcCntJug1[PC1_LOW_P]))
 					&&(g_gDebugP[Debug_SRECJU2]==0x55)&&(g_gProcMeas[RM_U0]>g_gProcCntJug1[PC1_HIGH_Z])))
        	    	{ 	
@@ -172,8 +172,8 @@ void ProtStart(void)
 				fault_pluse =RM_UC;	 
            	 	fault_end=0;
 				//SaveLOG(LOG_EARTH,1);
-            	}          	     	     
-       	 }     
+            	}    
+           	}  
       } 
      if((g_sRecData.m_ucActRecStart == CLOSE)&&(g_sRecData.m_ucRecSavingFlag == OFF)
 	 	&&(g_sRecData.m_ucFaultRecStart ==OFF)&&(fault_begin==0x55)
@@ -646,8 +646,80 @@ void PulseReady(void)
 }
 */
 //==============================================================================
+//  函数名称   : ScanPhase_off
+//  功能描述   : 检查PT短线
+//  输入参数   : <无>
+//  输出参数   ：<无>
+//  返回值     : <无>
+//  其他说明   : 
+//  作者       ： 
+//==============================================================================
+void ScanPhase_Off(void)
+{
+	unsigned int unUmax,unULmin,unULmax;//unUmin,
+	
+	unULmax = ComputeMax(g_gRmtMeas[RM_UAB], g_gRmtMeas[RM_UBC], g_gRmtMeas[RM_UCA]);  //求出最大线电压
+	unULmin = ComputeMin(g_gRmtMeas[RM_UAB], g_gRmtMeas[RM_UBC], g_gRmtMeas[RM_UCA]);  //求出最大线电压
+	//unUmin  = ComputeMin(g_gRmtMeas[RM_UA], g_gRmtMeas[RM_UB], g_gRmtMeas[RM_UC]);  //求出最线电压
+	unUmax  = ComputeMax(g_gRmtMeas[RM_UA], g_gRmtMeas[RM_UB], g_gRmtMeas[RM_UC]);  //求出最大线电压
+
+	if(((g_gProcCnt[PC_U0_CAL] == 0)&&(g_gRmtMeas[RM_U0]>g_gProcCntJug[PC_LOW_Z])&&((unULmax-unULmin)>2200))
+		||((g_gProcCnt[PC_U0_CAL] == 1)&&(g_gRmtMeas[RM_U0]<g_gProcCntJug[PC_LOW_Z])&&((unULmax-unULmin)>2200)))
+		{
+		if(g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_NO_V])
+			phasea_off++;
+		if(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_NO_V])
+			phaseb_off++;
+		if(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_NO_V])
+			phasec_off++;
+		}
+	if(unUmax<g_gProcCntJug[PC_NO_V])
+		{
+		phasea_off++;phaseb_off++;phasec_off++;
+		}
+	if((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_NO_V])&&(phasea_off>0))
+		phasea_off--;
+	if((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_NO_V])&&(phaseb_off>0))
+		phaseb_off--;
+	if((g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_NO_V])&&(phasec_off>0))
+		phasec_off--;	
+		
+	if(phasea_off>10)
+		{
+		phasea_off = 10;
+		g_gRmtInfo[YX_PHASEA_OFF] = 1;
+		}
+	if(phaseb_off>10)
+		{
+		phaseb_off = 10;
+		g_gRmtInfo[YX_PHASEB_OFF] = 1;
+		}
+	if(phasec_off>10)
+		{
+		phasec_off = 10;
+		g_gRmtInfo[YX_PHASEC_OFF] = 1;
+		}
+	if(phasea_off==0)
+		g_gRmtInfo[YX_PHASEA_OFF] = 0;
+	if(phaseb_off==0)
+		g_gRmtInfo[YX_PHASEB_OFF] = 0;
+	if(phasec_off==0)
+		g_gRmtInfo[YX_PHASEC_OFF] = 0;
+
+	if((g_gRmtInfo[YX_PHASEA_OFF]+g_gRmtInfo[YX_PHASEB_OFF]+g_gRmtInfo[YX_PHASEC_OFF])==0)				
+		{
+		g_gRmtInfo[YX_PHASE_OFF] = 0;
+		phase_off = 0;
+		}
+	else
+		{
+		g_gRmtInfo[YX_PHASE_OFF] = 1;
+		phase_off = g_gRmtInfo[YX_PHASEA_OFF]+2*g_gRmtInfo[YX_PHASEB_OFF]+4*g_gRmtInfo[YX_PHASEC_OFF];
+		}
+}
+//==============================================================================
 //  函数名称   : ProtLogic
-//  功能描述   : 保护逻辑判断过程和计时过程
+//  功能描述   : PT断线扫描 ，发短信
 //  输入参数   : <无>
 //  输出参数   ：<无>
 //  返回值     : <无>
@@ -657,184 +729,31 @@ void PulseReady(void)
 void ProtLogic(void)
 {
     unsigned char i;
-  //  if(g_ucDuanxianFlg >= 50)
-    {
-    if((phase_off&BIT0)==BIT0)      /////////A相存在断线 ,判断是否复归
-    {
-	if((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_HIGH_P]))
-	{
-	    if(((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_NO_V]))
-	    {
-	  	if(((g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_NO_V]))
-	  	{ 
-                    phase_off&=~BIT0;
-		      g_gRmtInfo[YX_PHASEA_OFF] = 0;
-                }
-	    }
-	}
-    }
-    if((phase_off&BIT1)==BIT1)      /////////B相存在断线 ,判断是否复归
-    {
-	if((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_HIGH_P]))
-	{
-	    if(((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_NO_V]))
-	    {
-	  	if(((g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_NO_V]))
-                {
-                    phase_off&=~BIT1;
-		      g_gRmtInfo[YX_PHASEB_OFF] = 0;
-                }
-                
-	    }
-	 }
-    }
-    if((phase_off&BIT2)==BIT2)      /////////C相存在断线 ,判断是否复归
-    {
-	if((g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_HIGH_P]))
-	{
-	    if(((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_NO_V]))
-	  	{
-	  	    if(((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_NO_V]))
-                    {
-                        phase_off&=~BIT2;
-		      g_gRmtInfo[YX_PHASEC_OFF] = 0;
-                    }
-	  	}
-	 }
-    }	
-    if((phase_off & 0x07) == 0)
-        g_gRmtInfo[YX_PHASE_OFF] = 0;
-     ///////在这里做复归判断的存储，防止三个复归同时出现还是存储三次
-    if(phase_copy!=phase_off)       /////////说明发生复归
-    {
-	phase_copy=phase_off;
-        for(i=0;i<6;i++)
-           g_sSoeData.m_gBreakRSTBuff[i] = g_sRtcManager.m_gRealTimer[i];
-        g_sSoeData.m_gBreakRSTBuff[0] = g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000;
-	g_sSoeData.m_gBreakRSTBuff[6]=(unsigned char)(g_gRmtMeas[RM_UA]/100);
-	g_sSoeData.m_gBreakRSTBuff[7]=(unsigned char)(g_gRmtMeas[RM_UB]/100);
-	g_sSoeData.m_gBreakRSTBuff[8]=(unsigned char)(g_gRmtMeas[RM_UC]/100);
-	save_phase_off=0x66;
-       
-    }
-  /*  if((phase_off&BIT0)==BIT0)
-        g_gRmtInfo[0] |= YX_PHASEA_OFF;
-    if((phase_off&BIT1)==BIT1)
-        g_gRmtInfo[0] |= YX_PHASEB_OFF;
-    if((phase_off&BIT1)==BIT1)
-        g_gRmtInfo[0] |= YX_PHASEC_OFF;*/
-    
-    if((phase_off&0x01)==0x00)       ////////这是判断A相是否有断线
-    {
-	if(g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_NO_V])
-	{
-	    if(((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_NO_V]))
-	    {
-	  	if(((g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_NO_V]))
-                {
-                	phasea_off++;
-			if(phasea_off>200)
-				{
-				phasea_off=200;
-                    phase_off|=BIT0;
-                    g_gRmtInfo[YX_PHASE_OFF] = 1;
-		      g_gRmtInfo[YX_PHASEA_OFF] = 1;	
-				}
-                }
-	    }
-	}
-	else
-	{
-	phasea_off = 0;
-	}
-    }
-    if((phase_off&0x02)==0x00)       ////////这是判断B相是否有断线
-    {
-	if(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_NO_V])
-	{
-	    if(((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_NO_V]))
-	    {
-	  	if(((g_gRmtMeas[RM_UC]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_NO_V]))
-                {
-			phaseb_off++;
-			if(phaseb_off>200)
-				{
-				phaseb_off = 200;
-			phase_off|=BIT1;
-                    g_gRmtInfo[YX_PHASE_OFF] = 1;
-		      g_gRmtInfo[YX_PHASEB_OFF] = 1;
-				}
-                }
-	    }
-	}
-	else
-	{
-	phaseb_off = 0;
-	}	
-    }
-    if((phase_off&0x04)==0x00)       ////////这是判断C相是否有断线
-    {
-	if(g_gRmtMeas[RM_UC]<g_gProcCntJug[PC_NO_V])
-	{
-	    if(((g_gRmtMeas[RM_UA]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UA]<g_gProcCntJug[PC_NO_V]))
-	    {
-	  	if(((g_gRmtMeas[RM_UB]>g_gProcCntJug[PC_LOW_P])&&(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_HIGH_P]))||(g_gRmtMeas[RM_UB]<g_gProcCntJug[PC_NO_V]))
-                {
-                	phasec_off++;
-			if(phasec_off>200)
-				{
-				phasec_off=200;
-                   		 phase_off|=BIT2;
-                    		g_gRmtInfo[YX_PHASE_OFF] = 1;
-		      		g_gRmtInfo[YX_PHASEC_OFF] = 1;	
-				}
-                }
-	    }
-	}
-	else
-	{
-	phasec_off = 0;
-	}	
-    }	
-    //增加3相电压异常遥信位
-  /*  if((g_gRmtMeas[RM_UA] >= g_gProcCntJug[PC_NO_V] && g_gRmtMeas[RM_UA] <= g_gProcCntJug[PC_LOW_P])||g_gRmtMeas[RM_UA] >= g_gProcCntJug[PC_HIGH_P])  //A相电压异常
-        g_gRmtInfo[0] |= YX_PHASEA_ABNORMAL;
-    else if(g_gRmtMeas[RM_UA] > g_gProcCntJug[PC_LOW_P] && g_gRmtMeas[RM_UA] < g_gProcCntJug[PC_HIGH_P])
-        g_gRmtInfo[0] &= ~YX_PHASEA_ABNORMAL;
-    if((g_gRmtMeas[RM_UB] >= g_gProcCntJug[PC_NO_V] && g_gRmtMeas[RM_UB] <= g_gProcCntJug[PC_LOW_P])||g_gRmtMeas[RM_UB] >= g_gProcCntJug[PC_HIGH_P])  //B相电压异常
-        g_gRmtInfo[0] |= YX_PHASEB_ABNORMAL;
-    else if(g_gRmtMeas[RM_UB] > g_gProcCntJug[PC_LOW_P] && g_gRmtMeas[RM_UB] < g_gProcCntJug[PC_HIGH_P])
-        g_gRmtInfo[0] &= ~YX_PHASEB_ABNORMAL;
-    if((g_gRmtMeas[RM_UC] >= g_gProcCntJug[PC_NO_V] && g_gRmtMeas[RM_UC] <= g_gProcCntJug[PC_LOW_P])||g_gRmtMeas[RM_UC] >= g_gProcCntJug[PC_HIGH_P])  //C相电压异常
-        g_gRmtInfo[0] |= YX_PHASEC_ABNORMAL;
-    else if(g_gRmtMeas[RM_UC] > g_gProcCntJug[PC_LOW_P] && g_gRmtMeas[RM_UC] < g_gProcCntJug[PC_HIGH_P])
-        g_gRmtInfo[0] &= ~YX_PHASEC_ABNORMAL;
-     */ 
-	  ///////在这里做断线判断的存储，防止三个断线同时出现还是存储三次
+  	ScanPhase_Off();
     if(phase_copy!=phase_off)       /////////说明发生断线
-    {
-	phase_copy=phase_off;
-	for(i=0;i<6;i++)
+    	{
+		phase_copy=phase_off;
+		for(i=0;i<6;i++)
            g_sSoeData.m_gBreakBuff[i] = g_sRtcManager.m_gRealTimer[i];
         g_sSoeData.m_gBreakBuff[0] = g_sRtcManager.m_gRealTimer[RTC_YEAR] - 2000;
-	g_sSoeData.m_gBreakBuff[6]=(unsigned char)(g_gRmtMeas[RM_UA]/100);
-	g_sSoeData.m_gBreakBuff[7]=(unsigned char)(g_gRmtMeas[RM_UB]/100);
-	g_sSoeData.m_gBreakBuff[8]=(unsigned char)(g_gRmtMeas[RM_UC]/100);
-	save_phase_off=0x55;
-	CreatNewSMS(PHASE_BREAK);                      //产生断线短信  	   	 
+		g_sSoeData.m_gBreakBuff[6]=(unsigned char)(g_gRmtMeas[RM_UA]/100);
+		g_sSoeData.m_gBreakBuff[7]=(unsigned char)(g_gRmtMeas[RM_UB]/100);
+		g_sSoeData.m_gBreakBuff[8]=(unsigned char)(g_gRmtMeas[RM_UC]/100);
+		save_phase_off=0x55;
+		CreatNewSMS(PHASE_BREAK);                      //产生断线短信  	   	 
 	  	 
- 	if(g_gProcCnt[PC_GPRS_MODEL]==0)                                       //////////////肯定会发短信息，但是会不会发送GPRS数据还需要
-   	{
-   	    upload_interval[3]=(3*upload_interval_set)-1;      //////////////断线 4 minutes
+ 		if(g_gProcCnt[PC_GPRS_MODEL]==0)                                       //////////////肯定会发短信息，但是会不会发送GPRS数据还需要
+   			{
+   	    	upload_interval[3]=(3*upload_interval_set)-1;      //////////////断线 4 minutes
             upload_flag|=PHASE_BREAK;	
-   	}
+   			}
         else
-   	{
-   	    upload_interval[3]=0;      //////////////eight pulse set 4 minutes	
-   	    upload_flag&=~PHASE_BREAK;	
-   	}
-    }
-    }
+   			{
+   	    	upload_interval[3]=0;      //////////////eight pulse set 4 minutes	
+   	    	upload_flag&=~PHASE_BREAK;	
+   			}
+    	}
+    
     if(fault_recovery_flag==0x55)           ////////// 检测到故障复归
     {
     	fault_recovery_flag=0;	    	 	 
@@ -850,43 +769,50 @@ void ProtLogic(void)
     }
     if(latch_upload_flag==0x55 || state_counter==0)//;     ///////置主动上传标志（有故障与时间两种上传标志）	
     {
-    	latch_upload_flag=0;     ///////置主动上传标志  
-    	      	
-    	CreatNewSMS(SEND_AUTO);                      //产生主动上传短信
-    	
- 	if(g_gProcCnt[PC_GPRS_MODEL]==0)
- 	    upload_GPRS|=SEND_AUTO;
+    	latch_upload_flag=0;     ///////置主动上传标志     	      	
+    	CreatNewSMS(SEND_AUTO);                      //产生主动上传短信    	
+ 		if(g_gProcCnt[PC_GPRS_MODEL]==0)
+ 	    	upload_GPRS|=SEND_AUTO;
         else
- 	    upload_GPRS&=~SEND_AUTO;
- 	if((g_ucPara_stime <2)||(g_ucPara_stime>48))  ////预置成24小时发送一次
-            g_ucPara_stime = 24; 
-         
+ 	    	upload_GPRS&=~SEND_AUTO;
+ 		if((g_ucPara_stime <2)||(g_ucPara_stime>48))  ////预置成24小时发送一次
+            g_ucPara_stime = 24;          
         state_counter= g_gRunPara[RP_SENDSMS_T]*60;	//张弢 遥测起始地址修改运行参数 
     }
     if(eight_delay_flag==0x55)    //////八脉冲延时结束，准备发出8脉冲
     {
-    	 eight_delay_flag=0;
-    	 PulseReady();
-	 if(rh_send_ok == 0x55)
+    	eight_delay_flag=0;
+ 		PulseReady();
+	 	if(rh_send_ok == 0x55)
 	 	{
-	 	g_gRmtInfo[YX_RH_FAIL] = 1;   //燃弧失败遥信置位	
-	 	g_gRmtInfo[YX_RH_SUCCESS]=0;
+	 		g_gRmtInfo[YX_RH_FAIL] = 1;   //燃弧失败遥信置位	
+	 		g_gRmtInfo[YX_RH_SUCCESS]=0;
 	 	}
-	 rh_send_ok = 0x85;	
-       if(g_gProcCnt[PC_EFS_MODEL]>0)                   //////信号源类型为II型，
-       	 {
-       	 	if(g_ucEarthFlg == 1)                               //(mm[0]<=mm[1])&&(mm[0]<=mm[2])
+	 	rh_send_ok = 0x85;	
+       	if(g_gProcCnt[PC_EFS_MODEL]>0)                   //////信号源类型为II型，
+       	{
+      		if(g_ucEarthFlg == 1)                               //(mm[0]<=mm[1])&&(mm[0]<=mm[2])
        	 		{fault_sms_type=1;}
        	 	else if(g_ucEarthFlg == 2)//else if((mm[1]<=mm[0])&&(mm[1]<=mm[2]))
        	 		{fault_sms_type=2;}
-       	        else if(g_ucEarthFlg == 3)  //else if((mm[2]<=mm[1])&&(mm[2]<=mm[0]))			
+       	    else if(g_ucEarthFlg == 3)  //else if((mm[2]<=mm[1])&&(mm[2]<=mm[0]))			
        	 	  {fault_sms_type=3;}
        	 }   
-       else
+       	else
            fault_sms_type=4; 
 	   //g_gRmtInfo[YX_EARTH_TDELA]=1;//SaveLOG(LOG_EARTH_TDELAY,1);
        CreatNewSMS(FAULT_OCCUR);                      //产生故障短信//张弢  
     }
+	if(newsms_8pluse == ON)
+		{	
+		newsms_8pluse = OFF;
+ 		CreatNewSMS(EIGHT_PULSE);
+		}
+ 	if(newsms_abn == ON)
+		{	
+		newsms_abn = OFF;
+ 		CreatNewSMS(ABN_CHECK);
+		}
 
 }
 
