@@ -274,11 +274,35 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
     if((g_gRunPara[RP_PLUSE_NUM]<6)||(g_gRunPara[RP_PLUSE_NUM]>8))
     {
         g_gRunPara[RP_PLUSE_NUM]= 8;
-    }	
-        g_ucParaChang &= NBIT0;
-        g_gRunPara[RP_CRC] = CrcCount((unsigned int *)g_gRunPara, RP_CRC);      //计算CRC
-        CAT_SpiWriteWords(EEPADD_RP, RUN_PARA_NUM, g_gRunPara); //保存到EEPROM中
-        CAT_SpiWriteWords(EEPADDBK_RP, RUN_PARA_NUM, g_gRunPara); //保存到EEPROM中           
+    }
+	if(g_gRunPara[RP_CNL_MODEL] == 0)
+    {
+  		g_gRmtInfo[YX_FUN_ON] = 0;
+   		g_gRunPara[RP_JAG_P] = 0;       //相判据标志
+    	g_gRunPara[RP_JAG_Z] = 0;       //零序判据标志
+   	}
+ 	else
+   	{
+    	g_gRmtInfo[YX_FUN_ON] = 1;
+          // g_gRunPara[RP_JAG_P] = 0x55;       //相判据标志
+          // g_gRunPara[RP_JAG_Z] = 0x55;       //零序判据标志
+ 	}
+	if((g_gRunPara[RP_T_DELAY]/10)<=(g_gRunPara[RP_RHSEND_TIME1]+g_gRunPara[RP_RHPLUSE_TIME2]+200))
+	 	{
+	 	//g_gRunPara[RP_RHSEND_TIME1]=100;
+		g_gRunPara[RP_T_DELAY] = 10000;               //故障延时时间
+	 	}
+	if(g_gRunPara[RP_T_DELAY]<4000)
+	 	g_gRunPara[RP_T_DELAY] = 10000;               //故障延时时间
+	if(g_gRunPara[RP_OVERLOAD_T]<(g_gRunPara[RP_PLUSE_TIME]*10))
+		g_gRunPara[RP_OVERLOAD_T]=2*g_gRunPara[RP_PLUSE_TIME]*10;
+	if(g_gRunPara[RP_OVERLOAD_T]<(g_gRunPara[RP_RHPLUSE_TIME2]*10))
+		g_gRunPara[RP_OVERLOAD_T]=2*g_gRunPara[RP_RHPLUSE_TIME2]*10;
+	
+ 	g_ucParaChang &= NBIT0;
+	g_gRunPara[RP_CRC] = CrcCount((unsigned int *)g_gRunPara, RP_CRC);      //计算CRC
+	CAT_SpiWriteWords(EEPADD_RP, RUN_PARA_NUM, g_gRunPara); //保存到EEPROM中
+  	CAT_SpiWriteWords(EEPADDBK_RP, RUN_PARA_NUM, g_gRunPara); //保存到EEPROM中           
 
 	 /*			
         ucTemp[1] = g_ucPara_stime;ucTemp[0] = g_ucPara_stime; //张弢 0329  主动上传间隔时间
@@ -309,25 +333,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
             g_gsendZJTimeNum = ((unsigned long)g_gRunPara[RP_SENDZJ_T])*10;
         else
             g_gsendZJTimeNum = 0;	
-        if(g_gRunPara[RP_CNL_MODEL] == 0)
-        {
-           g_gRmtInfo[YX_FUN_ON] = 0;
-           g_gRunPara[RP_JAG_P] = 0;       //相判据标志
-           g_gRunPara[RP_JAG_Z] = 0;       //零序判据标志
-        }
-        else
-        {
-           g_gRmtInfo[YX_FUN_ON] = 1;
-          // g_gRunPara[RP_JAG_P] = 0x55;       //相判据标志
-          // g_gRunPara[RP_JAG_Z] = 0x55;       //零序判据标志
-        }
-	 if((g_gRunPara[RP_T_DELAY]/10)<=(g_gRunPara[RP_RHSEND_TIME1]+g_gRunPara[RP_RHPLUSE_TIME2]+200))
-	 	{
-	 	//g_gRunPara[RP_RHSEND_TIME1]=100;
-		g_gRunPara[RP_T_DELAY] = 10000;               //故障延时时间
-	 	}
-	 if(g_gRunPara[RP_T_DELAY]<4000)
-	 	g_gRunPara[RP_T_DELAY] = 10000;               //故障延时时间
+        
 	if(u_dellubo==1 )
     	{
     	//g_gRunPara[RP_CFG_KEY]=g_gRunPara[RP_CFG_KEY]&(~BIT[RPCFG_DEL_LUBO]);
@@ -527,15 +533,15 @@ void CheckCfgPara(void)
     {
     	CAT_SpiReadWords(EEPADDBK_RP, RUN_PARA_NUM, g_gRunPara);  //读出当前保护定值
     	if (g_gRunPara[RP_CRC] != CrcCount((unsigned int *)g_gRunPara, RP_CRC)) //CRC校验错误
-      {
+      	{
       		RstRunPara();
       		CalcProtCnt();
       		g_ucParaChang |= BIT0;   //调用保存函数
     	}
-	else
-	{
-		 CAT_SpiWriteWords(EEPADD_RP, RUN_PARA_NUM, g_gRunPara); //保存到EEPROM中
-	}
+		else
+		{
+		 	CAT_SpiWriteWords(EEPADD_RP, RUN_PARA_NUM, g_gRunPara); //保存到EEPROM中
+		}
     }
 	if(g_gRunPara[YC_delay] == 0)
 		g_gRunPara[YC_delay] = 500;//遥测
@@ -583,7 +589,9 @@ void CheckCfgPara(void)
     {
         g_gRunPara[RP_SENDSMS_T]= 24;
     }		
-	
+	g_gRunPara[RP_CRC] = CrcCount((unsigned int *)g_gRunPara, RP_CRC);      //计算CRC
+    CAT_SpiWriteWords(EEPADD_RP, RUN_PARA_NUM, g_gRunPara); //保存到EEPROM中
+    CAT_SpiWriteWords(EEPADDBK_RP, RUN_PARA_NUM, g_gRunPara); //保存到EEPROM中
     //101的系统参数
     CAT_SpiReadBytes(EEPADD_IECPARA, IEC_PARA_NUM, g_ucPara101);  //读出
   
@@ -731,50 +739,7 @@ void CheckCfgERR(void)
 		g_ucParaChang |= BIT0;   //调用保存函数
 		g_gRmtInfo[YX_MEM_ERR]=1;
     }
-	if(g_gRunPara[YC_delay] == 0)
-		g_gRunPara[YC_delay] = 500;//遥测
-    if(g_gRunPara[RP_PLUSE_TIME]<=g_gRunPara[RP_PLUSE_AMODFK])
-    {
-        g_gRunPara[RP_PLUSE_AMODFK]= 0;
-    }	
-    if(g_gRunPara[RP_PLUSE_TIME]<=g_gRunPara[RP_PLUSE_BMODFK])
-    {
-        g_gRunPara[RP_PLUSE_BMODFK]= 0;
-    }	
-    if(g_gRunPara[RP_PLUSE_TIME]<=g_gRunPara[RP_PLUSE_CMODFK])
-    {
-        g_gRunPara[RP_PLUSE_CMODFK]= 0;
-    }		
-    if(g_gRunPara[RP_RHPLUSE_TIME2]<=g_gRunPara[RP_PLUSEXH_MODFK])
-    {
-        g_gRunPara[RP_PLUSEXH_MODFK]= 0;
-    }
-    if((g_gRunPara[RP_PLUSE_NUM]<6)||(g_gRunPara[RP_PLUSE_NUM]>8))
-    {
-        g_gRunPara[RP_PLUSE_NUM]= 8;
-    }		
-    if(g_gRunPara[RP_CNL_MODEL] == 0)
-        {
-           
-           g_gRunPara[RP_JAG_P] = 0;       //相判据标志
-           g_gRunPara[RP_JAG_Z] = 0;       //零序判据标志
-           delayms(500);
-           g_gRmtInfo[YX_FUN_ON] = 0;
-        }
-        else
-        {
-           
-          // g_gRunPara[RP_JAG_P] = 0x55;       //相判据标志
-          // g_gRunPara[RP_JAG_Z] = 0x55;       //零序判据标志
-           delayms(500);
-           g_gRmtInfo[YX_FUN_ON] = 1;
-        }
-    if((g_gRunPara[RP_SENDSMS_T]<2)||(g_gRunPara[RP_SENDSMS_T]>48))
-    {
-        g_gRunPara[RP_SENDSMS_T]= 24;
-    }
-	if(g_gRunPara[RP_KM_TIME]==0)
-		g_gRunPara[RP_KM_TIME]=100;
+	
 	
     //101的系统参数  
     if (g_ucPara101[IECP_CRC] != AddChar(g_ucPara101, IECP_CRC))       //CRC校验
@@ -1186,12 +1151,12 @@ void CalcProtCnt(void)
 //==============================================================================
 void RstRunPara(void)
 {
-    g_gRunPara[RP_CFG_KEY] = 0x008C;//1000 1100   
+    g_gRunPara[RP_CFG_KEY] = 0x4188;//1000 1100   
     g_gRunPara[RP_BEAT_T] = 0;//默认不传输心跳
     g_gRunPara[RP_SENDYC_T] = 600; 
     g_gRunPara[RP_SENDYX_T] = 600;      //状态汇报上线时间
     //g_gRunPara[RP_STATUSRP_INTERVAL] = 1;  //状态汇报上线间隔（天）
-    g_gRunPara[RP_FLOAD_T] = 15;  ////负荷记录存储时间间隔 分钟
+    g_gRunPara[RP_FLOAD_T] = 0;  ////负荷记录存储时间间隔 分钟
     g_gRunPara[RP_COMM_ADDR] = 1;//通信站地址      站地址默认为1
     g_gRunPara[RP_SYX_INFADDR] = 1;
 #ifdef  CQ_101S
@@ -1201,13 +1166,14 @@ void RstRunPara(void)
 #endif
     g_gRunPara[RP_DYX_INFADDR] = DYX_ADDR;
     g_gRunPara[RP_YCLIMIT] = 1000;//遥测阈值 绝对
+    g_gRunPara[RP_YCCAP] = 50;//遥测阈值 绝对
     g_gRunPara[YC_delay] = 500;//遥测
     //g_gRunPara[RP_PLUSE_MODFK]=3;
     //g_gRunPara[RP_PLUSE_MODFK]=3;
     g_gRunPara[RP_PLUSE_AMODFK]=3;
     g_gRunPara[RP_PLUSE_BMODFK]=3;
     g_gRunPara[RP_PLUSE_CMODFK]=3;	
-    g_gRunPara[RP_PLUSEXH_MODFK] = 5; 
+    g_gRunPara[RP_PLUSEXH_MODFK] = 0; 
     
     g_gRunPara[RP_YXRSD_T] = 600;//10分钟 
     
@@ -1219,7 +1185,7 @@ void RstRunPara(void)
     g_gRunPara[RP_U0_ADJ] = 4096;                //U0校准系数值
     g_gRunPara[RP_I0_ADJ] = 4096;                //I0校准系数值
 //#ifdef YN_101S
-    g_gRunPara[RP_I0_START] = 11000;                //零序电流门槛值
+    g_gRunPara[RP_I0_START] = 12000;                //零序电流门槛值
     g_gRunPara[RP_HIGH_P] = 7000;                //相电压高定值
     g_gRunPara[RP_LOW_P] = 5000;                //相电压低定值
     g_gRunPara[RP_HIGH_Z] = 2500;          //零序电压高定值
@@ -1242,7 +1208,7 @@ void RstRunPara(void)
     g_gRunPara[RP_JAG_P] = 0x55;       //相判据标志
     g_gRunPara[RP_JAG_Z] = 0x55;       //零序判据标志
     g_gRunPara[RP_EFS_MODEL] = 1;       //信号源型号标识
-    g_gRunPara[RP_JAG_ACT] = 3;       //动作相序判据
+    g_gRunPara[RP_JAG_ACT] = 1;       //动作相序判据
 
     g_gRunPara[RP_GPRS_MODEL] = 0;      //GPRS方式定值
     g_gRunPara[RP_REV_CURRENT] = 20;       //翻转电流定值
@@ -1253,17 +1219,17 @@ void RstRunPara(void)
 #ifdef  SD_101S  
     g_gRunPara[RP_LACTH_TIME] = 15; 		//控制方式
 #endif
-    g_gRunPara[RP_PLUSE_TIME] = 20; 		//控制方式
-    g_gRunPara[RP_SEND_TIME1] = 100; 		//控制方式
-    g_gRunPara[RP_SEND_TIME2] = 125; 		//控制方式
+    g_gRunPara[RP_PLUSE_TIME] = 15; 		//控制方式
+    g_gRunPara[RP_SEND_TIME1] = 80; 		//控制方式
+    g_gRunPara[RP_SEND_TIME2] = 100; 		//控制方式
 #ifdef  CQ_101S    
     g_gRunPara[RP_PLUSE_TIME] = 16; 		//控制方式
     g_gRunPara[RP_SEND_TIME1] = 96; 		//控制方式
     g_gRunPara[RP_SEND_TIME2] = 116; 		//控制方式
 #endif	
     g_gRunPara[RP_PLUSE_NUM] = 8; 
-    g_gRunPara[RP_OVERLOAD_I] = 500; 
-    g_gRunPara[RP_OVERLOAD_T] = 200; 
+    g_gRunPara[RP_OVERLOAD_I] = 100; 
+    g_gRunPara[RP_OVERLOAD_T] = 1000; 
     g_gRunPara[RP_YC_INFADDR]=0x4001;//张弢 遥测起始地址修改运行参数	
 #ifdef YN_101S 
     g_gRunPara[RP_YC_INFADDR]=0x4081;//张弢 遥测起始地址修改运行参数		
@@ -1281,8 +1247,8 @@ void RstRunPara(void)
 #else
    g_gRunPara[RP_RHSEND_TIME1] = 0; 
    g_gRunPara[RP_RHPLUSE_TIME2] = 0; 
-   g_gRunPara[RP_RHT_DELAY]=0;//60s
-   g_gRunPara[RP_CT_TRANS]=15;//CT变比 =20    
+   g_gRunPara[RP_RHT_DELAY]=300;//60s
+   g_gRunPara[RP_CT_TRANS]=20;//CT变比 =20    
 #endif
 	g_gRunPara[RP_KM_TIME]=100;
 
