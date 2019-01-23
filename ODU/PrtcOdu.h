@@ -8,6 +8,7 @@ typedef union
 {
 
     VFrame67 Frame67;
+	VFrame66 Frame66;
     //VFrameFF Frameff;
     VFrame69 Frame69;//自定义协议 报文结构与101相同，只是报文头为0x69 for 参数读写
 } VIecOduFrame; 

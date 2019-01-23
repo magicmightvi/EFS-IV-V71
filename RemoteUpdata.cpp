@@ -116,10 +116,10 @@ void Code_Load(unsigned char *pRxBuf,unsigned char *pTXBuff)//传输原因作为单字节
         memcpy(pRXBuff,pRxBuf,6+pRxBuf[1]);
         reason = pRXBuff[9];//传输原因在第10个字节
         tmp = 6;//linkaddr_num;
-        *pTxBuf++ = 0x69;
+        *pTxBuf++ = pRxBuf[0];//0x69;
         *pTxBuf++ = 0;
         *pTxBuf++ = 0;
-        *pTxBuf++ = 0x69;
+        *pTxBuf++ = pRxBuf[0];//0x69;
         pCSPos = pTxBuf;
         *pTxBuf++ = 83;//控制域:子站->主站 数据确认帧
         *pTxBuf++ = LOBYTE(g_gRunPara[RP_COMM_ADDR]);

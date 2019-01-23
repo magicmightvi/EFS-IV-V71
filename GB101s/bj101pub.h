@@ -222,7 +222,8 @@ typedef union
 {
     VFrame10 Frame10;
     VFrame68 Frame68;
-    VFrame69 Frame69;//自定义协议 报文结构与101相同，只是报文头为0x69 for 参数读写 
+    VFrame69 Frame69;//自定义协议 报文结构与101相同，只是报文头为0x69 for 参数读写
+    VFrame66 Frame66;//自定义协议 程序升级
     VFrameAA FrameAA;
     VFrameEB FrameEB;//EB加密帧	
 } VIec101Frame; 

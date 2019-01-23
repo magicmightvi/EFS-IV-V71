@@ -408,6 +408,21 @@ typedef struct
 	BYTE InfoAddr[2];
     BYTE Data[MAX_FRAME_LEN-15];//从文件名开始
 }VFrame69;//69报文的链路地址，传输原因，公共地址和信息体地址长度都为两字节
+typedef struct 
+{
+    BYTE Start1; 
+    BYTE Length1; 
+    BYTE Length2; 
+    BYTE Start2; 
+    BYTE Control; 
+	BYTE LinkAddr[2];
+    BYTE Type;
+    BYTE VSQ;
+    BYTE COT[2];
+	BYTE ConAddr[2];
+	BYTE InfoAddr[2];
+    BYTE Data[MAX_FRAME_LEN-15];//从文件名开始
+}VFrame66;//66报文的链路地址，传输原因，公共地址和信息体地址长度都为两字节
 
 typedef struct 
 {
@@ -424,6 +439,7 @@ typedef struct
 typedef union 
 {
   VFrame69 Frame69;//为扩展才定义此共用体
+  VFrame66 Frame66;//为扩展才定义此共用体
   VFrameAA FrameAA;
 } VParaFrame; 
 
@@ -470,6 +486,7 @@ class CProtocol
 
 		//参数读写部分
 		BOOL RecFrame69(void);
+		BOOL RecFrame66(void);
 		//BOOL RecFrameAA(void);//张弢 0404 短信接收
 		BOOL RecReadFile();
 		BOOL RecWriteFile();

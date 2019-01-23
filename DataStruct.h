@@ -18,10 +18,10 @@ extern "C"
 //	#include "SMS\PrtcSms.h"
      
 // #pragma location=0x0FF00 
- const unsigned char VerNum[]="Ver75.00";
-const unsigned char VerNum_INLCD=75;
+ const unsigned char VerNum[]="Ver76.00";
+const unsigned char VerNum_INLCD=76;
 //const unsigned char g_gEFSVERLen=16;
-const unsigned char g_gEFSVER[]="EFS-IV-V01.75";
+const unsigned char g_gEFSVER[]="EFS-IV-V01.76";
 //"EFS-IV-V0.76.zs";
 //IV型信号源，版本0.76，舟山
 //================================== LOG日志模块 ============================================ 

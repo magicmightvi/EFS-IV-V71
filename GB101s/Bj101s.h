@@ -211,6 +211,7 @@ class CBJ101S : public CPrtcSms//CPSecondary
 		
 		BOOL RecFrame68(void);
 		BOOL RecFrame69(void);
+		BOOL RecFrame66(void);
 		BOOL RecYKCommand(void);
 		BOOL RecYKSet(void);
 

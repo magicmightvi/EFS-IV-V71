@@ -209,6 +209,7 @@ void SaveCfgPara(void)  //在运行过程中，如果某各配置参数发生变化，把配置参数保存
         for(i = 0; i <= PROC_CNT_NUM; i++)
            g_gRunPara[i + RP_UA_ADJ] = g_gProcCnt[i];
 		g_gRunPara[RP_PULSE_VALID] = g_gProcCnt[PC_PULSE_VALID]*g_gRunPara[RP_CT_TRANS]/100;		
+		g_gRunPara[RP_OVERLOAD_I] = g_gProcCnt[PC_OVERLOAD_I]*g_gRunPara[RP_CT_TRANS]/100;
         g_gRunPara[RP_CRC] = CrcCount((unsigned int *)g_gRunPara, RP_CRC);      //计算CRC
         CAT_SpiWriteWords(EEPADD_RP, RUN_PARA_NUM, g_gRunPara); //保存到EEPROM中
         CAT_SpiWriteWords(EEPADDBK_RP, RUN_PARA_NUM, g_gRunPara); //保存到EEPROM中        
@@ -566,9 +567,9 @@ void CheckCfgPara(void)
     {
         g_gRunPara[RP_PLUSE_NUM]= 8;
     }
-	if(g_gRunPara[RP_RHPLUSE_TIME2]==0)
+	if(g_gRunPara[RP_OVERLOAD_T]<(g_gRunPara[RP_PLUSE_TIME]*10))
 		g_gRunPara[RP_OVERLOAD_T]=2*g_gRunPara[RP_PLUSE_TIME]*10;
-	else
+	if(g_gRunPara[RP_OVERLOAD_T]<(g_gRunPara[RP_RHPLUSE_TIME2]*10))
 		g_gRunPara[RP_OVERLOAD_T]=2*g_gRunPara[RP_RHPLUSE_TIME2]*10;
     if(g_gRunPara[RP_CNL_MODEL] == 0)
         {

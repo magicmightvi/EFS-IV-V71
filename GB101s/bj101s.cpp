@@ -289,6 +289,12 @@ void CBJ101S::SetBaseCfg(void)
           RecFrame69();
           continue;
         }
+		if (pReceiveFrame->Frame66.Start1 == 0x66)
+        {
+
+          RecFrame66();
+          continue;
+        }
 	/*	*/
         if (pReceiveFrame->FrameAA.Start[0] == 0xAA)//张弢 0404 短信接收
         {
@@ -668,9 +674,12 @@ BOOL CBJ101S::RecFrame69(void)
     m_acdflag=1;
     m_recfalg=1;
     if(((m_bReceiveControl&0xf)!=4)&&(SwitchToAddress(m_dwasdu.LinkAddr))&&(m_linkflag))//增加链路初始化完成后再响应短帧确认
-    {    
+    {   
+    	if(m_dwasdu.TypeID!=200)//升级程序不要回复
+    		{
         SendAck();
         delayms(200);
+    		}
     } 
 	
 	switch(m_dwasdu.TypeID)
@@ -714,6 +723,31 @@ BOOL CBJ101S::RecFrame69(void)
             break;
     }
     return TRUE;
+}
+BOOL CBJ101S::RecFrame66(void)
+{
+  //pReceiveFrame = (VParaFrame*)m_RecFrame.pBuf;
+	getasdu();
+	m_bReceiveControl = pReceiveFrame->Frame68.Control;
+    m_acdflag=1;
+    m_recfalg=1;
+    if(((m_bReceiveControl&0xf)!=4)&&(SwitchToAddress(m_dwasdu.LinkAddr))&&(m_linkflag))//增加链路初始化完成后再响应短帧确认
+    {    
+        //SendAck();
+        //delayms(200);
+    } 
+	
+	switch(m_dwasdu.TypeID)
+    //switch(pReceiveFrame->Frame69.Type)
+    {
+    	case 200://c8
+              g_Cmid = m_uartId;
+              Code_Load(&pReceiveFrame->Frame66.Start1,m_SendBuf.pBuf);
+              break;
+        default:
+            break;
+    }
+	return TRUE;
 }
 
 
@@ -3466,6 +3500,20 @@ DWORD CBJ101S::SearchOneFrame(BYTE *Buf, WORD Len)
             if (Buf[FrameLen-1] != 0x16)
                 return FRAME_ERR|1;
             if (Buf[FrameLen-2] != (BYTE)ChkSum((BYTE *)&pReceiveFrame->Frame69.Control,pReceiveFrame->Frame69.Length1))
+                return FRAME_ERR|1;
+            return FRAME_OK|FrameLen;
+
+		case 0x66:
+            if (pReceiveFrame->Frame66.Length1 != pReceiveFrame->Frame66.Length2)
+                return FRAME_ERR|1;
+            if (pReceiveFrame->Frame66.Start2 != 0x66)
+                return FRAME_ERR|1;
+            FrameLen=pReceiveFrame->Frame66.Length1+6;
+            if (FrameLen > Len)
+                return FRAME_LESS;
+            if (Buf[FrameLen-1] != 0x16)
+                return FRAME_ERR|1;
+            if (Buf[FrameLen-2] != (BYTE)ChkSum((BYTE *)&pReceiveFrame->Frame66.Control,pReceiveFrame->Frame66.Length1))
                 return FRAME_ERR|1;
             return FRAME_OK|FrameLen;
   
