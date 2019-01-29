@@ -142,9 +142,11 @@ void app(void)@"APPLICATION"
         //if(g_ucGPRSState==GPRSState_IDLE)
 	SaveActRecData();
 	Comm_GPRS_SMS();////张弢0330 如串口在空闲状态，则可以发送SMS
-        
+        FEED_WATCH_DOG();
         if(pDbg != null) pDbg->Run();
+		FEED_WATCH_DOG();
         if(pGprs != null) pGprs->Run();
+		FEED_WATCH_DOG();
         SaveActRecData();
         SaveCfgPara();
 		SaveActRecData();

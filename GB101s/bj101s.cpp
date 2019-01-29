@@ -255,7 +255,7 @@ void CBJ101S::SetBaseCfg(void)
      {
         if (SearchFrame() != TRUE)
         return FALSE;
-  
+  		FEED_WATCH_DOG();
         // 处理接收
         if(m_guiyuepara.mode==1)
         {
